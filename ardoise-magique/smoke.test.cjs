@@ -10,7 +10,7 @@ const alphabet = fs.readFileSync(path.join(__dirname, '../harmonie-alphabet/inde
 assert.deepEqual(lesson.words, ['une rue','le roi','le repas','un arbre','mon frère','un fruit','une voiture','trois']);
 assert.equal(lesson.difficulty, 'normal');
 assert.equal(lesson.displaySeconds, 3);
-for (const feature of ['Marelle-Regular.woff2', 'pointerdown', 'getCoalescedEvents', 'touch-action:none', 'localStorage', 'speechSynthesis', 'guideToggle', 'J’ai fini', 'Maintenir une seconde']) {
+for (const feature of ['Marelle-Regular.woff2', 'pointerdown', 'getCoalescedEvents', 'touch-action:none', 'localStorage', 'speechSynthesis', 'guideToggle', 'J’ai fini', 'Maintenir une seconde', 'scribbleInput', 'scribbleVerify', 'réécris le mot ici']) {
   assert.ok(page.includes(feature), 'missing ' + feature);
 }
 assert.ok(!/if\s*\(\s*letter\s*===?\s*['"]R['"]/.test(page), 'the engine must not branch on the R lesson');
