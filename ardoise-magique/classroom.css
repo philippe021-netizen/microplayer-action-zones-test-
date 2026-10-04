@@ -52,14 +52,10 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
 .teacher-wrap{width:100%;height:min(72%,510px);position:relative;z-index:2;display:flex;align-items:flex-end;justify-content:center;overflow:visible;border-radius:18px}
 .teacher-media{position:relative;width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;overflow:visible}
 .teacher-photo{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block;border-radius:18px;filter:drop-shadow(0 9px 8px #2e33482c);transform-origin:50% 82%;transition:transform .45s ease,filter .45s ease,opacity .2s ease;animation:teacherPhotoBreath 2.8s ease-in-out infinite}
-.teacher-motion-video{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;left:-9999px!important}
-.teacher-motion-canvas{display:none;position:absolute;left:-12%;bottom:-10%;height:124%;width:auto;max-width:none;z-index:24;pointer-events:none;filter:drop-shadow(0 10px 12px #1b243036);transform-origin:38% 86%;transition:transform .38s ease,filter .38s ease}
+.teacher-motion-sprite{display:none;position:absolute;left:-20%;bottom:-11%;height:132%;width:auto;max-width:none;z-index:24;pointer-events:none;object-fit:contain;filter:drop-shadow(0 10px 12px #1b243036);transform-origin:38% 86%}
 #teacherActor.motion-ready .teacher-photo{opacity:0}
-#teacherActor .teacher-motion-canvas.active{display:block}
-#teacherActor.pose-point .teacher-motion-canvas{transform:translateX(42px) scale(1.08);filter:drop-shadow(0 12px 13px #15251f44)}
-#teacherActor.pose-check .teacher-motion-canvas{transform:translate(20px,4px) scale(1.025) rotate(1deg)}
-#teacherActor.pose-cheer .teacher-motion-canvas{animation:teacherCanvasCheer .42s ease-in-out 3}
-@keyframes teacherCanvasCheer{0%,100%{transform:translateX(16px) translateY(0) scale(1)}50%{transform:translateX(16px) translateY(-9px) scale(1.035)}}
+#teacherActor.motion-ready .teacher-motion-sprite{display:block}
+#teacherActor.pose-point .teacher-motion-sprite{transform:translateX(54px) scale(1.1);filter:drop-shadow(0 12px 13px #15251f44)}
 .teacher-wrap.pose-point .teacher-photo{transform:translateY(-2px) scale(1.025) rotate(-1deg);filter:drop-shadow(0 10px 10px #2e334836) saturate(1.04)}
 .teacher-wrap.pose-check .teacher-photo{transform:translateY(3px) scale(1.035) rotate(1deg);filter:drop-shadow(0 10px 10px #2e334836) brightness(.98)}
 .teacher-wrap.pose-cheer .teacher-photo{animation:teacherPhotoCheer .42s ease-in-out 3}
@@ -122,7 +118,7 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
 #game .teacher-zone{pointer-events:none}
 #game .teacher-speech{pointer-events:auto}
 @media(max-width:760px){
-  #teacherActor .teacher-motion-canvas{height:112%;left:-18%;bottom:-5%}
-  #teacherActor.pose-point .teacher-motion-canvas{transform:translateX(24px) scale(1.04)}
+  #teacherActor .teacher-motion-sprite{height:118%;left:-24%;bottom:-5%}
+  #teacherActor.pose-point .teacher-motion-sprite{transform:translateX(30px) scale(1.05)}
   .classroom.teacher-pointing .board-prompt{left:-6%}
 }
