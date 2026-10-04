@@ -13,9 +13,9 @@ assert.equal(lesson.displaySeconds, 3);
 for (const feature of ['Marelle-Regular.woff2', 'pointerdown', 'getCoalescedEvents', 'touch-action:none', 'localStorage', 'speechSynthesis', 'guideToggle', 'J’ai fini', 'Maintenir une seconde']) {
   assert.ok(page.includes(feature), 'missing ' + feature);
 }
-assert.ok(!/if\\s*\\(\\s*letter\\s*===?\\s*['"]R['"]/.test(page), 'the engine must not branch on the R lesson');
+assert.ok(!/if\s*\(\s*letter\s*===?\s*['"]R['"]/.test(page), 'the engine must not branch on the R lesson');
 assert.ok(alphabet.includes('../ardoise-magique/index.html'), 'the alphabet game links to the new game');
-const scripts = [...page.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)];
+const scripts = [...page.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 assert.ok(scripts.length, 'game script exists');
 new vm.Script(scripts.at(-1)[1]);
 console.log('Harmonie slate smoke checks passed.');
