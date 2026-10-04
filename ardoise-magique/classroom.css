@@ -50,25 +50,13 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
 .teacher-zone:after{content:"";position:absolute;right:10px;top:11px;width:62px;height:34px;border:5px solid #9a754d;background:#f5f1df;box-shadow:0 2px 8px #0002}
 .teacher-speech{position:absolute;z-index:6;left:8px;right:8px;top:10px;background:#fff;border:2px solid #d6d2e8;border-radius:18px;padding:10px 11px;font-weight:800;line-height:1.25;box-shadow:0 5px 18px #2734451e;min-height:58px}
 .teacher-speech:after{content:"";position:absolute;left:35%;bottom:-11px;border:11px solid transparent;border-top-color:#fff;border-bottom:0}
-.teacher-wrap{width:100%;height:min(72%,510px);position:relative;z-index:2;display:flex;align-items:flex-end;justify-content:center}
-.teacher{width:min(100%,230px);height:100%;overflow:visible;filter:drop-shadow(0 9px 8px #2e33482c)}
-.teacher .body{transform-origin:50% 75%;animation:teacherBreath 2.8s ease-in-out infinite}
-.teacher .head{transform-origin:50% 70%;animation:teacherLook 6s ease-in-out infinite}
-.teacher .eyes{transform-origin:center;animation:teacherBlink 4.7s infinite}
-.teacher .point-arm{transform-origin:86px 119px;transition:transform .55s cubic-bezier(.2,.8,.2,1)}
-.teacher .ruler{transform-origin:101px 133px;transition:transform .55s cubic-bezier(.2,.8,.2,1)}
-.teacher-wrap.pose-point .point-arm{transform:rotate(-44deg)}
-.teacher-wrap.pose-point .ruler{transform:rotate(-44deg)}
-.teacher-wrap.pose-check .point-arm{transform:rotate(18deg)}
-.teacher-wrap.pose-check .ruler{transform:rotate(15deg)}
-.teacher-wrap.pose-check .head{animation:teacherInspect .7s ease-in-out infinite alternate}
-.teacher-wrap.pose-cheer .body{animation:teacherJump .42s ease-in-out 3}
-.teacher-wrap.pose-cheer .point-arm{transform:rotate(-68deg)}
-@keyframes teacherBreath{50%{transform:translateY(-2px)}}
-@keyframes teacherLook{0%,70%,100%{transform:rotate(0)}80%{transform:rotate(-3deg)}90%{transform:rotate(3deg)}}
-@keyframes teacherInspect{to{transform:translate(4px,3px) rotate(5deg)}}
-@keyframes teacherBlink{0%,46%,49%,100%{transform:scaleY(1)}47%,48%{transform:scaleY(.08)}}
-@keyframes teacherJump{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.teacher-wrap{width:100%;height:min(72%,510px);position:relative;z-index:2;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;border-radius:18px}
+.teacher-photo{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block;border-radius:18px;filter:drop-shadow(0 9px 8px #2e33482c);transform-origin:50% 82%;transition:transform .45s ease,filter .45s ease;animation:teacherPhotoBreath 2.8s ease-in-out infinite}
+.teacher-wrap.pose-point .teacher-photo{transform:translateY(-2px) scale(1.025) rotate(-1deg);filter:drop-shadow(0 10px 10px #2e334836) saturate(1.04)}
+.teacher-wrap.pose-check .teacher-photo{transform:translateY(3px) scale(1.035) rotate(1deg);filter:drop-shadow(0 10px 10px #2e334836) brightness(.98)}
+.teacher-wrap.pose-cheer .teacher-photo{animation:teacherPhotoCheer .42s ease-in-out 3}
+@keyframes teacherPhotoBreath{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.008)}}
+@keyframes teacherPhotoCheer{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-10px) scale(1.035)}}
 .board-shell{position:relative;min-height:0;background:linear-gradient(90deg,var(--wood2),var(--wood),var(--wood2));border-radius:22px;padding:13px;box-shadow:0 10px 35px #21324529}
 .board{position:relative;height:100%;min-height:0;background:
   radial-gradient(circle at 20% 10%,#ffffff08 0 1px,transparent 2px),
