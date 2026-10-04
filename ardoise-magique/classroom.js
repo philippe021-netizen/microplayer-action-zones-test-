@@ -305,7 +305,24 @@ function prepareRound(){
   resizeCanvas();
 }
 
-function beginTeaching(){
+async function beginTeaching(){
+  const startButton=$('startRound');
+  const animationReady=window.HARMONIE_TEACHER_POINT_HD_READY;
+  if(animationReady&&!window.HARMONIE_TEACHER_POINT){
+    startButton.disabled=true;
+    startButton.textContent='Je prépare le tableau…';
+    try{
+      await animationReady;
+      if(!window.HARMONIE_TEACHER_POINT)throw window.HARMONIE_TEACHER_POINT_ERROR||new Error('Animation maîtresse indisponible');
+    }catch(error){
+      sayTeacher('La maîtresse ne peut pas venir au tableau. Rechargeons la classe.');
+      $('feedback').textContent='L’animation ne s’est pas chargée. Vérifie la connexion puis recharge la page.';
+      return;
+    }finally{
+      startButton.disabled=false;
+      startButton.textContent='Je suis prête ✨';
+    }
+  }
   const item=currentItem();
   $('roundControls').classList.add('hidden');
   setTeacherPose('point');
