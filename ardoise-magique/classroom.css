@@ -52,10 +52,36 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
 .teacher-wrap{width:100%;height:min(72%,510px);position:relative;z-index:2;display:flex;align-items:flex-end;justify-content:center;overflow:visible;border-radius:18px}
 .teacher-media{position:relative;width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;overflow:visible}
 .teacher-photo{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block;border-radius:18px;filter:drop-shadow(0 9px 8px #2e33482c);transform-origin:50% 82%;transition:transform .45s ease,filter .45s ease,opacity .2s ease;animation:teacherPhotoBreath 2.8s ease-in-out infinite}
-.teacher-motion-sprite{display:none;position:absolute;left:-20%;bottom:-11%;height:132%;width:auto;max-width:none;z-index:24;pointer-events:none;object-fit:contain;filter:drop-shadow(0 10px 12px #1b243036);transform-origin:38% 86%}
+.teacher-motion-sprite{
+  display:none;
+  position:absolute;
+  left:-20%;
+  bottom:-11%;
+  height:132%;
+  aspect-ratio:1/1;
+  width:auto;
+  z-index:24;
+  pointer-events:none;
+  background-image:url("./assets/teacher-point-sprite12.webp");
+  background-repeat:no-repeat;
+  background-size:800% 100%;
+  background-position:0 0;
+  filter:drop-shadow(0 10px 12px #1b243036);
+  transform-origin:38% 86%
+}
 #teacherActor.motion-ready .teacher-photo{opacity:0}
 #teacherActor.motion-ready .teacher-motion-sprite{display:block}
-#teacherActor.pose-point .teacher-motion-sprite{transform:translateX(54px) scale(1.1);filter:drop-shadow(0 12px 13px #15251f44)}
+#teacherActor.pose-point .teacher-motion-sprite{
+  transform:translateX(54px) scale(1.1);
+  filter:drop-shadow(0 12px 13px #15251f44)
+}
+#teacherActor.motion-ready .teacher-motion-sprite.playing{
+  animation:teacherPointFrames 4.1s steps(7,end) forwards
+}
+@keyframes teacherPointFrames{
+  from{background-position:0 0}
+  to{background-position:100% 0}
+}
 .teacher-wrap.pose-point .teacher-photo{transform:translateY(-2px) scale(1.025) rotate(-1deg);filter:drop-shadow(0 10px 10px #2e334836) saturate(1.04)}
 .teacher-wrap.pose-check .teacher-photo{transform:translateY(3px) scale(1.035) rotate(1deg);filter:drop-shadow(0 10px 10px #2e334836) brightness(.98)}
 .teacher-wrap.pose-cheer .teacher-photo{animation:teacherPhotoCheer .42s ease-in-out 3}
