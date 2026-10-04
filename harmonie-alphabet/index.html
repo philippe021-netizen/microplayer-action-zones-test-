@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Le défi alphabet d'Harmonie</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#24324a}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(180deg,#fff8e8,#eef8ff);display:flex;align-items:center;justify-content:center;padding:18px}
+.app{width:min(820px,100%);background:#fff;border-radius:28px;box-shadow:0 18px 50px #0002;padding:22px;position:relative;overflow:hidden}
+header{display:flex;gap:14px;align-items:center}
+.mascot{font-size:58px;display:inline-block;animation:float 2.2s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-6px) rotate(3deg)}}
+h1{font-size:clamp(25px,5vw,42px);margin:0}
+.sub{font-size:18px;margin:4px 0 0;color:#63708a}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:18px 0}
+.pill{background:#f3f6fb;border-radius:999px;padding:10px 14px;font-weight:700}
+.progress{height:14px;background:#e9eef7;border-radius:99px;overflow:hidden;flex:1;min-width:120px}
+.bar{height:100%;width:10%;background:linear-gradient(90deg,#ffb44d,#7ddf9b);transition:.3s}
+.card{background:#f8fbff;border:2px solid #e5edf8;border-radius:22px;padding:20px}
+.instruction{text-align:center;font-size:21px;font-weight:700;margin:0 0 16px}
+.words{display:grid;gap:12px}
+.word{display:grid;grid-template-columns:1fr 110px;gap:12px;align-items:center;background:#fff;border:2px solid #e7edf6;border-radius:18px;padding:13px 16px;font-size:27px;font-weight:800}
+select{width:100%;font-size:26px;font-weight:800;padding:8px;border-radius:12px;border:2px solid #b8c7da;background:white;text-align:center}
+button{border:0;border-radius:16px;padding:14px 18px;font-size:20px;font-weight:800;cursor:pointer}
+#check{width:100%;margin-top:16px;background:#4b82f0;color:white}
+#next{width:100%;margin-top:12px;background:#35b874;color:white;display:none}
+#restart{background:#4b82f0;color:#fff}
+.message{min-height:58px;text-align:center;font-size:21px;font-weight:800;padding-top:14px}
+.hint{font-size:16px;font-weight:600;color:#6f7890;margin-top:5px}
+.stars{text-align:center;font-size:28px;letter-spacing:4px;min-height:38px}
+.final{text-align:center;padding:18px 8px;display:none}
+.final .big{font-size:72px}
+.final h2{font-size:34px;margin:8px}
+.final p{font-size:21px;line-height:1.45}
+.gift{display:inline-block;margin:10px 0;padding:14px 18px;border-radius:18px;background:#fff1b8;font-size:24px;font-weight:900}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;top:-20px;font-style:normal;animation:fall 1.7s linear forwards}
+@keyframes fall{to{transform:translateY(820px) rotate(500deg);opacity:.2}}
+.small{font-size:14px;color:#7a859c;text-align:center;margin-top:12px}
+@media(max-width:520px){.app{padding:16px;border-radius:22px}.word{font-size:24px;grid-template-columns:1fr 92px;padding:11px}.mascot{font-size:48px}.instruction{font-size:19px}}
+</style>
+</head>
+<body>
+<main class="app">
+<div id="confetti" class="confetti"></div>
+<header>
+  <div id="mascot" class="mascot">🐼</div>
+  <div>
+    <h1>Le défi alphabet d’Harmonie</h1>
+    <p class="sub">Avec Paco le panda 🐾</p>
+  </div>
+</header>
+
+<section id="game">
+  <div class="top">
+    <div class="pill" id="round">Défi 1 / 10</div>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="score">⭐ 0</div>
+  </div>
+
+  <div class="card">
+    <p class="instruction">Mets <b>1</b> devant le premier mot, puis <b>2</b>, <b>3</b>… dans l’ordre alphabétique.</p>
+    <div class="words" id="words"></div>
+    <button id="check">Je vérifie ✨</button>
+    <button id="next">Défi suivant ➜</button>
+    <div id="message" class="message">Regarde bien les deux premières lettres 👀</div>
+    <div id="stars" class="stars"></div>
+  </div>
+  <div class="small">Un point si la réponse est juste du premier coup. Si tu te trompes, tu peux corriger pour apprendre.</div>
+</section>
+
+<section id="final" class="final">
+  <div class="big" id="finalEmoji">🏆</div>
+  <h2 id="finalTitle">Bravo Harmonie !</h2>
+  <p id="finalText"></p>
+  <div id="gift" class="gift"></div><br>
+  <button id="restart">Rejouer 🔁</button>
+</section>
+</main>
+
+<script>
+const rounds = [
+  ["bateau","bebe","bille"],
+  ["cadeau","cerise","cinema"],
+  ["dame","dessin","domino"],
+  ["farine","fenetre","fille","foret"],
+  ["gare","genou","gilet","gomme"],
+  ["lapin","lego","livre","loup"],
+  ["maman","melon","minute","moto"],
+  ["panda","peluche","pirate","poule"],
+  ["salade","seau","singe","soleil"],
+  ["tapis","tenue","tigre","tomate"]
+];
+const pretty = {
+  bebe:"bébé", cinema:"cinéma", fenetre:"fenêtre", foret:"forêt"
+};
+let index=0, score=0, firstTry=true, validated=false;
+
+function shuffle(a){
+  const b=[...a];
+  for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}
+  return b;
+}
+function clean(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
+function correctOrder(words){return [...words].sort((a,b)=>clean(a).localeCompare(clean(b),"fr"))}
+
+function render(){
+  validated=false; firstTry=true;
+  document.getElementById("round").textContent="Défi "+(index+1)+" / 10";
+  document.getElementById("score").textContent="⭐ "+score;
+  document.getElementById("bar").style.width=((index+1)*10)+"%";
+  document.getElementById("message").innerHTML="Regarde bien les <b>deux premières lettres</b> 👀";
+  document.getElementById("next").style.display="none";
+  document.getElementById("check").style.display="block";
+  const list=shuffle(rounds[index]);
+  const box=document.getElementById("words"); box.innerHTML="";
+  list.forEach(w=>{
+    const row=document.createElement("div"); row.className="word"; row.dataset.word=w;
+    const label=document.createElement("div"); label.textContent=pretty[w]||w;
+    const sel=document.createElement("select"); sel.setAttribute("aria-label","Numéro pour "+(pretty[w]||w));
+    sel.innerHTML='<option value="">—</option>'+list.map((_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join("");
+    row.append(label,sel); box.appendChild(row);
+  });
+  updateStars();
+}
+function updateStars(){document.getElementById("stars").textContent="⭐".repeat(score)+"☆".repeat(10-score)}
+
+function valuesValid(rows){
+  const vals=rows.map(r=>Number(r.querySelector("select").value));
+  return vals.every(Boolean) && new Set(vals).size===rows.length;
+}
+function check(){
+  if(validated)return;
+  const rows=[...document.querySelectorAll(".word")];
+  if(!valuesValid(rows)){
+    say("Choisis un numéro différent pour chaque mot 😊",false);
+    beep(false); return;
+  }
+  const ordered=[...rows].sort((a,b)=>Number(a.querySelector("select").value)-Number(b.querySelector("select").value)).map(r=>r.dataset.word);
+  const right=correctOrder(rounds[index]);
+  const ok=ordered.every((w,i)=>w===right[i]);
+  if(ok){
+    validated=true;
+    if(firstTry){score++; confetti(); say("Bravo Harmonie ! +1 point 🌟",true);}
+    else{say("Oui ! Tu as corrigé toute seule 💪",true);}
+    chime(); updateStars(); document.getElementById("score").textContent="⭐ "+score;
+    document.getElementById("check").style.display="none";
+    document.getElementById("next").style.display="block";
+  } else {
+    firstTry=false;
+    say("Presque ! Regarde les deux premières lettres et corrige 🐼",false);
+    beep(false);
+  }
+}
+function next(){
+  if(index<9){index++;render()} else finish();
+}
+function finish(){
+  document.getElementById("game").style.display="none";
+  document.getElementById("final").style.display="block";
+  const win=score>=7;
+  document.getElementById("finalEmoji").textContent=win?"🎁":"🐼";
+  document.getElementById("finalTitle").textContent=win?"Super Harmonie !":"Bien joué Harmonie !";
+  document.getElementById("finalText").innerHTML="Ton score est de <b>"+score+" / 10</b>.<br>"+(win?"Tu as réussi le défi du dimanche !":"Tu as bien travaillé. On rejoue une fois pour essayer de gagner encore plus d’étoiles ?");
+  document.getElementById("gift").textContent=win?"🎉 Cadeau du dimanche débloqué !":"Encore un petit effort pour débloquer le cadeau 💛";
+  if(win){bigChime(); for(let i=0;i<4;i++)setTimeout(confetti,i*300)}
+}
+function say(t,good){
+  const m=document.getElementById("message"); m.innerHTML=t;
+  document.getElementById("mascot").textContent=good?"🐼✨":"🐼";
+}
+function audio(){
+  const C=window.AudioContext||window.webkitAudioContext; return new C();
+}
+function tone(ctx,f,t,d=.12){
+  const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination);
+  o.frequency.value=f;g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+d);
+  o.start(t);o.stop(t+d);
+}
+function chime(){try{const c=audio(),t=c.currentTime;tone(c,523,t);tone(c,659,t+.12);tone(c,784,t+.24)}catch(e){}}
+function bigChime(){try{const c=audio(),t=c.currentTime;[523,659,784,1047].forEach((f,i)=>tone(c,f,t+i*.13,.25))}catch(e){}}
+function beep(){try{const c=audio(),t=c.currentTime;tone(c,300,t,.16);tone(c,240,t+.15,.18)}catch(e){}}
+function confetti(){
+  const c=document.getElementById("confetti");
+  const icons=["⭐","🎈","✨","🌸","💛"];
+  for(let i=0;i<18;i++){
+    const e=document.createElement("i");e.textContent=icons[Math.floor(Math.random()*icons.length)];
+    e.style.left=(Math.random()*100)+"%";e.style.fontSize=(16+Math.random()*20)+"px";e.style.animationDelay=(Math.random()*.35)+"s";
+    c.appendChild(e);setTimeout(()=>e.remove(),2200);
+  }
+}
+document.getElementById("check").onclick=check;
+document.getElementById("next").onclick=next;
+document.getElementById("restart").onclick=()=>{index=0;score=0;document.getElementById("final").style.display="none";document.getElementById("game").style.display="block";render()};
+render();
+</script>
+</body>
+</html>
