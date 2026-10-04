@@ -129,6 +129,12 @@ function mountTeachers(){
     host.innerHTML='';
     host.append(tpl.content.cloneNode(true));
   });
+
+  // Dans le jeu, la maîtresse est un vrai calque de premier plan :
+  // elle ne prend plus de place dans la grille et peut passer devant le tableau.
+  const actor=$('teacherActor');
+  const room=document.querySelector('#game .classroom');
+  if(actor&&room&&actor.parentElement!==room)room.appendChild(actor);
 }
 
 function setupTeacherMotion(){
