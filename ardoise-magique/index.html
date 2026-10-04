@@ -150,7 +150,7 @@ function renderRound(){
  $('roundNo').textContent='Mot '+(wordIndex+1)+'/'+current.words.length;$('progressBar').style.width=(wordIndex/current.words.length*100)+'%';$('starCount').textContent='⭐ '+stars;
  $('phaseLabel').textContent='Regarde bien le mot…';$('showWord').textContent=word;$('showWord').classList.remove('hidden');$('countdown').textContent='';
  $('writeWrap').classList.remove('show');$('compare').classList.remove('show');$('writeTools').classList.remove('show');$('compareControls').classList.add('hidden');$('roundControls').classList.remove('hidden');
- $('startRound').textContent='On y va ! ✨';$('gameMessage').textContent='';$('guide').classList.remove('hidden');$('trace').classList.remove('on','dotted');$('hintText').classList.remove('on');
+ $('startRound').classList.remove('hidden');$('retry').classList.remove('hidden');$('selfSuccess').classList.remove('hidden');$('nextWord').classList.add('hidden');$('startRound').textContent='On y va ! ✨';$('gameMessage').textContent='';$('guide').classList.remove('hidden');$('trace').classList.remove('on','dotted');$('hintText').classList.remove('on');
  resizeCanvas();$('startRound').onclick=showModel;
 }
 function showModel(){
@@ -189,7 +189,7 @@ $('retry').onclick=()=>{tries++;const m=metric(current.words[wordIndex]);m.retri
 $('selfSuccess').onclick=()=>{
  const word=current.words[wordIndex],m=metric(word);m.successes++;m.streak=Math.max(0,m.streak||0)+1;m.last=new Date().toISOString();
  const earned=hints===0&&tries===0?3:hints<3?2:1;stars+=earned;$('starCount').textContent='⭐ '+stars;
- $('gameMessage').textContent='Bravo ! '+('⭐'.repeat(earned))+' La licorne est fière de toi !';say(pick(STRINGS.SUCCESS));chime();confetti();
+ $('gameMessage').textContent='Bravo ! '+('⭐'.repeat(earned))+' La licorne est fière de toi !';say(pick(current.customPhrases?.length?current.customPhrases:STRINGS.SUCCESS));chime();confetti();
  $('retry').classList.add('hidden');$('selfSuccess').classList.add('hidden');$('nextWord').classList.remove('hidden');saveProgress();
 };
 $('nextWord').onclick=()=>{wordIndex++;if(wordIndex>=current.words.length){finishLesson();return}renderRound();say('Mot suivant !')};
