@@ -254,3 +254,68 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
 }
 #game .board-shell{z-index:5!important}
 #game .teacher-speech{z-index:100!important}
+
+
+/* === 2026-10-04 : VRAIE ANIMATION WEBP — plus de sprite/canvas === */
+.teacher-motion-sprite,
+.teacher-motion-canvas{display:none!important}
+
+.teacher-motion-anim{
+  position:absolute;
+  left:0;
+  bottom:0;
+  height:100%;
+  width:auto;
+  max-width:none;
+  object-fit:contain;
+  object-position:left bottom;
+  z-index:90;
+  pointer-events:none;
+  opacity:0;
+  visibility:hidden;
+  filter:drop-shadow(0 12px 14px #15251f44);
+  transition:opacity .10s linear;
+  transform:translateZ(0);
+  -webkit-transform:translateZ(0);
+}
+
+#game #teacherActor .teacher-photo{
+  display:block!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transition:opacity .10s linear;
+}
+
+#game #teacherActor.motion-ready:not(.motion-loaded) .teacher-photo{
+  opacity:1!important;
+}
+
+#game #teacherActor.motion-ready.motion-loaded .teacher-photo{
+  opacity:0!important;
+}
+
+#game #teacherActor.motion-ready.motion-loaded .teacher-motion-anim{
+  opacity:1!important;
+  visibility:visible!important;
+}
+
+#game #teacherActor{
+  z-index:90!important;
+  width:39%;
+  height:92%;
+  left:-2%;
+  bottom:-1%;
+}
+
+#game #teacherActor .teacher-media{
+  overflow:visible!important;
+}
+
+#game .board-shell{z-index:5!important}
+#game .teacher-speech{z-index:110!important}
+#game .classroom.teacher-pointing .board-prompt{left:15%!important}
+
+@media (max-width:760px){
+  #game #teacherActor{width:43%;height:88%;left:-3%}
+  #game .classroom.teacher-pointing .board-prompt{left:12%!important}
+}
