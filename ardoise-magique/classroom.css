@@ -148,3 +148,77 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
   #teacherActor.pose-point .teacher-motion-sprite{transform:translateX(30px) scale(1.05)}
   .classroom.teacher-pointing .board-prompt{left:-6%}
 }
+
+
+/* === MAÎTRESSE EN SURIMPRESSION PREMIER PLAN === */
+#game .classroom{position:relative;isolation:isolate}
+#game .teacher-zone{position:static;z-index:auto}
+#game #teacherActor{
+  position:absolute;
+  left:-1.5%;
+  bottom:-1%;
+  width:36%;
+  height:92%;
+  z-index:50;
+  margin:0;
+  overflow:visible;
+  pointer-events:none;
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-start;
+  border-radius:0;
+}
+#game #teacherActor .teacher-media{
+  position:relative;
+  width:100%;
+  height:100%;
+  overflow:visible;
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-start;
+}
+#game #teacherActor .teacher-photo{
+  width:auto;
+  max-width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:left bottom;
+  border-radius:0;
+}
+#game #teacherActor .teacher-motion-sprite{
+  left:0;
+  bottom:0;
+  height:100%;
+  width:auto;
+  aspect-ratio:1/1;
+  z-index:55;
+  transform-origin:28% 88%;
+}
+#game #teacherActor.pose-point .teacher-motion-sprite{
+  transform:translateX(2%) scale(1.04);
+}
+#game .board-shell{position:relative;z-index:5}
+#game .teacher-speech{
+  z-index:70;
+  left:8px;
+  width:min(250px,20vw);
+  right:auto;
+  top:10px;
+}
+#game .classroom.teacher-pointing .board-prompt{
+  left:12%;
+}
+
+/* iPad paysage : plein pied, sans masquer la zone d’écriture */
+@media (min-width:761px) and (orientation:landscape){
+  #game #teacherActor{width:34%;height:90%;left:-1%;bottom:-1%}
+  #game .classroom.teacher-pointing .board-prompt{left:14%}
+}
+
+/* Tablettes plus étroites / portrait */
+@media (max-width:760px){
+  #game #teacherActor{width:40%;height:86%;left:-3%;bottom:-1%}
+  #game #teacherActor .teacher-motion-sprite{height:100%;left:0;bottom:0}
+  #game .classroom.teacher-pointing .board-prompt{left:10%}
+  #game .teacher-speech{width:118px;left:4px;top:6px}
+}
