@@ -222,3 +222,35 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
   #game .classroom.teacher-pointing .board-prompt{left:10%}
   #game .teacher-speech{width:118px;left:4px;top:6px}
 }
+
+
+/* === Correctif iPad : séquence vidéo dessinée frame par frame === */
+.teacher-motion-sprite{display:none!important}
+#game #teacherActor .teacher-photo{display:none!important}
+#game #teacherActor .teacher-motion-canvas{
+  position:absolute;
+  display:block;
+  left:0;
+  bottom:0;
+  height:100%;
+  width:auto;
+  aspect-ratio:2/3;
+  z-index:80;
+  pointer-events:none;
+  object-fit:contain;
+  filter:drop-shadow(0 10px 12px #17231f38);
+  transform:translateZ(0);
+  -webkit-transform:translateZ(0);
+}
+#game #teacherActor .teacher-motion-canvas[hidden]{display:none!important}
+#game #teacherActor.motion-mounted{opacity:1!important;visibility:visible!important}
+#game #teacherActor.motion-active .teacher-motion-canvas{
+  filter:drop-shadow(0 12px 14px #15251f44);
+}
+#game #teacherActor{
+  z-index:80!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+#game .board-shell{z-index:5!important}
+#game .teacher-speech{z-index:100!important}
