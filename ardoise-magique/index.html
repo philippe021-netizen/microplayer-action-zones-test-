@@ -210,10 +210,11 @@ function canvasForRecognition(){
 }
 function loadRecognitionLibrary(){if(window.Tesseract)return Promise.resolve(window.Tesseract);if(recognitionLoad)return recognitionLoad;recognitionLoad=new Promise((resolve,reject)=>{const script=document.createElement('script');script.async=true;let fallback=false;script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(Error('Moteur OCR indisponible'));script.onerror=()=>{if(fallback){reject(Error('Moteur OCR indisponible'));return}fallback=true;script.src='https://unpkg.com/tesseract.js@6.0.1/dist/tesseract.min.js'};script.src='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';document.head.append(script)});return recognitionLoad}
 async function recognizeWriting(){
- const result=$('recognitionResult'),image=canvasForRecognition();if(!image){result.textContent='Je ne vois pas encore de tracé. Tu peux écrire un peu, puis réessayer.';say('Ton ardoise est encore vide. Tu peux écrire un peu, puis réessayer.');return}
- result.textContent='La licorne essaie de lire ton écriture…';
- try{const api=await loadRecognitionLibrary();recognitionWorker ||= await api.createWorker('fra');await recognitionWorker.setParameters({tessedit_pageseg_mode:'7'});const resultOcr=await recognitionWorker.recognize(image);const decision=recognitionFeedback(current.words[wordIndex],resultOcr.data.text,resultOcr.data.confidence);result.textContent=decision.message;say(decision.status==='match'?'Ça ressemble au modèle ! Bravo pour tes efforts !':decision.status==='check'?'Regarde le modèle, on vérifie ensemble.':'Je ne suis pas sûre d’avoir bien lu. Regarde le modèle tranquillement.')}
- catch(e){result.textContent='Je ne suis pas sûre d’avoir bien lu. Regarde le modèle tranquillement.';say('Je ne suis pas sûre d’avoir bien lu. Regarde le modèle tranquillement.')}
+ const result=$('recognitionResult');
+ // Canvas ink is not printed text. Generic OCR regularly invents words on
+ // children's cursive, so never expose its guesses or label them as errors.
+ result.textContent='Je ne peux pas encore lire les traits avec assez de certitude. Compare tranquillement avec le modèle.';
+ say('Regarde ton écriture à côté du modèle. On vérifie ensemble.');
 }
 $('done').onclick=()=>{
  clearTimeout(timer);if(activeStroke?.length>1)strokes.push(activeStroke);activeStroke=null;if(writingMode==='finger')resizeCanvas();
