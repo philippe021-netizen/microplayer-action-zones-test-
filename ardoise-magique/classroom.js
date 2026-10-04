@@ -4,10 +4,7 @@ const STORAGE_KEY='harmonie-classe-v2';
 const LEGACY_KEY='harmonie-ardoise-v1';
 const DISPLAY_SECONDS={easy:5,normal:3,champion:2};
 const REVIEW_DAYS=[0,1,3,7,14,30];
-const TEACHER_MOTION_START=.45;
-const TEACHER_MOTION_END=4.85;
-let teacherMotionRAF=0;
-let teacherMotionLastPaint=0;
+const TEACHER_SPRITE='./assets/teacher-point-sprite12.webp';
 
 const $=id=>document.getElementById(id);
 const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -138,125 +135,34 @@ function mountTeachers(){
 function setupTeacherMotion(){
   const actor=$('teacherActor');
   if(!actor)return;
-  const video=actor.querySelector('.teacher-motion-video');
-  if(!video)return;
-  video.muted=true;
-  video.playsInline=true;
-  video.preload='auto';
-  const ready=()=>showTeacherIdleFrame();
-  if(video.readyState>=2)ready();
-  else video.addEventListener('loadeddata',ready,{once:true});
-  video.load();
+  const sprite=actor.querySelector('.teacher-motion-sprite');
+  if(sprite){
+    sprite.decoding='async';
+    sprite.loading='eager';
+  }
 }
 
-function showTeacherIdleFrame(){
+function restartTeacherSprite(){
   const actor=$('teacherActor');
   if(!actor)return;
-  const video=actor.querySelector('.teacher-motion-video');
-  const canvas=actor.querySelector('.teacher-motion-canvas');
-  if(!video||!canvas||video.readyState<2)return;
-
-  actor.classList.add('motion-ready');
-  canvas.classList.add('active');
-  const paint=()=>keyTeacherFrame(actor);
-  if(Math.abs(video.currentTime-TEACHER_MOTION_START)<.04)paint();
-  else{
-    video.addEventListener('seeked',paint,{once:true});
-    try{video.currentTime=TEACHER_MOTION_START}catch{paint()}
-  }
-}
-
-function keyTeacherFrame(actor){
-  const video=actor?.querySelector('.teacher-motion-video');
-  const canvas=actor?.querySelector('.teacher-motion-canvas');
-  if(!video||!canvas||video.readyState<2)return false;
-
-  const ctx=canvas.getContext('2d',{willReadFrequently:true});
-  const w=canvas.width,h=canvas.height;
-  ctx.clearRect(0,0,w,h);
-  ctx.drawImage(video,0,0,w,h);
-
-  const frame=ctx.getImageData(0,0,w,h);
-  const d=frame.data;
-  for(let i=0;i<d.length;i+=4){
-    const px=(i>>2)%w;
-    const py=Math.floor((i>>2)/w);
-    const r=d[i],g=d[i+1],b=d[i+2];
-    const hi=Math.max(r,g,b),lo=Math.min(r,g,b);
-    const maxRB=Math.max(r,b);
-    const greenDominance=g-maxRB;
-
-    // Le fond vert PixVerse devient réellement transparent.
-    if(g>68&&greenDominance>18&&g>r*1.06&&g>b*1.06){
-      let alpha=255;
-      if(greenDominance>=64)alpha=0;
-      else alpha=Math.round(255*(64-greenDominance)/46);
-      d[i+3]=Math.min(d[i+3],Math.max(0,alpha));
-      if(d[i+3]>0)d[i+1]=Math.min(g,Math.round(maxRB*1.08));
-    }
-
-    // Masque uniquement les pixels clairs du filigrane PixVerse en haut à droite.
-    if(px>w*.72&&py<h*.13&&lo>168&&(hi-lo)<45){
-      d[i+3]=0;
-    }
-  }
-  ctx.putImageData(frame,0,0);
-  return true;
-}
-
-function teacherMotionLoop(actor,now=performance.now()){
-  if(!actor?.classList.contains('pose-point'))return;
-  const video=actor.querySelector('.teacher-motion-video');
-  if(!video)return;
-
-  if(now-teacherMotionLastPaint>32){
-    keyTeacherFrame(actor);
-    teacherMotionLastPaint=now;
-  }
-
-  if(video.currentTime>=TEACHER_MOTION_END||video.ended){
-    video.pause();
-    keyTeacherFrame(actor);
-    return;
-  }
-  teacherMotionRAF=requestAnimationFrame(t=>teacherMotionLoop(actor,t));
+  const old=actor.querySelector('.teacher-motion-sprite');
+  if(!old)return;
+  const fresh=old.cloneNode(false);
+  fresh.src=TEACHER_SPRITE+'?play='+(Date.now());
+  old.replaceWith(fresh);
 }
 
 function startTeacherPointMotion(){
   const actor=$('teacherActor');
   if(!actor)return;
-  const video=actor.querySelector('.teacher-motion-video');
-  const canvas=actor.querySelector('.teacher-motion-canvas');
-  if(!video||!canvas)return;
-
-  cancelAnimationFrame(teacherMotionRAF);
+  restartTeacherSprite();
   actor.classList.add('motion-ready','motion-active');
-  canvas.classList.add('active');
-
-  const start=()=>{
-    try{video.currentTime=TEACHER_MOTION_START}catch{}
-    teacherMotionLastPaint=0;
-    const p=video.play();
-    if(p?.catch)p.catch(()=>{});
-    teacherMotionRAF=requestAnimationFrame(t=>teacherMotionLoop(actor,t));
-  };
-
-  if(video.readyState>=2)start();
-  else{
-    video.addEventListener('loadeddata',start,{once:true});
-    video.load();
-  }
 }
 
 function stopTeacherMotion(){
-  cancelAnimationFrame(teacherMotionRAF);
-  teacherMotionRAF=0;
   const actor=$('teacherActor');
   if(!actor)return;
-  const video=actor.querySelector('.teacher-motion-video');
-  video?.pause();
-  actor.classList.remove('motion-active');
-  showTeacherIdleFrame();
+  actor.classList.remove('motion-ready','motion-active');
 }
 
 function screen(id){
