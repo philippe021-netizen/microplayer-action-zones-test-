@@ -399,3 +399,31 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
   #game .write-zone.show{left:32%!important}
   #game .chalk-correction{left:32%!important}
 }
+
+/* Ajustement qualité iPad : éviter de masquer le visage et limiter
+   l'agrandissement de la séquence transparente 120×167. */
+#game #teacherActor{
+  left:0!important;
+  bottom:0!important;
+  width:min(20vw,250px)!important;
+  height:min(42vh,320px)!important;
+}
+#game #teacherActor.pose-point{
+  width:min(23vw,285px)!important;
+  height:min(48vh,370px)!important;
+}
+#game #teacherActor.pose-check{
+  width:min(20vw,250px)!important;
+  height:min(42vh,320px)!important;
+}
+@media (max-width:760px){
+  #game #teacherActor{
+    left:0!important;
+    width:min(32vw,205px)!important;
+    height:min(35vh,260px)!important;
+  }
+  #game #teacherActor.pose-point{
+    width:min(36vw,230px)!important;
+    height:min(41vh,300px)!important;
+  }
+}
