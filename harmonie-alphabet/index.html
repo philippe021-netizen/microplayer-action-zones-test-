@@ -3,197 +3,302 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Le défi alphabet d'Harmonie</title>
+<meta name="theme-color" content="#f7eaff">
+<title>Le défi licorne d'Harmonie</title>
 <style>
-:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#24324a}
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#2f3156}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:linear-gradient(180deg,#fff8e8,#eef8ff);display:flex;align-items:center;justify-content:center;padding:18px}
-.app{width:min(820px,100%);background:#fff;border-radius:28px;box-shadow:0 18px 50px #0002;padding:22px;position:relative;overflow:hidden}
-header{display:flex;gap:14px;align-items:center}
-.mascot{font-size:58px;display:inline-block;animation:float 2.2s ease-in-out infinite}
-@keyframes float{50%{transform:translateY(-6px) rotate(3deg)}}
-h1{font-size:clamp(25px,5vw,42px);margin:0}
-.sub{font-size:18px;margin:4px 0 0;color:#63708a}
-.top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:18px 0}
-.pill{background:#f3f6fb;border-radius:999px;padding:10px 14px;font-weight:700}
-.progress{height:14px;background:#e9eef7;border-radius:99px;overflow:hidden;flex:1;min-width:120px}
-.bar{height:100%;width:10%;background:linear-gradient(90deg,#ffb44d,#7ddf9b);transition:.3s}
-.card{background:#f8fbff;border:2px solid #e5edf8;border-radius:22px;padding:20px}
-.instruction{text-align:center;font-size:21px;font-weight:700;margin:0 0 16px}
-.words{display:grid;gap:12px}
-.word{display:grid;grid-template-columns:1fr 110px;gap:12px;align-items:center;background:#fff;border:2px solid #e7edf6;border-radius:18px;padding:13px 16px;font-size:27px;font-weight:800}
-select{width:100%;font-size:26px;font-weight:800;padding:8px;border-radius:12px;border:2px solid #b8c7da;background:white;text-align:center}
-button{border:0;border-radius:16px;padding:14px 18px;font-size:20px;font-weight:800;cursor:pointer}
-#check{width:100%;margin-top:16px;background:#4b82f0;color:white}
-#next{width:100%;margin-top:12px;background:#35b874;color:white;display:none}
-#restart{background:#4b82f0;color:#fff}
-.message{min-height:58px;text-align:center;font-size:21px;font-weight:800;padding-top:14px}
-.hint{font-size:16px;font-weight:600;color:#6f7890;margin-top:5px}
-.stars{text-align:center;font-size:28px;letter-spacing:4px;min-height:38px}
-.final{text-align:center;padding:18px 8px;display:none}
-.final .big{font-size:72px}
-.final h2{font-size:34px;margin:8px}
-.final p{font-size:21px;line-height:1.45}
-.gift{display:inline-block;margin:10px 0;padding:14px 18px;border-radius:18px;background:#fff1b8;font-size:24px;font-weight:900}
-.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.confetti i{position:absolute;top:-20px;font-style:normal;animation:fall 1.7s linear forwards}
-@keyframes fall{to{transform:translateY(820px) rotate(500deg);opacity:.2}}
-.small{font-size:14px;color:#7a859c;text-align:center;margin-top:12px}
-@media(max-width:520px){.app{padding:16px;border-radius:22px}.word{font-size:24px;grid-template-columns:1fr 92px;padding:11px}.mascot{font-size:48px}.instruction{font-size:19px}}
+body{margin:0;min-height:100vh;background:linear-gradient(180deg,#ffeefa,#eef8ff 54%,#fff8d9);display:flex;align-items:center;justify-content:center;padding:14px}
+.app{width:min(860px,100%);background:#fffffff2;border:2px solid #fff;border-radius:30px;box-shadow:0 18px 55px #6f57942b;padding:20px;position:relative;overflow:hidden}
+header{display:flex;gap:12px;align-items:center;position:relative;z-index:3}
+.hero{font-size:60px;animation:bob 2s ease-in-out infinite;filter:drop-shadow(0 5px 5px #8d76ba44)}
+@keyframes bob{50%{transform:translateY(-7px) rotate(5deg)}}
+h1{font-size:clamp(26px,5vw,43px);margin:0}.sub{margin:3px 0;color:#77779b}
+.controls{margin-left:auto;display:flex;gap:7px}.mini{border:0;background:#f2edff;border-radius:14px;padding:9px 11px;font-size:18px;cursor:pointer}
+.top{display:flex;gap:10px;align-items:center;margin:18px 0}.pill{background:#f4f1ff;border-radius:999px;padding:9px 13px;font-weight:850;white-space:nowrap}
+.progress{height:14px;background:#ecebf7;border-radius:99px;overflow:hidden;flex:1}.bar{height:100%;width:10%;background:linear-gradient(90deg,#ff9bd2,#9a86ff,#76d8f5);transition:.35s}
+.card{background:#fbfaff;border:2px solid #ece7f8;border-radius:24px;padding:20px;position:relative;z-index:2}
+.instruction{text-align:center;font-size:21px;font-weight:850;margin:0 0 6px}.tip{text-align:center;color:#707493;margin:0 0 15px;font-weight:650}
+.words{display:grid;gap:11px}.word{display:grid;grid-template-columns:1fr 105px;gap:12px;align-items:center;background:#fff;border:2px solid #e9e5f3;border-radius:18px;padding:12px 16px;font-size:27px;font-weight:850}
+.badge{font-size:13px;color:#805cae;background:#f3eaff;border-radius:999px;padding:4px 8px;margin-left:8px;vertical-align:middle}
+select{width:100%;font-size:25px;font-weight:850;padding:8px;border-radius:12px;border:2px solid #c7bce1;background:#fff;text-align:center}
+button.main{width:100%;border:0;border-radius:16px;padding:14px 18px;font-size:20px;font-weight:850;cursor:pointer;margin-top:14px}
+#check{background:#7562da;color:#fff}#next{background:#43ba81;color:#fff;display:none}
+.message{min-height:68px;text-align:center;font-size:21px;font-weight:850;padding-top:14px}.stars{text-align:center;font-size:27px;letter-spacing:3px;min-height:37px}
+.small{text-align:center;color:#777d99;font-size:14px;margin-top:12px}
+.final{text-align:center;display:none;padding:22px 8px;position:relative;z-index:2}.final .big{font-size:82px}.final h2{font-size:36px;margin:7px}.final p{font-size:21px;line-height:1.45}.gift{display:inline-block;margin:12px;padding:14px 18px;border-radius:18px;background:#fff0a8;font-size:24px;font-weight:900}
+#restart{border:0;background:#7562da;color:white;border-radius:16px;padding:14px 22px;font-size:20px;font-weight:850;cursor:pointer}
+.flyer{position:absolute;z-index:20;left:-120px;top:58%;font-size:76px;opacity:0;pointer-events:none}.fly{animation:fly 1.85s cubic-bezier(.2,.7,.4,1) forwards}
+@keyframes fly{0%{left:-120px;top:62%;opacity:1;transform:rotate(-8deg) scale(.85)}35%{top:19%;transform:rotate(10deg) scale(1.18)}70%{top:43%;transform:rotate(-5deg) scale(1.05)}100%{left:112%;top:12%;opacity:1;transform:rotate(12deg) scale(.9)}}
+.confetti{position:absolute;inset:0;z-index:30;pointer-events:none;overflow:hidden}.confetti i{position:absolute;top:-25px;font-style:normal;animation:fall 1.8s linear forwards}
+@keyframes fall{to{transform:translateY(900px) rotate(520deg);opacity:.15}}
+.overlay{position:absolute;inset:0;background:linear-gradient(180deg,#fff7feee,#eef7ffee);z-index:50;display:flex;align-items:center;justify-content:center;text-align:center;padding:22px}
+.startbox{background:white;border-radius:28px;padding:25px;max-width:560px;box-shadow:0 14px 40px #735c9b2d}.startbox .u{font-size:90px}.startbox h2{font-size:32px;margin:6px}.startbox p{font-size:19px;line-height:1.4}.startbtn{border:0;background:#7562da;color:#fff;border-radius:18px;padding:15px 22px;font-size:21px;font-weight:900;cursor:pointer}
+@media(max-width:540px){.app{padding:15px}.word{font-size:23px;grid-template-columns:1fr 90px}.badge{display:block;width:max-content;margin:5px 0 0}.controls{position:absolute;right:0;top:0}.hero{font-size:50px}}
 </style>
 </head>
 <body>
 <main class="app">
+<div id="flyer" class="flyer">🦄✨</div>
 <div id="confetti" class="confetti"></div>
-<header>
-  <div id="mascot" class="mascot">🐼</div>
-  <div>
-    <h1>Le défi alphabet d’Harmonie</h1>
-    <p class="sub">Avec Paco le panda 🐾</p>
+
+<div id="overlay" class="overlay">
+  <div class="startbox">
+    <div class="u">🦄🌈</div>
+    <h2>Le défi licorne d’Harmonie</h2>
+    <p>10 petites missions. À chaque bonne réponse, la licorne s’envole !</p>
+    <button id="startBtn" class="startbtn">Commencer avec la musique 🎵</button>
   </div>
+</div>
+
+<header>
+ <div class="hero">🦄</div>
+ <div><h1>Le défi licorne d’Harmonie</h1><p class="sub">Niveau moyen — classement alphabétique</p></div>
+ <div class="controls">
+   <button class="mini" id="musicBtn" title="Musique">🎵</button>
+   <button class="mini" id="soundBtn" title="Sons">🔊</button>
+   <button class="mini" id="voiceBtn" title="Voix">🗣️</button>
+ </div>
 </header>
 
 <section id="game">
-  <div class="top">
-    <div class="pill" id="round">Défi 1 / 10</div>
-    <div class="progress"><div class="bar" id="bar"></div></div>
-    <div class="pill" id="score">⭐ 0</div>
-  </div>
-
-  <div class="card">
-    <p class="instruction">Mets <b>1</b> devant le premier mot, puis <b>2</b>, <b>3</b>… dans l’ordre alphabétique.</p>
-    <div class="words" id="words"></div>
-    <button id="check">Je vérifie ✨</button>
-    <button id="next">Défi suivant ➜</button>
-    <div id="message" class="message">Regarde bien les deux premières lettres 👀</div>
-    <div id="stars" class="stars"></div>
-  </div>
-  <div class="small">Un point si la réponse est juste du premier coup. Si tu te trompes, tu peux corriger pour apprendre.</div>
+ <div class="top"><div class="pill" id="round"></div><div class="progress"><div class="bar" id="bar"></div></div><div class="pill" id="score"></div></div>
+ <div class="card">
+  <p class="instruction">Mets 1, 2, 3… dans le bon ordre alphabétique.</p>
+  <p class="tip">Regarde la 1re lettre, puis la 2e. Si elles sont pareilles, regarde la suivante 👀</p>
+  <div id="words" class="words"></div>
+  <button class="main" id="check">Je vérifie ✨</button>
+  <button class="main" id="next">La licorne continue ➜</button>
+  <div id="message" class="message"></div>
+  <div id="stars" class="stars"></div>
+ </div>
+ <div class="small">⭐ = bonne réponse du premier coup. Si tu te trompes, tu peux corriger et continuer.</div>
 </section>
 
 <section id="final" class="final">
-  <div class="big" id="finalEmoji">🏆</div>
-  <h2 id="finalTitle">Bravo Harmonie !</h2>
-  <p id="finalText"></p>
-  <div id="gift" class="gift"></div><br>
-  <button id="restart">Rejouer 🔁</button>
+ <div class="big" id="finalEmoji">🏆</div>
+ <h2 id="finalTitle"></h2>
+ <p id="finalText"></p>
+ <div id="gift" class="gift"></div><br>
+ <button id="restart">Rejouer 🔁</button>
 </section>
 </main>
 
 <script>
-const rounds = [
-  ["bateau","bebe","bille"],
-  ["cadeau","cerise","cinema"],
-  ["dame","dessin","domino"],
-  ["farine","fenetre","fille","foret"],
-  ["gare","genou","gilet","gomme"],
-  ["lapin","lego","livre","loup"],
-  ["maman","melon","minute","moto"],
-  ["panda","peluche","pirate","poule"],
-  ["salade","seau","singe","soleil"],
-  ["tapis","tenue","tigre","tomate"]
+const rounds=[
+ {words:["arbre","bateau","chat"],note:"Les premières lettres sont différentes."},
+ {words:["lapin","livre","loup"],note:"Même première lettre : regarde la deuxième."},
+ {words:["cadeau","cerise","cinéma"],note:"Même première lettre : regarde la deuxième."},
+ {words:["salade","seau","singe","soleil"],note:"Même première lettre : regarde la deuxième."},
+ {words:["balle","ballon","bateau"],note:"Attention : certains commencent par les mêmes deux lettres."},
+ {words:["maman","manche","mardi","masque"],note:"Ils commencent tous par MA : regarde la troisième lettre."},
+ {words:["pomme","porte","poule","poussin"],note:"Ils commencent tous par PO : continue lettre par lettre."},
+ {words:["chat","cheval","chien","chou"],note:"Ils commencent tous par CH : regarde la troisième lettre."},
+ {words:["tapis","tarte","tasse","taxi"],note:"Ils commencent tous par TA : regarde la troisième lettre."},
+ {words:["carte","carton","casque","cave"],note:"Le début se ressemble beaucoup : reste concentrée !"}
 ];
-const pretty = {
-  bebe:"bébé", cinema:"cinéma", fenetre:"fenêtre", foret:"forêt"
-};
-let index=0, score=0, firstTry=true, validated=false;
 
-function shuffle(a){
-  const b=[...a];
-  for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}
-  return b;
+let idx=0,score=0,firstTry=true,locked=false;
+let soundOn=true,voiceOn=true,musicOn=true,audioCtx=null,musicTimer=null,musicStep=0;
+
+const cheers=[
+ "Bravo Harmonie ! La licorne est super fière de toi !",
+ "Youpi ! Encore une étoile pour Harmonie !",
+ "Trop forte ! La licorne décolle !",
+ "Bien joué ! Tu as trouvé le bon ordre !",
+ "Wouhou ! Mission réussie !"
+];
+const jokes=[
+ "Petite blagounette : pourquoi la licorne aime les cahiers ? Parce qu’elle adore les belles lignes !",
+ "Petite blagounette : que mange une licorne au goûter ? Un arc-en-ciel croustillant !",
+ "Petite blagounette : pourquoi la licorne court vite ? Parce qu’elle a des sabots turbo !",
+ "Petite blagounette : comment s’appelle une licorne qui raconte des blagues ? Une rigolicorne !"
+];
+
+function normalizeWord(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
+function sortedWords(a){return [...a].sort((x,y)=>normalizeWord(x).localeCompare(normalizeWord(y),"fr"))}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+function getCtx(){
+ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+ if(audioCtx.state==="suspended") audioCtx.resume();
+ return audioCtx;
 }
-function clean(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
-function correctOrder(words){return [...words].sort((a,b)=>clean(a).localeCompare(clean(b),"fr"))}
+function oscillator(freq,start,duration,gain=.04,type="sine",endFreq=null){
+ if(!soundOn && !musicOn) return;
+ const c=getCtx(),o=c.createOscillator(),g=c.createGain();
+ o.type=type;o.frequency.setValueAtTime(freq,start);
+ if(endFreq) o.frequency.exponentialRampToValueAtTime(endFreq,start+duration);
+ g.gain.setValueAtTime(gain,start);
+ g.gain.exponentialRampToValueAtTime(.0001,start+duration);
+ o.connect(g);g.connect(c.destination);o.start(start);o.stop(start+duration);
+}
+function chime(){
+ if(!soundOn)return;
+ const c=getCtx(),t=c.currentTime;
+ [659,784,1047].forEach((f,i)=>oscillator(f,t+i*.11,.22,.055,"sine"));
+}
+function wrongSound(){
+ if(!soundOn)return;
+ const c=getCtx(),t=c.currentTime;
+ oscillator(270,t,.16,.05,"triangle",210);oscillator(190,t+.17,.18,.04,"triangle",155);
+}
+function unicornNeigh(){
+ if(!soundOn)return;
+ const c=getCtx(),t=c.currentTime;
+ oscillator(430,t,.24,.045,"sawtooth",650);
+ oscillator(650,t+.2,.25,.04,"triangle",390);
+ oscillator(520,t+.42,.18,.035,"sine",760);
+}
+function sillyPop(){
+ if(!soundOn)return;
+ const c=getCtx(),t=c.currentTime;
+ oscillator(120,t,.18,.055,"sawtooth",65);
+ oscillator(85,t+.08,.22,.045,"square",48);
+}
+function applause(){
+ if(!soundOn)return;
+ const c=getCtx();
+ const dur=1.05,buf=c.createBuffer(1,c.sampleRate*dur,c.sampleRate),data=buf.getChannelData(0);
+ for(let i=0;i<data.length;i++){
+   const pulse=(Math.sin(i/90)>0.72?1:.18);
+   data[i]=(Math.random()*2-1)*pulse*(1-i/data.length);
+ }
+ const src=c.createBufferSource(),g=c.createGain();
+ src.buffer=buf;g.gain.value=.17;src.connect(g);g.connect(c.destination);src.start();
+}
+function startMusic(){
+ if(!musicOn||musicTimer)return;
+ const notes=[523,659,784,659,587,698,880,698];
+ musicTimer=setInterval(()=>{
+   if(!musicOn)return;
+   const c=getCtx(),t=c.currentTime;
+   oscillator(notes[musicStep%notes.length],t,.16,.018,"sine");
+   if(musicStep%4===0) oscillator(notes[musicStep%notes.length]/2,t,.22,.012,"triangle");
+   musicStep++;
+ },330);
+}
+function stopMusic(){if(musicTimer){clearInterval(musicTimer);musicTimer=null}}
+function speak(text){
+ if(!voiceOn||!("speechSynthesis" in window))return;
+ speechSynthesis.cancel();
+ const u=new SpeechSynthesisUtterance(text);
+ u.lang="fr-FR";u.pitch=1.65;u.rate=1.08;u.volume=.95;
+ const voices=speechSynthesis.getVoices();
+ u.voice=voices.find(v=>v.lang&&v.lang.startsWith("fr")&&/Audrey|Amélie|Aurelie|female|Marie|Thomas/i.test(v.name))
+      ||voices.find(v=>v.lang&&v.lang.startsWith("fr"))||null;
+ speechSynthesis.speak(u);
+}
 
+function updateStars(){
+ document.getElementById("stars").textContent="⭐".repeat(score)+"☆".repeat(10-score);
+ document.getElementById("score").textContent="⭐ "+score;
+}
 function render(){
-  validated=false; firstTry=true;
-  document.getElementById("round").textContent="Défi "+(index+1)+" / 10";
-  document.getElementById("score").textContent="⭐ "+score;
-  document.getElementById("bar").style.width=((index+1)*10)+"%";
-  document.getElementById("message").innerHTML="Regarde bien les <b>deux premières lettres</b> 👀";
-  document.getElementById("next").style.display="none";
-  document.getElementById("check").style.display="block";
-  const list=shuffle(rounds[index]);
-  const box=document.getElementById("words"); box.innerHTML="";
-  list.forEach(w=>{
-    const row=document.createElement("div"); row.className="word"; row.dataset.word=w;
-    const label=document.createElement("div"); label.textContent=pretty[w]||w;
-    const sel=document.createElement("select"); sel.setAttribute("aria-label","Numéro pour "+(pretty[w]||w));
-    sel.innerHTML='<option value="">—</option>'+list.map((_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join("");
-    row.append(label,sel); box.appendChild(row);
-  });
-  updateStars();
+ locked=false;firstTry=true;
+ const r=rounds[idx];
+ document.getElementById("round").textContent="Mission "+(idx+1)+" / 10";
+ document.getElementById("bar").style.width=((idx+1)*10)+"%";
+ document.querySelector(".tip").textContent=r.note;
+ document.getElementById("message").textContent="À toi de jouer, Harmonie 🦄";
+ document.getElementById("check").style.display="block";
+ document.getElementById("next").style.display="none";
+ const shuffled=shuffle(r.words),box=document.getElementById("words");box.innerHTML="";
+ shuffled.forEach(w=>{
+   const row=document.createElement("div");row.className="word";row.dataset.word=w;
+   const label=document.createElement("div");label.innerHTML=w+' <span class="badge">'+w.slice(0,2).toUpperCase()+'</span>';
+   const sel=document.createElement("select");sel.setAttribute("aria-label","Numéro pour "+w);
+   sel.innerHTML='<option value="">—</option>'+shuffled.map((_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join("");
+   row.append(label,sel);box.appendChild(row);
+ });
+ updateStars();
 }
-function updateStars(){document.getElementById("stars").textContent="⭐".repeat(score)+"☆".repeat(10-score)}
-
-function valuesValid(rows){
-  const vals=rows.map(r=>Number(r.querySelector("select").value));
-  return vals.every(Boolean) && new Set(vals).size===rows.length;
+function uniqueAndComplete(rows){
+ const v=rows.map(r=>Number(r.querySelector("select").value));
+ return v.every(Boolean)&&new Set(v).size===rows.length;
 }
-function check(){
-  if(validated)return;
-  const rows=[...document.querySelectorAll(".word")];
-  if(!valuesValid(rows)){
-    say("Choisis un numéro différent pour chaque mot 😊",false);
-    beep(false); return;
-  }
-  const ordered=[...rows].sort((a,b)=>Number(a.querySelector("select").value)-Number(b.querySelector("select").value)).map(r=>r.dataset.word);
-  const right=correctOrder(rounds[index]);
-  const ok=ordered.every((w,i)=>w===right[i]);
-  if(ok){
-    validated=true;
-    if(firstTry){score++; confetti(); say("Bravo Harmonie ! +1 point 🌟",true);}
-    else{say("Oui ! Tu as corrigé toute seule 💪",true);}
-    chime(); updateStars(); document.getElementById("score").textContent="⭐ "+score;
-    document.getElementById("check").style.display="none";
-    document.getElementById("next").style.display="block";
-  } else {
-    firstTry=false;
-    say("Presque ! Regarde les deux premières lettres et corrige 🐼",false);
-    beep(false);
-  }
+function flyUnicorn(){
+ const f=document.getElementById("flyer");f.classList.remove("fly");void f.offsetWidth;f.classList.add("fly");
+ unicornNeigh();
+ setTimeout(()=>f.classList.remove("fly"),2000);
 }
-function next(){
-  if(index<9){index++;render()} else finish();
+function confetti(big=false){
+ const box=document.getElementById("confetti"),icons=["⭐","✨","🌸","💛","🌈","💫"];
+ const n=big?50:20;
+ for(let i=0;i<n;i++){
+   const e=document.createElement("i");e.textContent=icons[Math.floor(Math.random()*icons.length)];
+   e.style.left=(Math.random()*100)+"%";e.style.fontSize=(16+Math.random()*22)+"px";e.style.animationDelay=(Math.random()*.4)+"s";
+   box.appendChild(e);setTimeout(()=>e.remove(),2300);
+ }
+}
+function checkAnswer(){
+ if(locked)return;
+ const rows=[...document.querySelectorAll(".word")];
+ if(!uniqueAndComplete(rows)){
+   document.getElementById("message").textContent="Il faut donner un numéro différent à chaque mot 😊";
+   wrongSound();speak("Oups ! Un numéro différent pour chaque mot.");
+   return;
+ }
+ const chosen=[...rows].sort((a,b)=>Number(a.querySelector("select").value)-Number(b.querySelector("select").value)).map(r=>r.dataset.word);
+ const correct=sortedWords(rounds[idx].words);
+ const ok=chosen.every((w,i)=>w===correct[i]);
+ if(ok){
+   locked=true;
+   if(firstTry){score++;updateStars()}
+   document.getElementById("message").textContent=firstTry?"Bravo ! +1 étoile 🌟":"Oui ! Tu as corrigé, mission réussie 💪";
+   document.getElementById("check").style.display="none";
+   document.getElementById("next").style.display="block";
+   chime();flyUnicorn();confetti();
+   const phrase=cheers[Math.floor(Math.random()*cheers.length)];
+   setTimeout(()=>speak(phrase),420);
+   if((idx===3||idx===7)&&soundOn)setTimeout(sillyPop,1100);
+   if(idx===4||idx===8)setTimeout(()=>speak(jokes[Math.floor(Math.random()*jokes.length)]),1800);
+ }else{
+   firstTry=false;
+   document.getElementById("message").innerHTML="Presque ! Regarde les lettres une par une et corrige 👀";
+   wrongSound();speak("Presque ! Regarde bien les lettres une par une.");
+ }
+}
+function nextRound(){
+ if(idx<9){idx++;render();speak("Mission suivante !")}else finish();
 }
 function finish(){
-  document.getElementById("game").style.display="none";
-  document.getElementById("final").style.display="block";
-  const win=score>=7;
-  document.getElementById("finalEmoji").textContent=win?"🎁":"🐼";
-  document.getElementById("finalTitle").textContent=win?"Super Harmonie !":"Bien joué Harmonie !";
-  document.getElementById("finalText").innerHTML="Ton score est de <b>"+score+" / 10</b>.<br>"+(win?"Tu as réussi le défi du dimanche !":"Tu as bien travaillé. On rejoue une fois pour essayer de gagner encore plus d’étoiles ?");
-  document.getElementById("gift").textContent=win?"🎉 Cadeau du dimanche débloqué !":"Encore un petit effort pour débloquer le cadeau 💛";
-  if(win){bigChime(); for(let i=0;i<4;i++)setTimeout(confetti,i*300)}
+ stopMusic();
+ document.getElementById("game").style.display="none";
+ document.getElementById("final").style.display="block";
+ const win=score>=7;
+ document.getElementById("finalEmoji").textContent=win?"🦄🏆🎁":"🦄💛";
+ document.getElementById("finalTitle").textContent=win?"Bravo Harmonie !":"Bien joué Harmonie !";
+ document.getElementById("finalText").innerHTML="Ton score est de <b>"+score+" / 10</b>.<br>"+(win?"Tu as réussi le défi de la licorne !":"Tu as appris plein de choses. Une deuxième partie et tu peux encore gagner des étoiles !");
+ document.getElementById("gift").textContent=win?"🎁 Cadeau du dimanche débloqué !":"🌟 Encore un petit effort pour le cadeau !";
+ applause();confetti(true);
+ if(win) setTimeout(()=>speak("Bravo Harmonie ! Tu as gagné ! Le cadeau du dimanche est débloqué !"),350);
+ else setTimeout(()=>speak("Bravo Harmonie ! Tu peux être fière de toi. On rejoue ?"),350);
 }
-function say(t,good){
-  const m=document.getElementById("message"); m.innerHTML=t;
-  document.getElementById("mascot").textContent=good?"🐼✨":"🐼";
+function restart(){
+ idx=0;score=0;
+ document.getElementById("final").style.display="none";
+ document.getElementById("game").style.display="block";
+ if(musicOn)startMusic();
+ render();speak("Et c'est reparti !");
 }
-function audio(){
-  const C=window.AudioContext||window.webkitAudioContext; return new C();
-}
-function tone(ctx,f,t,d=.12){
-  const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination);
-  o.frequency.value=f;g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+d);
-  o.start(t);o.stop(t+d);
-}
-function chime(){try{const c=audio(),t=c.currentTime;tone(c,523,t);tone(c,659,t+.12);tone(c,784,t+.24)}catch(e){}}
-function bigChime(){try{const c=audio(),t=c.currentTime;[523,659,784,1047].forEach((f,i)=>tone(c,f,t+i*.13,.25))}catch(e){}}
-function beep(){try{const c=audio(),t=c.currentTime;tone(c,300,t,.16);tone(c,240,t+.15,.18)}catch(e){}}
-function confetti(){
-  const c=document.getElementById("confetti");
-  const icons=["⭐","🎈","✨","🌸","💛"];
-  for(let i=0;i<18;i++){
-    const e=document.createElement("i");e.textContent=icons[Math.floor(Math.random()*icons.length)];
-    e.style.left=(Math.random()*100)+"%";e.style.fontSize=(16+Math.random()*20)+"px";e.style.animationDelay=(Math.random()*.35)+"s";
-    c.appendChild(e);setTimeout(()=>e.remove(),2200);
-  }
-}
-document.getElementById("check").onclick=check;
-document.getElementById("next").onclick=next;
-document.getElementById("restart").onclick=()=>{index=0;score=0;document.getElementById("final").style.display="none";document.getElementById("game").style.display="block";render()};
+document.getElementById("check").onclick=checkAnswer;
+document.getElementById("next").onclick=nextRound;
+document.getElementById("restart").onclick=restart;
+document.getElementById("startBtn").onclick=()=>{
+ document.getElementById("overlay").style.display="none";
+ getCtx();startMusic();render();
+ speak("Coucou Harmonie ! Moi, c'est Lili la licorne. On va jouer avec les mots. À chaque bonne réponse, je m'envole !");
+};
+document.getElementById("musicBtn").onclick=()=>{
+ musicOn=!musicOn;document.getElementById("musicBtn").textContent=musicOn?"🎵":"🔇";
+ if(musicOn)startMusic();else stopMusic();
+};
+document.getElementById("soundBtn").onclick=()=>{soundOn=!soundOn;document.getElementById("soundBtn").textContent=soundOn?"🔊":"🔈"};
+document.getElementById("voiceBtn").onclick=()=>{
+ voiceOn=!voiceOn;document.getElementById("voiceBtn").textContent=voiceOn?"🗣️":"🤐";
+ if(!voiceOn&&"speechSynthesis" in window)speechSynthesis.cancel();
+};
 render();
 </script>
 </body>
