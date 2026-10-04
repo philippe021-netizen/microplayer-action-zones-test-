@@ -32,6 +32,8 @@ assert.ok(!/viewBox="0 0 0 0"/.test(svg));
 
 const feedback = loadHelper('recognitionFeedback');
 const pencil = loadHelper('evaluatePencilText', { recognitionFeedback: feedback });
+const collect = loadHelper('collectPencilResponse');
+const complete = loadHelper('pencilSlotsComplete');
 assert.equal(feedback('mon frère', 'Mon frère', 92).status, 'match');
 assert.equal(feedback('une rue', 'UNE RUE', 20).status, 'match');
 assert.match(feedback('une rue', 'UNE RUE', 20).message, /ressemble au modèle/);
@@ -42,4 +44,8 @@ assert.doesNotMatch(feedback('une rue', 'une roue', 90).message, /faux|échec|ra
 assert.equal(pencil('le roi', 'le roi').status, 'match');
 assert.equal(pencil('le roi', 'le rois').status, 'check');
 assert.equal(pencil('le roi', '').status, 'uncertain');
+assert.equal(collect(['une', 'rue']), 'une rue');
+assert.equal(collect([' mon ', 'frère ']), 'mon frère');
+assert.equal(complete(['une', 'rue']), true);
+assert.equal(complete(['une', '']), false);
 console.log('Writing preview and gentle-recognition checks passed.');
