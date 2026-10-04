@@ -10,7 +10,7 @@ const alphabet = fs.readFileSync(path.join(__dirname, '../harmonie-alphabet/inde
 assert.deepEqual(lesson.words, ['une rue','le roi','le repas','un arbre','mon frère','un fruit','une voiture','trois']);
 assert.equal(lesson.difficulty, 'normal');
 assert.equal(lesson.displaySeconds, 3);
-for (const feature of ['Marelle-Regular.woff2', 'pointerdown', 'getCoalescedEvents', 'touch-action:none', 'localStorage', 'speechSynthesis', 'guideToggle', 'J’ai fini', 'Maintenir une seconde', 'pencilWrite', 'scribbleInput', 'usePencil', 'useFinger', 'L’iPad a transformé ton écriture']) {
+for (const feature of ['Marelle-Regular.woff2', 'pointerdown', 'getCoalescedEvents', 'touch-action:none', 'localStorage', 'speechSynthesis', 'guideToggle', 'J’ai fini', 'Maintenir une seconde', 'pencilWrite', 'pencilWordFields', 'Une case pour chaque mot du modèle', 'usePencil', 'useFinger', 'Ton écriture reste cachée jusqu’à la vérification', 'Bravo Harmonie ! Ton mot correspond au modèle !']) {
   assert.ok(page.includes(feature), 'missing ' + feature);
 }
 assert.ok(page.indexOf('id="pencilWrite"') < page.indexOf('id="writeWrap"'), 'Pencil recognition should be the first writing mode');
