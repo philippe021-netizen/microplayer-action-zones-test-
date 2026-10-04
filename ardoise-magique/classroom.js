@@ -22,13 +22,7 @@ let strokes=[];
 let activeStroke=null;
 let boardSize={w:0,h:0};
 let audio=null,musicTimer=null,musicStep=0;
-let teacherSpriteImage=null;
-let teacherAnimationTimer=null;
-let teacherFrame=0;
-const TEACHER_FRAME_COUNT=12;
-const TEACHER_FRAME_W=140;
-const TEACHER_FRAME_H=210;
-const TEACHER_FRAME_MS=360;
+let teacherMotionToken=0;
 
 let state={
   settings:{music:true,voice:true,sounds:true,guide:true},
@@ -144,89 +138,56 @@ function mountTeachers(){
   if(actor&&room&&actor.parentElement!==room)room.appendChild(actor);
 }
 
-function teacherCanvas(){
-  return $('teacherActor')?.querySelector('.teacher-motion-canvas')||null;
-}
-
-function drawTeacherFrame(frame){
-  const canvas=teacherCanvas();
-  if(!canvas||!teacherSpriteImage||!teacherSpriteImage.complete)return false;
-  const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,TEACHER_FRAME_W,TEACHER_FRAME_H);
-  ctx.drawImage(
-    teacherSpriteImage,
-    frame*TEACHER_FRAME_W,0,TEACHER_FRAME_W,TEACHER_FRAME_H,
-    0,0,TEACHER_FRAME_W,TEACHER_FRAME_H
-  );
-  return true;
+function teacherMotionImg(){
+  return $('teacherActor')?.querySelector('.teacher-motion-anim')||null;
 }
 
 function setupTeacherMotion(){
   const actor=$('teacherActor');
-  const canvas=teacherCanvas();
-  if(!actor||!canvas)return;
-
-  clearTimeout(teacherAnimationTimer);
-  teacherAnimationTimer=null;
-  teacherFrame=0;
-
-  teacherSpriteImage=new Image();
-  teacherSpriteImage.decoding='async';
-  teacherSpriteImage.onload=()=>{
-    canvas.hidden=false;
-    actor.classList.add('motion-mounted');
-    drawTeacherFrame(0);
-  };
-  teacherSpriteImage.onerror=()=>{
-    canvas.hidden=true;
-    actor.classList.remove('motion-mounted');
-  };
-  teacherSpriteImage.src='./assets/teacher-point-sprite12.webp?v=12frames';
+  const anim=teacherMotionImg();
+  if(!actor||!anim)return;
+  actor.classList.remove('motion-ready','motion-active','motion-loaded');
+  anim.removeAttribute('src');
 }
 
-function restartTeacherSprite(){
+function restartTeacherAnimation(){
   const actor=$('teacherActor');
-  const canvas=teacherCanvas();
-  if(!actor||!canvas)return;
+  const old=teacherMotionImg();
+  if(!actor||!old||!window.HARMONIE_TEACHER_POINT)return;
 
-  clearTimeout(teacherAnimationTimer);
-  teacherAnimationTimer=null;
-  teacherFrame=0;
+  const token=++teacherMotionToken;
+  actor.classList.add('motion-ready','motion-active');
+  actor.classList.remove('motion-loaded');
 
-  const play=()=>{
-    if(!teacherSpriteImage||!teacherSpriteImage.complete){
-      teacherAnimationTimer=setTimeout(play,80);
-      return;
-    }
-    canvas.hidden=false;
-    actor.classList.add('motion-mounted','motion-ready','motion-active');
-    drawTeacherFrame(teacherFrame);
-    if(teacherFrame<TEACHER_FRAME_COUNT-1){
-      teacherFrame++;
-      teacherAnimationTimer=setTimeout(play,TEACHER_FRAME_MS);
-    }else{
-      teacherAnimationTimer=null;
-    }
+  const fresh=old.cloneNode(false);
+  fresh.className='teacher-motion-anim';
+  fresh.alt='';
+  fresh.setAttribute('aria-hidden','true');
+
+  fresh.onload=()=>{
+    if(token!==teacherMotionToken)return;
+    actor.classList.add('motion-loaded');
   };
-  play();
+  fresh.onerror=()=>{
+    if(token!==teacherMotionToken)return;
+    actor.classList.remove('motion-loaded','motion-ready','motion-active');
+  };
+
+  old.replaceWith(fresh);
+  // Recréer le nœud IMG force Safari à recommencer le WebP animé au début.
+  fresh.src=window.HARMONIE_TEACHER_POINT;
 }
 
 function startTeacherPointMotion(){
-  restartTeacherSprite();
+  restartTeacherAnimation();
 }
 
 function stopTeacherMotion(){
+  teacherMotionToken++;
   const actor=$('teacherActor');
-  const canvas=teacherCanvas();
-  clearTimeout(teacherAnimationTimer);
-  teacherAnimationTimer=null;
-  teacherFrame=0;
-  actor?.classList.remove('motion-ready','motion-active');
-  if(canvas&&teacherSpriteImage?.complete){
-    canvas.hidden=false;
-    actor?.classList.add('motion-mounted');
-    drawTeacherFrame(0);
-  }
+  const anim=teacherMotionImg();
+  actor?.classList.remove('motion-ready','motion-active','motion-loaded');
+  if(anim)anim.removeAttribute('src');
 }
 
 function screen(id){
