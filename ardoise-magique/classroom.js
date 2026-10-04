@@ -4,7 +4,6 @@ const STORAGE_KEY='harmonie-classe-v2';
 const LEGACY_KEY='harmonie-ardoise-v1';
 const DISPLAY_SECONDS={easy:5,normal:3,champion:2};
 const REVIEW_DAYS=[0,1,3,7,14,30];
-const TEACHER_SPRITE='./assets/teacher-point-sprite12.webp';
 
 const $=id=>document.getElementById(id);
 const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -136,32 +135,31 @@ function setupTeacherMotion(){
   const actor=$('teacherActor');
   if(!actor)return;
   const sprite=actor.querySelector('.teacher-motion-sprite');
-  if(sprite){
-    sprite.decoding='async';
-    sprite.loading='eager';
-  }
+  if(sprite)sprite.classList.remove('playing');
 }
 
 function restartTeacherSprite(){
   const actor=$('teacherActor');
   if(!actor)return;
-  const old=actor.querySelector('.teacher-motion-sprite');
-  if(!old)return;
-  const fresh=old.cloneNode(false);
-  fresh.src=TEACHER_SPRITE+'?play='+(Date.now());
-  old.replaceWith(fresh);
+  const sprite=actor.querySelector('.teacher-motion-sprite');
+  if(!sprite)return;
+  sprite.classList.remove('playing');
+  void sprite.offsetWidth;
+  sprite.classList.add('playing');
 }
 
 function startTeacherPointMotion(){
   const actor=$('teacherActor');
   if(!actor)return;
-  restartTeacherSprite();
   actor.classList.add('motion-ready','motion-active');
+  restartTeacherSprite();
 }
 
 function stopTeacherMotion(){
   const actor=$('teacherActor');
   if(!actor)return;
+  const sprite=actor.querySelector('.teacher-motion-sprite');
+  sprite?.classList.remove('playing');
   actor.classList.remove('motion-ready','motion-active');
 }
 
