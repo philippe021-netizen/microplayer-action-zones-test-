@@ -46,14 +46,14 @@ button.main{width:100%;border:0;border-radius:16px;padding:14px 18px;font-size:2
   <div class="startbox">
     <div class="u">🦄🌈</div>
     <h2>Le défi licorne d’Harmonie</h2>
-    <p>10 petites missions. À chaque bonne réponse, la licorne s’envole !</p>
+    <p>10 missions pour préparer l’évaluation de mardi. On regarde la 1re lettre, puis la 2e. À chaque bonne réponse, la licorne s’envole !</p>
     <button id="startBtn" class="startbtn">Commencer avec la musique 🎵</button>
   </div>
 </div>
 
 <header>
  <div class="hero">🦄</div>
- <div><h1>Le défi licorne d’Harmonie</h1><p class="sub">Niveau moyen — classement alphabétique</p></div>
+ <div><h1>Le défi licorne d’Harmonie</h1><p class="sub">Objectif mardi — 1re et 2e lettre</p></div>
  <div class="controls">
    <button class="mini" id="musicBtn" title="Musique">🎵</button>
    <button class="mini" id="soundBtn" title="Sons">🔊</button>
@@ -65,7 +65,7 @@ button.main{width:100%;border:0;border-radius:16px;padding:14px 18px;font-size:2
  <div class="top"><div class="pill" id="round"></div><div class="progress"><div class="bar" id="bar"></div></div><div class="pill" id="score"></div></div>
  <div class="card">
   <p class="instruction">Mets 1, 2, 3… dans le bon ordre alphabétique.</p>
-  <p class="tip">Regarde la 1re lettre, puis la 2e. Si elles sont pareilles, regarde la suivante 👀</p>
+  <p class="tip">Regarde d’abord la 1re lettre. Si elle est pareille, regarde seulement la 2e 👀</p>
   <div id="words" class="words"></div>
   <button class="main" id="check">Je vérifie ✨</button>
   <button class="main" id="next">La licorne continue ➜</button>
@@ -86,16 +86,16 @@ button.main{width:100%;border:0;border-radius:16px;padding:14px 18px;font-size:2
 
 <script>
 const rounds=[
- {words:["arbre","bateau","chat"],note:"Les premières lettres sont différentes."},
- {words:["lapin","livre","loup"],note:"Même première lettre : regarde la deuxième."},
- {words:["cadeau","cerise","cinéma"],note:"Même première lettre : regarde la deuxième."},
- {words:["salade","seau","singe","soleil"],note:"Même première lettre : regarde la deuxième."},
- {words:["balle","ballon","bateau"],note:"Attention : certains commencent par les mêmes deux lettres."},
- {words:["maman","manche","mardi","masque"],note:"Ils commencent tous par MA : regarde la troisième lettre."},
- {words:["pomme","porte","poule","poussin"],note:"Ils commencent tous par PO : continue lettre par lettre."},
- {words:["chat","cheval","chien","chou"],note:"Ils commencent tous par CH : regarde la troisième lettre."},
- {words:["tapis","tarte","tasse","taxi"],note:"Ils commencent tous par TA : regarde la troisième lettre."},
- {words:["carte","carton","casque","cave"],note:"Le début se ressemble beaucoup : reste concentrée !"}
+ {words:["arbre","bateau","chat"],note:"Mission 1 : commence par regarder la première lettre.",badge:true},
+ {words:["dame","lapin","moto"],note:"Mission 2 : les premières lettres suffisent.",badge:true},
+ {words:["avion","fleur","poule","soleil"],note:"Mission 3 : classe d’abord avec la première lettre.",badge:true},
+ {words:["ballon","bébé","bille"],note:"Mission 4 : même première lettre B. Regarde la deuxième : BA, BÉ, BI.",badge:true},
+ {words:["cadeau","cerise","citron"],note:"Mission 5 : même première lettre C. Compare la deuxième.",badge:true},
+ {words:["dame","dessin","domino"],note:"Mission 6 : DA, DE, DO. Tu n’as besoin que des deux premières lettres.",badge:true},
+ {words:["farine","fenêtre","fille","forêt"],note:"Mission 7 : FA, FE, FI, FO. Très bon entraînement pour mardi.",badge:true},
+ {words:["arbre","avion","melon","minute"],note:"Mini-évaluation : plus d’indice coloré. Première puis deuxième lettre.",badge:false},
+ {words:["panda","peluche","pirate","poule"],note:"Mini-évaluation : même première lettre P. À toi de comparer la deuxième.",badge:false},
+ {words:["salade","seau","singe","soleil"],note:"Mission finale : comme mardi. Première lettre, puis deuxième.",badge:false}
 ];
 
 let idx=0,score=0,firstTry=true,locked=false;
@@ -206,7 +206,9 @@ function render(){
  const shuffled=shuffle(r.words),box=document.getElementById("words");box.innerHTML="";
  shuffled.forEach(w=>{
    const row=document.createElement("div");row.className="word";row.dataset.word=w;
-   const label=document.createElement("div");label.innerHTML=w+' <span class="badge">'+w.slice(0,2).toUpperCase()+'</span>';
+   const label=document.createElement("div");
+   const prefix=w.slice(0,2).toUpperCase();
+   label.innerHTML=r.badge ? w+' <span class="badge">'+prefix+'</span>' : w;
    const sel=document.createElement("select");sel.setAttribute("aria-label","Numéro pour "+w);
    sel.innerHTML='<option value="">—</option>'+shuffled.map((_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join("");
    row.append(label,sel);box.appendChild(row);
@@ -268,9 +270,9 @@ function finish(){
  document.getElementById("final").style.display="block";
  const win=score>=7;
  document.getElementById("finalEmoji").textContent=win?"🦄🏆🎁":"🦄💛";
- document.getElementById("finalTitle").textContent=win?"Bravo Harmonie !":"Bien joué Harmonie !";
+ document.getElementById("finalTitle").textContent=win?"Harmonie est prête pour mardi !":"Bien joué Harmonie !";
  document.getElementById("finalText").innerHTML="Ton score est de <b>"+score+" / 10</b>.<br>"+(win?"Tu as réussi le défi de la licorne !":"Tu as appris plein de choses. Une deuxième partie et tu peux encore gagner des étoiles !");
- document.getElementById("gift").textContent=win?"🎁 Cadeau du dimanche débloqué !":"🌟 Encore un petit effort pour le cadeau !";
+ document.getElementById("gift").textContent=win?"🎁 Défi de mardi réussi — cadeau du dimanche débloqué !":"🌟 Encore un petit entraînement et tu seras prête pour mardi !";
  applause();confetti(true);
  if(win) setTimeout(()=>speak("Bravo Harmonie ! Tu as gagné ! Le cadeau du dimanche est débloqué !"),350);
  else setTimeout(()=>speak("Bravo Harmonie ! Tu peux être fière de toi. On rejoue ?"),350);
@@ -288,7 +290,7 @@ document.getElementById("restart").onclick=restart;
 document.getElementById("startBtn").onclick=()=>{
  document.getElementById("overlay").style.display="none";
  getCtx();startMusic();render();
- speak("Coucou Harmonie ! Moi, c'est Lili la licorne. On va jouer avec les mots. À chaque bonne réponse, je m'envole !");
+ speak("Coucou Harmonie ! Moi, c'est Lili la licorne. On prépare ton évaluation de mardi. D'abord la première lettre. Si elle est pareille, on regarde la deuxième. Pas besoin d'aller plus loin. À chaque bonne réponse, je m'envole !");
 };
 document.getElementById("musicBtn").onclick=()=>{
  musicOn=!musicOn;document.getElementById("musicBtn").textContent=musicOn?"🎵":"🔇";
