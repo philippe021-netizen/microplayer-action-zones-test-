@@ -89,7 +89,8 @@ function normalizeLesson(raw){
       id:item.id||('i'+(i+1)),
       prompt:String(item.prompt??item.expected??''),
       expected:String(item.expected??item.prompt??''),
-      mode:item.mode||(type==='math'?'solve':'memory')
+      mode:item.mode||(type==='math'?'solve':'memory'),
+      type:item.type==='math'?'math':type
     };
   }).filter(x=>x.prompt&&x.expected);
   return {
@@ -189,7 +190,7 @@ function renderLessons(){
 function startReview(){
   const due=dueItems().slice(0,10);
   if(!due.length)return;
-  const items=due.map((x,i)=>({...x.item,id:'review-'+i+'-'+x.item.id,_sourceLessonId:x.lesson.id,_sourceTitle:x.lesson.title}));
+  const items=due.map((x,i)=>({...x.item,id:'review-'+i+'-'+x.item.id,type:x.lesson.type,_sourceType:x.lesson.type,_sourceLessonId:x.lesson.id,_sourceTitle:x.lesson.title}));
   const mixedMath=items.every(i=>{
     const src=lessons.find(l=>l.id===i._sourceLessonId);
     return src?.type==='math';
@@ -217,6 +218,7 @@ function startLesson(lesson,overrideItems){
 }
 
 function currentItem(){return currentItems[itemIndex]}
+function exerciseType(item=currentItem()){return item?._sourceType||item?.type||currentLesson?.type||'writing'}
 
 function prepareRound(){
   clearInterval(timer);
@@ -225,7 +227,7 @@ function prepareRound(){
   $('roundNo').textContent='Exercice '+(itemIndex+1)+'/'+currentItems.length;
   $('progressBar').style.width=((itemIndex/currentItems.length)*100)+'%';
   $('starCount').textContent='⭐ '+stars;
-  $('boardTitle').textContent=currentLesson.type==='math'?'Calcul au tableau':'Regarde bien au tableau';
+  $('boardTitle').textContent=exerciseType()==='math'?'Calcul au tableau':'Regarde bien au tableau';
   $('boardPrompt').textContent='';
   $('boardPrompt').classList.remove('hidden-word');
   $('boardHelp').textContent='';
@@ -248,7 +250,7 @@ function beginTeaching(){
   const item=currentItem();
   $('roundControls').classList.add('hidden');
   setTeacherPose('point');
-  if(currentLesson.type==='math'||item.mode==='solve'){
+  if(exerciseType(item)==='math'||item.mode==='solve'){
     $('boardPrompt').textContent=item.prompt;
     $('boardTitle').textContent='À toi de calculer';
     sayTeacher(pick(TEACHER.math));
@@ -279,12 +281,12 @@ function enterWriting(hidePrompt){
     $('boardPrompt').textContent='';
     $('boardPrompt').classList.remove('hidden-word');
   }
-  $('boardTitle').textContent=currentLesson.type==='math'?'Écris le résultat':'Écris ce que tu as retenu';
-  $('boardHelp').textContent=currentLesson.type==='math'?'Écris seulement la réponse.':'Écris le mot ou les mots avec ton doigt.';
+  $('boardTitle').textContent=exerciseType(item)==='math'?'Écris le résultat':'Écris ce que tu as retenu';
+  $('boardHelp').textContent=exerciseType(item)==='math'?'Écris seulement la réponse.':'Écris le mot ou les mots avec ton doigt.';
   $('writeZone').classList.add('show');
   $('writeControls').classList.remove('hidden');
   setTeacherPose('idle');
-  if(currentLesson.type!=='math')sayTeacher(pick(TEACHER.write));
+  if(exerciseType(item)!=='math')sayTeacher(pick(TEACHER.write));
   resizeCanvas();
 }
 
@@ -402,12 +404,13 @@ function stopStroke(){
 
 function makeRecognitionPayload(){
   const item=currentItem();
-  const lexicon=currentLesson.type==='writing'
-    ? currentItems.map(i=>i.expected)
+  const type=exerciseType(item);
+  const lexicon=type==='writing'
+    ? currentItems.filter(i=>exerciseType(i)==='writing').map(i=>i.expected)
     : [];
   return {
     expected:item.expected,
-    mode:currentLesson.type==='math'?'math':'text',
+    mode:type==='math'?'math':'text',
     lexicon,
     board:{width:$('boardCanvas').clientWidth,height:$('boardCanvas').clientHeight},
     strokes:strokes.filter(s=>s.length>1).map(st=>({
@@ -572,7 +575,7 @@ function retryCurrent(){
   $('writeControls').classList.remove('hidden');
   $('writeZone').classList.add('show');
   $('boardTitle').textContent='On réessaie';
-  if(currentLesson.type==='math'){
+  if(exerciseType()==='math'){
     $('boardPrompt').textContent=currentItem().prompt;
   }else{
     $('boardPrompt').textContent='';
@@ -738,7 +741,7 @@ $('hintBtn').onclick=()=>{
   const item=currentItem();
   const st=statFor(currentLesson,item);
   st.hints=(st.hints||0)+1;saveState();
-  if(currentLesson.type==='math'){
+  if(exerciseType(item)==='math'){
     if(hints===1){sayTeacher('Petit indice : avance étape par étape.');$('feedback').textContent='Compte ou calcule doucement, étape par étape.'}
     else{sayTeacher('Relis bien le calcul au tableau.');$('feedback').textContent='Relis le calcul avant d’écrire ta réponse.'}
     return;
