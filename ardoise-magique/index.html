@@ -68,7 +68,7 @@ header{display:flex;align-items:center;gap:12px;flex:none}.brand{display:flex;al
    <div class="write-tools" id="writeTools">
      <button id="undo">↶ Annuler</button><button id="clear">🧽 Tout effacer</button><button id="hintBtn">💡 Petit indice</button><button id="guideToggle">≡ Lignage</button><button id="done" class="mainbtn green">J’ai fini !</button>
    </div>
-   <div class="controls hidden" id="compareControls"><button id="retry" class="mainbtn pink">On réessaie ensemble</button><button id="selfSuccess" class="mainbtn green">Je suis contente de mon mot ⭐</button><button id="nextWord" class="mainbtn hidden">Mot suivant ➜</button></div>
+   <div class="controls hidden" id="compareControls"><button id="retry" class="mainbtn pink">On réessaie ensemble</button><button id="nextWord" class="mainbtn hidden">Mot suivant ➜</button></div>
   </div>
  </div>
 </section>
@@ -99,6 +99,7 @@ const STRINGS={
  FINISH:['Mission réussie ! La licorne fait la fête !','Bravo Harmonie ! Tu as terminé la mission !']
 };
 let lessons=[],current=null,wordIndex=0,stars=0,hints=0,tries=0,showSeconds=3,timer=null,strokes=[],activeStroke=null,boardSize={w:0,h:0};
+let recognitionBusy=false;
 let setting={music:true,voice:true,sounds:true,guide:true};let audio=null,musicOsc=null,musicGain=null,musicTimer=null,musicStep=0;
 const $=id=>document.getElementById(id);
 const wordMetrics={};
@@ -149,7 +150,7 @@ function renderRound(){
  $('roundNo').textContent='Mot '+(wordIndex+1)+'/'+current.words.length;$('progressBar').style.width=(wordIndex/current.words.length*100)+'%';$('starCount').textContent='⭐ '+stars;
  $('phaseLabel').textContent='Regarde bien le mot…';$('guide').classList.toggle('hidden',!setting.guide);$('showWord').textContent=word;$('showWord').classList.remove('hidden');$('countdown').textContent='';
  $('writeWrap').classList.remove('show');$('compare').classList.remove('show');$('writeTools').classList.remove('show');$('compareControls').classList.add('hidden');$('roundControls').classList.remove('hidden');
- $('startRound').classList.remove('hidden');$('retry').classList.remove('hidden');$('selfSuccess').classList.remove('hidden');$('nextWord').classList.add('hidden');$('startRound').textContent='On y va ! ✨';$('gameMessage').textContent='';$('guide').classList.remove('hidden');$('trace').classList.remove('on','dotted');$('hintText').classList.remove('on');
+ $('startRound').classList.remove('hidden');$('retry').classList.remove('hidden');$('nextWord').classList.add('hidden');$('startRound').textContent='On y va ! ✨';$('gameMessage').textContent='';recognitionBusy=false;$('done').disabled=false;$('done').textContent='J’ai fini !';$('guide').classList.remove('hidden');$('trace').classList.remove('on','dotted');$('hintText').classList.remove('on');
  resizeCanvas();$('startRound').onclick=showModel;
 }
 function showModel(){
@@ -178,20 +179,46 @@ $('hintBtn').onclick=()=>{
  else{$('hintText').textContent='Tu peux repasser sur les lettres pâles.';$('trace').textContent=word;$('trace').classList.add('on','dotted')}
  saveProgress()
 };
-$('done').onclick=()=>{
- clearTimeout(timer);$('writeWrap').classList.remove('show');$('writeTools').classList.remove('show');$('compare').classList.add('show');$('roundControls').classList.add('hidden');$('compareControls').classList.remove('hidden');
+function makeRecognitionPayload(){
+ const word=current.words[wordIndex],usable=strokes.filter(s=>s.length>1);
+ return {expected:word,lexicon:current.words,board:{width:$('board').clientWidth,height:$('board').clientHeight},strokes:usable.map(s=>({x:s.map(p=>Math.max(0,Math.round(p.x*10)/10)),y:s.map(p=>Math.max(0,Math.round(p.y*10)/10))}))};
+}
+async function recognizeWriting(){
+ const payload=makeRecognitionPayload();
+ if(!payload.strokes.length)return {ok:true,match:false,empty:true};
+ const r=await fetch('./api/recognize-handwriting',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+ const data=await r.json().catch(()=>({}));
+ if(!r.ok||!data.ok){const err=new Error(data.message||'La reconnaissance est momentanément indisponible.');err.code=data.code||'RECOGNITION_ERROR';throw err}
+ return data;
+}
+function showComparisonForRetry(){
+ $('writeWrap').classList.remove('show');$('writeTools').classList.remove('show');$('compare').classList.add('show');$('compareControls').classList.remove('hidden');
  $('compareWriting').innerHTML='<svg id="writtenSvg" viewBox="0 0 '+$('board').clientWidth+' '+$('board').clientHeight+'" preserveAspectRatio="none" style="width:100%;height:90px"></svg>';
- renderStrokes();$('compareModel').textContent=current.words[wordIndex];$('phaseLabel').textContent='Compare ton mot avec le modèle';$('gameMessage').textContent='Tu peux essayer encore, ou dire que tu es contente de ton écriture.';
+ renderStrokes();$('compareModel').textContent=current.words[wordIndex];$('phaseLabel').textContent='On regarde le modèle et on réessaie';$('retry').classList.remove('hidden');$('nextWord').classList.add('hidden');
+}
+function awardCurrentWord(){
+ const word=current.words[wordIndex],m=metric(word);m.successes++;m.streak=Math.max(0,m.streak||0)+1;m.last=new Date().toISOString();
+ const earned=hints===0&&tries===0?3:hints<3?2:1;stars+=earned;$('starCount').textContent='⭐ '+stars;
+ $('writeWrap').classList.remove('show');$('writeTools').classList.remove('show');$('compare').classList.remove('show');$('compareControls').classList.remove('hidden');$('retry').classList.add('hidden');$('nextWord').classList.remove('hidden');
+ $('phaseLabel').textContent='Bravo !';$('gameMessage').textContent='Bravo ! '+('⭐'.repeat(earned))+' La licorne a bien reconnu ton mot.';say(pick(current.customPhrases?.length?current.customPhrases:STRINGS.SUCCESS));chime();celebrate();confetti();saveProgress();
+}
+$('done').onclick=async()=>{
+ if(recognitionBusy)return;
+ if(!strokes.some(s=>s.length>1)){say('Écris ton mot avant de me demander de le vérifier.');$('gameMessage').textContent='Écris d’abord le mot sur l’ardoise.';return}
+ recognitionBusy=true;$('done').disabled=true;$('done').textContent='Je vérifie…';$('phaseLabel').textContent='La licorne regarde ton mot…';$('gameMessage').textContent='';
+ try{
+  const result=await recognizeWriting();
+  if(result.match){awardCurrentWord()}
+  else{showComparisonForRetry();$('gameMessage').textContent='Presque ! Regarde le modèle puis réessaie tranquillement.';say(pick(STRINGS.RETRY))}
+ }catch(err){
+  $('phaseLabel').textContent='Écris le mot sur ton ardoise';$('writeWrap').classList.add('show');$('writeTools').classList.add('show');$('compare').classList.remove('show');$('compareControls').classList.add('hidden');
+  if(err.code==='MYSCRIPT_NOT_CONFIGURED'){$('gameMessage').textContent='La reconnaissance manuscrite doit encore être activée par un adulte.'}
+  else{$('gameMessage').textContent='Je n’arrive pas à lire le mot pour le moment. Réessaie dans un instant.'}
+ }finally{recognitionBusy=false;$('done').disabled=false;$('done').textContent='J’ai fini !'}
 };
 // Optional handwriting-recognition adapter: omitted until it can be reliable for a child's cursive; visual comparison always works.
 function renderStrokes(){const svg=document.getElementById('writtenSvg');if(!svg)return;const ns='http://www.w3.org/2000/svg';for(const s of strokes){if(s.length<2)continue;const p=document.createElementNS(ns,'polyline');p.setAttribute('points',s.map(q=>q.x+','+q.y).join(' '));p.setAttribute('fill','none');p.setAttribute('stroke','#524f79');p.setAttribute('stroke-width','7');p.setAttribute('stroke-linecap','round');p.setAttribute('stroke-linejoin','round');svg.append(p)}}
 $('retry').onclick=()=>{tries++;const m=metric(current.words[wordIndex]);m.retries++;m.streak=-Math.abs(m.streak||1);saveProgress();strokes=[];paint();$('compare').classList.remove('show');$('compareControls').classList.add('hidden');$('writeWrap').classList.add('show');$('writeTools').classList.add('show');$('phaseLabel').textContent='On réessaie ensemble';$('gameMessage').textContent='';$('trace').classList.remove('on','dotted');$('hintText').classList.remove('on');say(pick(STRINGS.RETRY))};
-$('selfSuccess').onclick=()=>{
- const word=current.words[wordIndex],m=metric(word);m.successes++;m.streak=Math.max(0,m.streak||0)+1;m.last=new Date().toISOString();
- const earned=hints===0&&tries===0?3:hints<3?2:1;stars+=earned;$('starCount').textContent='⭐ '+stars;
- $('gameMessage').textContent='Bravo ! '+('⭐'.repeat(earned))+' La licorne est fière de toi !';say(pick(current.customPhrases?.length?current.customPhrases:STRINGS.SUCCESS));chime();celebrate();confetti();
- $('retry').classList.add('hidden');$('selfSuccess').classList.add('hidden');$('nextWord').classList.remove('hidden');saveProgress();
-};
 $('nextWord').onclick=()=>{wordIndex++;if(wordIndex>=current.words.length){finishLesson();return}renderRound();say('Mot suivant !')};
 function celebrate(){document.querySelectorAll('.mascot').forEach(e=>{e.classList.add('celebrate');setTimeout(()=>e.classList.remove('celebrate'),1400)})}
 function confetti(){const c=document.createElement('div');c.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden';document.body.append(c);const bits=['✨','⭐','💖','🌈'];for(let i=0;i<22;i++){let s=document.createElement('span');s.textContent=pick(bits);s.style.cssText='position:absolute;left:'+Math.random()*100+'%;top:-30px;font-size:'+(18+Math.random()*20)+'px;animation:confetti 1.4s ease-in forwards';c.append(s)}const st=document.createElement('style');st.textContent='@keyframes confetti{to{transform:translateY(110vh) rotate(300deg);opacity:0}}';document.head.append(st);setTimeout(()=>{c.remove();st.remove()},1600)}
