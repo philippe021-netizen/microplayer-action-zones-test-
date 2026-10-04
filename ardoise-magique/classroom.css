@@ -427,3 +427,37 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
     height:min(41vh,300px)!important;
   }
 }
+
+
+/* 2026-10-04 : libérer le visage et réduire l’agrandissement du WebP basse résolution. */
+#game .teacher-speech{
+  left:auto!important;
+  right:54px!important;
+  top:10px!important;
+  width:min(255px,24vw)!important;
+}
+#game #teacherActor{
+  width:min(19vw,225px)!important;
+  height:min(38vh,285px)!important;
+}
+#game #teacherActor.pose-point{
+  width:min(21vw,245px)!important;
+  height:min(42vh,315px)!important;
+}
+@media (max-width:760px){
+  #game .teacher-speech{
+    left:auto!important;
+    right:48px!important;
+    top:6px!important;
+    width:min(170px,34vw)!important;
+  }
+  #game #teacherActor{
+    left:0!important;
+    width:min(30vw,190px)!important;
+    height:min(34vh,245px)!important;
+  }
+  #game #teacherActor.pose-point{
+    width:min(33vw,210px)!important;
+    height:min(39vh,275px)!important;
+  }
+}
