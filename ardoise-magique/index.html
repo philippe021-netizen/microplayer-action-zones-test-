@@ -187,19 +187,20 @@ function writingPreviewSvg(strokeList,w,h){
 }
 function recognitionFeedback(expected,actual,confidence){
  const clean=s=>String(s||'').normalize('NFC').toLocaleLowerCase('fr').replace(/[’`]/g,"'").replace(/[^\p{L}\p{N}' ]/gu,' ').replace(/\s+/g,' ').trim();const target=clean(expected),read=clean(actual);
- if(!target||!read||confidence<78)return {status:'uncertain',message:'Je ne suis pas sûre d’avoir bien lu. Regarde le modèle et vérifie tranquillement.'};
- if(target===read)return {status:'match',message:'Ça ressemble au modèle ! Bravo pour tes efforts !'};
- return {status:'check',message:'J’ai lu « '+String(actual).trim()+' ». Compare avec le modèle, tranquillement.'};
+ if(!target||!read)return {status:'uncertain',message:'Je n’arrive pas bien à lire ce mot. Compare avec le modèle, tranquillement.'};
+ if(target===read||target.replace(/\s/g,'')===read.replace(/\s/g,''))return {status:'match',message:'J’ai lu « '+String(actual).trim()+' » : ça ressemble au modèle !'};
+ if(confidence>=55)return {status:'check',message:'Je crois avoir lu « '+String(actual).trim()+' ». Regarde les lettres avec le modèle.'};
+ return {status:'uncertain',message:'Je crois avoir lu « '+String(actual).trim()+' », mais je ne suis pas sûre. Compare avec le modèle.'};
 }
 function canvasForRecognition(){
  const pts=strokes.filter(s=>s.length>1).flat();if(!pts.length)return null;const minX=Math.min(...pts.map(p=>p.x)),maxX=Math.max(...pts.map(p=>p.x)),minY=Math.min(...pts.map(p=>p.y)),maxY=Math.max(...pts.map(p=>p.y));const scale=Math.min(3,820/Math.max(1,maxX-minX),210/Math.max(1,maxY-minY));const pad=28,out=document.createElement('canvas');out.width=Math.max(180,Math.ceil((maxX-minX)*scale+pad*2));out.height=Math.max(100,Math.ceil((maxY-minY)*scale+pad*2));const ctx=out.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,out.width,out.height);ctx.strokeStyle='#29283c';ctx.lineWidth=Math.max(4,5*scale);ctx.lineCap='round';ctx.lineJoin='round';for(const s of strokes){if(s.length<2)continue;ctx.beginPath();ctx.moveTo(pad+(s[0].x-minX)*scale,pad+(s[0].y-minY)*scale);for(let i=1;i<s.length;i++)ctx.lineTo(pad+(s[i].x-minX)*scale,pad+(s[i].y-minY)*scale);ctx.stroke()}return out;
 }
-function loadRecognitionLibrary(){if(window.Tesseract)return Promise.resolve(window.Tesseract);if(recognitionLoad)return recognitionLoad;recognitionLoad=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';script.async=true;script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(Error('Lecture indisponible'));script.onerror=()=>reject(Error('Lecture indisponible'));document.head.append(script)});return recognitionLoad}
+function loadRecognitionLibrary(){if(window.Tesseract)return Promise.resolve(window.Tesseract);if(recognitionLoad)return recognitionLoad;recognitionLoad=new Promise((resolve,reject)=>{const script=document.createElement('script');script.async=true;let fallback=false;script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(Error('Moteur OCR indisponible'));script.onerror=()=>{if(fallback){reject(Error('Moteur OCR indisponible'));return}fallback=true;script.src='https://unpkg.com/tesseract.js@6.0.1/dist/tesseract.min.js'};script.src='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';document.head.append(script)});return recognitionLoad}
 async function recognizeWriting(){
  const result=$('recognitionResult'),image=canvasForRecognition();if(!image){result.textContent='Je ne vois pas encore de tracé. Tu peux écrire un peu, puis réessayer.';say('Ton ardoise est encore vide. Tu peux écrire un peu, puis réessayer.');return}
  result.textContent='La licorne essaie de lire ton écriture…';
  try{const api=await loadRecognitionLibrary();recognitionWorker ||= await api.createWorker('fra');await recognitionWorker.setParameters({tessedit_pageseg_mode:'7'});const resultOcr=await recognitionWorker.recognize(image);const decision=recognitionFeedback(current.words[wordIndex],resultOcr.data.text,resultOcr.data.confidence);result.textContent=decision.message;say(decision.status==='match'?'Ça ressemble au modèle ! Bravo pour tes efforts !':decision.status==='check'?'Regarde le modèle, on vérifie ensemble.':'Je ne suis pas sûre d’avoir bien lu. Regarde le modèle tranquillement.')}
- catch(e){result.textContent='Je ne suis pas sûre d’avoir bien lu. Regarde le modèle et vérifie tranquillement.';say('Je ne suis pas sûre d’avoir bien lu. Regardons le modèle tranquillement.')}
+ catch(e){result.textContent='Le lecteur ne peut pas lire ce tracé ici. Regarde ton mot à côté du modèle.';say('Le lecteur n’arrive pas à lire ce mot. Regardons le modèle ensemble.')}
 }
 $('done').onclick=()=>{
  clearTimeout(timer);if(activeStroke?.length>1)strokes.push(activeStroke);activeStroke=null;if($('writeWrap').classList.contains('show'))resizeCanvas();

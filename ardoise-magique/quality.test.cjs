@@ -32,7 +32,10 @@ assert.ok(!/viewBox="0 0 0 0"/.test(svg));
 
 const feedback = loadHelper('recognitionFeedback');
 assert.equal(feedback('mon frère', 'Mon frère', 92).status, 'match');
+assert.equal(feedback('une rue', 'UNE RUE', 20).status, 'match');
+assert.match(feedback('une rue', 'UNE RUE', 20).message, /ressemble au modèle/);
 assert.equal(feedback('une rue', 'une roue', 90).status, 'check');
 assert.equal(feedback('une rue', 'une ru', 42).status, 'uncertain');
+assert.match(feedback('une rue', 'une roue', 90).message, /une roue/);
 assert.doesNotMatch(feedback('une rue', 'une roue', 90).message, /faux|échec|raté/i);
 console.log('Writing preview and gentle-recognition checks passed.');
