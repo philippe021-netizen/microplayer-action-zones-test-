@@ -98,7 +98,7 @@ const STRINGS={
  HINT:['Je te donne un petit indice !','Petit coup de pouce magique !'],
  FINISH:['Mission réussie ! La licorne fait la fête !','Bravo Harmonie ! Tu as terminé la mission !']
 };
-let lessons=[],current=null,wordIndex=0,stars=0,hints=0,tries=0,showSeconds=3,timer=null,strokes=[],activeStroke=null;
+let lessons=[],current=null,wordIndex=0,stars=0,hints=0,tries=0,showSeconds=3,timer=null,strokes=[],activeStroke=null,boardSize={w:0,h:0};
 let setting={music:true,voice:true,sounds:true,guide:true};let audio=null,musicOsc=null,musicGain=null,musicTimer=null,musicStep=0;
 const $=id=>document.getElementById(id);
 const wordMetrics={};
@@ -161,7 +161,7 @@ function hideModel(){
 }
 function resizeCanvas(){
  const c=$('board'),box=$('writeWrap'),dpr=Math.min(devicePixelRatio||1,2),w=box.clientWidth||600,h=box.clientHeight||300;
- if(!w||!h)return;c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);paint();
+ if(!w||!h)return;if(boardSize.w&&boardSize.h&&(w!==boardSize.w||h!==boardSize.h)){const sx=w/boardSize.w,sy=h/boardSize.h;strokes=strokes.map(st=>st.map(p=>({x:p.x*sx,y:p.y*sy})))}boardSize={w,h};c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);paint();
 }
 function paint(){const c=$('board'),ctx=c.getContext('2d'),dpr=Math.min(devicePixelRatio||1,2);ctx.clearRect(0,0,c.width/dpr,c.height/dpr);ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#524f79';ctx.lineWidth=5;for(const s of strokes){if(!s.length)continue;ctx.beginPath();ctx.moveTo(s[0].x,s[0].y);for(let i=1;i<s.length;i++){const p=s[i];ctx.lineTo(p.x,p.y)}ctx.stroke()}if(activeStroke?.length){ctx.beginPath();ctx.moveTo(activeStroke[0].x,activeStroke[0].y);activeStroke.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke()}}
 function pos(e){const r=$('board').getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
@@ -180,7 +180,7 @@ $('hintBtn').onclick=()=>{
 };
 $('done').onclick=()=>{
  clearTimeout(timer);$('writeWrap').classList.remove('show');$('writeTools').classList.remove('show');$('compare').classList.add('show');$('roundControls').classList.add('hidden');$('compareControls').classList.remove('hidden');
- $('compareWriting').innerHTML='<svg id="writtenSvg" viewBox="0 0 '+$('board').width+' '+$('board').height+'" preserveAspectRatio="none" style="width:100%;height:90px"></svg>';
+ $('compareWriting').innerHTML='<svg id="writtenSvg" viewBox="0 0 '+$('board').clientWidth+' '+$('board').clientHeight+'" preserveAspectRatio="none" style="width:100%;height:90px"></svg>';
  renderStrokes();$('compareModel').textContent=current.words[wordIndex];$('phaseLabel').textContent='Compare ton mot avec le modèle';$('gameMessage').textContent='Tu peux essayer encore, ou dire que tu es contente de ton écriture.';
 };
 // Optional handwriting-recognition adapter: omitted until it can be reliable for a child's cursive; visual comparison always works.
