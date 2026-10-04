@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f7eaff">
+<title>L’Ardoise magique — Harmonie</title>
+<style>
+@font-face{font-family:"Marelle";src:url("https://marelle.forge.apps.education.fr/fonts/Marelle-Regular.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#35335e;--purple:#7562da;--pink:#ffb5da;--mint:#71d4b1;--ink:#41466d}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body{background:linear-gradient(140deg,#fff1f7,#eef9ff 58%,#fff9dd);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);touch-action:pan-x pan-y}
+button,input,select{font:inherit}button{touch-action:manipulation;cursor:pointer}.app{height:100%;min-height:100svh;max-width:1150px;margin:auto;padding:clamp(10px,2vw,24px);display:flex;flex-direction:column;gap:12px}
+header{display:flex;align-items:center;gap:12px;flex:none}.brand{display:flex;align-items:center;gap:10px;min-width:0}.brand h1{font-size:clamp(21px,3vw,32px);margin:0}.brand p{font-size:14px;color:#77758f;margin:2px 0 0}.actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.iconbtn,.softbtn{border:0;border-radius:15px;background:#ffffffd9;padding:10px 13px;box-shadow:0 3px 12px #60528b12;color:#46406c;font-weight:750}.iconbtn{font-size:20px;min-width:46px;min-height:44px}.screen{display:none;flex:1;min-height:0}.screen.active{display:flex;flex-direction:column}
+.panel{background:#ffffffed;border:2px solid #fff;border-radius:26px;box-shadow:0 15px 45px #695d9320;padding:clamp(15px,2.5vw,26px);overflow:auto}
+.home{margin:auto;width:min(760px,100%);text-align:center}.home h2,.parent h2,.finish h2{font-size:clamp(26px,4vw,38px);margin:3px}.home p{color:#76748f}.mascot{width:112px;height:102px;overflow:visible;filter:drop-shadow(0 5px 5px #594c8030)}.mascot-art{width:100%;height:100%;overflow:visible}.mascot-body{transform-origin:50% 80%;animation:breathe 1.8s ease-in-out infinite}.mascot-head{transform-origin:68% 49%;animation:look 4s ease-in-out infinite}.mascot-leg{transform-origin:40% 69%;animation:walkleg .55s ease-in-out infinite alternate}.leg-b{transform-origin:57% 70%;animation:walkleg .55s ease-in-out infinite alternate-reverse}.mascot-eye{transform-origin:center;animation:blink 4.5s infinite}.talking .mascot-head{animation:talk .18s ease-in-out infinite alternate}.celebrate .mascot-body{animation:hop .45s ease-in-out 3}.brand>.mascot{animation:arrive .9s ease-out both}@keyframes arrive{from{transform:translateX(-34px);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes talk{to{transform:translateY(-2px) rotate(2deg)}}@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-13px) rotate(5deg)}}.mascot-horn{animation:glow 1.3s ease-in-out infinite alternate}
+@keyframes breathe{50%{transform:translateY(-3px)}}@keyframes look{0%,75%,100%{transform:rotate(0)}84%{transform:rotate(-5deg)}90%{transform:rotate(4deg)}}@keyframes walkleg{to{transform:rotate(9deg)}}@keyframes blink{0%,45%,48%,100%{transform:scaleY(1)}46%,47%{transform:scaleY(.1)}}@keyframes glow{to{filter:drop-shadow(0 0 5px #ffda72)}}
+.lessons{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:20px auto;max-width:650px}.lesson-card{border:2px solid #ece6fa;background:#fff;border-radius:20px;padding:15px;text-align:left;box-shadow:0 5px 15px #4d438312}.lesson-card strong{display:block;font-size:21px}.lesson-card span{color:#7d7896;font-size:14px}.lesson-card button{width:100%;border:0;border-radius:14px;background:#7562da;color:white;font-weight:850;padding:12px;margin-top:9px}
+.small-link{border:0;background:none;color:#7165ac;text-decoration:underline;font-weight:700;padding:10px}
+.game-top{display:flex;align-items:center;gap:10px}.pill{background:#ffffffd9;border-radius:999px;padding:8px 13px;font-weight:850;white-space:nowrap}.progress{height:12px;flex:1;border-radius:99px;background:#e8e5f1;overflow:hidden}.progress i{height:100%;display:block;width:0;background:linear-gradient(90deg,#ffaad6,#9280fa,#76d4f0);transition:width .4s}
+.play-area{flex:1;min-height:0;display:grid;grid-template-columns:minmax(170px,230px) 1fr;gap:14px}.side{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.side .speech{min-height:55px;color:#716c8e;font-weight:750}.stage{display:flex;flex-direction:column;min-height:0;gap:10px}
+.card{flex:1;min-height:0;background:#fff;border:2px solid #ebe6f5;border-radius:25px;padding:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.phase-label{color:#74718b;font-weight:800;margin:0 0 5px}.model{font-family:"Marelle","Belle Allure CE","Playwrite FR Trad",cursive;font-weight:400;font-size:clamp(40px,7.5vw,76px);line-height:1.45;letter-spacing:0;text-align:center;color:#403d71;max-width:100%;overflow-wrap:anywhere}
+@supports(font-variant-ligatures:common-ligatures){.model{font-variant-ligatures:common-ligatures; font-feature-settings:"liga" 1,"calt" 1}}
+.countdown{position:absolute;right:15px;top:12px;color:#aba6bf;font-weight:800}.write-wrap{display:none;width:100%;flex:1;min-height:0;position:relative;background-color:#fffefa;border:1px solid #eee7d5;border-radius:19px;overflow:hidden;touch-action:none}.write-wrap.show{display:block}.writing-guide{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,transparent calc(100% - 70px),#e8a3b2 calc(100% - 69px),#e8a3b2 calc(100% - 67px),transparent calc(100% - 66px));opacity:.75}.writing-guide:before,.writing-guide:after{content:"";position:absolute;left:0;right:0;border-top:1px dashed #b9c7e9;top:calc(100% - 125px)}.writing-guide:after{top:calc(100% - 100px);border-color:#dfc6cf}.trace{display:none;position:absolute;left:10px;right:10px;bottom:50px;text-align:center;font-family:"Marelle","Belle Allure CE","Playwrite FR Trad",cursive;font-size:clamp(42px,7vw,74px);line-height:1.2;color:transparent;-webkit-text-stroke:1.4px #9ea4bb;opacity:.28;pointer-events:none;white-space:nowrap;overflow:hidden}.trace.on{display:block}.trace.dotted{-webkit-text-stroke:1.6px #9499b4;text-decoration:underline dotted #aaabc3 2px;text-underline-offset:8px}canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.controls button,.mainbtn{border:0;border-radius:16px;padding:12px 17px;background:#f0edfb;color:#524b80;font-weight:850;font-size:17px;min-height:48px}.mainbtn{background:var(--purple);color:#fff;font-size:20px;min-width:185px}.mainbtn.green{background:#39ae82}.mainbtn.pink{background:#ffeff7;color:#81506f}
+.write-tools{display:none;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}.write-tools.show{display:flex}
+.compare{display:none;text-align:center;gap:5px;grid-template-columns:1fr 1fr;width:100%;align-items:center}.compare.show{display:grid}.compare div{padding:5px}.compare label{display:block;color:#88849e;font-size:12px;font-weight:800;text-transform:uppercase}.compare .model{font-size:clamp(28px,5vw,48px)}
+.hint{display:none;position:absolute;left:12px;bottom:10px;background:#fff8d7cc;color:#645b82;border-radius:12px;padding:5px 10px;font-weight:800}.hint.on{display:block}
+.message{min-height:25px;text-align:center;color:#6f6a8c;font-weight:800}.finish,.parent{margin:auto;width:min(770px,100%);text-align:center}.summary{font-size:20px;line-height:1.5}.parent form{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left}.parent label{font-weight:800;display:flex;flex-direction:column;gap:5px}.parent input,.parent select,.parent textarea{border:2px solid #e5e0f2;border-radius:12px;padding:10px;font-size:17px}.parent textarea{grid-column:1/-1;min-height:140px}.parent .full{grid-column:1/-1}.center{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.hidden{display:none!important}.stars{font-size:30px;letter-spacing:4px;color:#efae3e}
+@media(max-width:650px){.app{gap:8px;padding:8px}.brand p{display:none}.brand h1{font-size:19px}.brand .mascot{width:58px;height:58px}.play-area{grid-template-columns:72px 1fr;gap:7px}.side .mascot{width:64px;height:65px}.side .speech{font-size:12px;min-height:44px}.iconbtn{padding:7px;min-width:40px}.pill{font-size:12px;padding:7px 9px}.model{font-size:clamp(37px,8vw,62px)}.card{padding:8px}.controls button{font-size:14px;padding:9px;min-height:44px}.parent form{grid-template-columns:1fr}.parent textarea,.parent .full{grid-column:1}.home{padding:15px}.lesson-card strong{font-size:18px}}
+@media(orientation:portrait){.play-area{grid-template-columns:66px 1fr}.side .mascot{width:62px}.model{font-size:clamp(36px,9vw,54px)}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+ <div class="brand"><div class="mascot" data-mascot="unicorn" role="img" aria-label="Lili la licorne"></div><div><h1>L’Ardoise magique</h1><p>Un petit jeu d’écriture pour Harmonie</p></div></div>
+ <div class="actions">
+  <button class="iconbtn" id="musicToggle" aria-label="Musique">🎵</button><button class="iconbtn" id="voiceToggle" aria-label="Voix">🗣️</button><button class="iconbtn" id="soundToggle" aria-label="Sons">🔔</button>
+  <button class="iconbtn" id="parentGate" aria-label="Espace parent">⚙️</button>
+ </div>
+</header>
+
+<section id="home" class="screen active">
+ <div class="panel home">
+  <div class="mascot" data-mascot="unicorn" role="img" aria-label="Lili la licorne"></div>
+  <h2>Quelle mission allons-nous jouer ?</h2><p>Choisis une leçon, puis écris les mots sur l’ardoise.</p>
+  <div id="lessonList" class="lessons"><span>Je prépare les leçons…</span></div>
+  <button class="small-link" id="backAlphabet">Jouer au jeu de l’ordre alphabétique</button>
+ </div>
+</section>
+
+<section id="game" class="screen">
+ <div class="game-top"><button class="softbtn" id="leaveGame">← Leçons</button><span class="pill" id="roundNo">Mot 1/8</span><div class="progress"><i id="progressBar"></i></div><span class="pill" id="starCount">⭐ 0</span></div>
+ <div class="play-area">
+  <aside class="side"><div class="mascot" data-mascot="unicorn" role="img" aria-label="Lili la licorne"></div><div class="speech" id="speechBubble">Coucou !</div></aside>
+  <div class="stage">
+   <div class="card">
+    <p class="phase-label" id="phaseLabel">Regarde bien le mot…</p><div id="showWord" class="model"></div><div class="countdown" id="countdown"></div>
+    <div class="write-wrap" id="writeWrap"><div class="writing-guide" id="guide"></div><div class="trace" id="trace"></div><canvas id="board" aria-label="Ardoise pour écrire avec le doigt ou le crayon"></canvas><div class="hint" id="hintText"></div></div>
+    <div class="compare" id="compare"><div><label>Ton écriture</label><div class="model" id="compareWriting"></div></div><div><label>Le modèle</label><div class="model" id="compareModel"></div></div></div>
+   </div>
+   <div class="message" id="gameMessage"></div>
+   <div class="controls" id="roundControls"><button class="mainbtn" id="startRound">On y va ! ✨</button></div>
+   <div class="write-tools" id="writeTools">
+     <button id="undo">↶ Annuler</button><button id="clear">🧽 Tout effacer</button><button id="hintBtn">💡 Petit indice</button><button id="guideToggle">≡ Lignage</button><button id="done" class="mainbtn green">J’ai fini !</button>
+   </div>
+   <div class="controls hidden" id="compareControls"><button id="retry" class="mainbtn pink">On réessaie ensemble</button><button id="selfSuccess" class="mainbtn green">Je suis contente de mon mot ⭐</button><button id="nextWord" class="mainbtn hidden">Mot suivant ➜</button></div>
+  </div>
+ </div>
+</section>
+
+<section id="finish" class="screen">
+ <div class="panel finish"><div class="stars" id="finalStars">⭐</div><h2>Mission terminée !</h2><p class="summary" id="finalSummary"></p><p id="reviewList"></p><div class="center"><button id="playAgain" class="mainbtn">Encore ! 🎉</button><button id="toLessons" class="softbtn">Autre leçon</button></div></div>
+</section>
+
+<section id="parent" class="screen">
+ <div class="panel parent"><h2>Coin des parents</h2><p>Crée une leçon une fois; le jeu réutilise la même ardoise et les mêmes règles.</p>
+  <form id="lessonForm"><label>Lettre étudiée<input id="letterInput" maxlength="2" value="S"></label><label>Nom de la leçon<input id="titleInput" value="Les mots en S"></label><label>Difficulté<select id="difficulty"><option value="easy">Facile</option><option value="normal" selected>Normal</option><option value="champion">Championne</option></select></label><label>Temps pour mémoriser<select id="timeInput"><option value="2">2 secondes</option><option value="3" selected>3 secondes</option><option value="5">5 secondes</option></select></label>
+  <label class="full">Mots (un par ligne)<textarea id="wordsInput" placeholder="une salade&#10;un serpent&#10;..."></textarea></label><label class="full">Phrases ou récompenses personnalisées, une par ligne<textarea id="phrasesInput" placeholder="Bravo, tu as réussi !"></textarea></label><div class="center full"><button type="submit" class="mainbtn">Enregistrer la leçon</button><button type="button" id="parentDone" class="softbtn">Retour au jeu</button></div></form>
+  <div id="parentMessage" class="message"></div>
+ </div>
+</section>
+</main>
+<script>
+const DEFAULT_URL='./lessons/r-01.json';
+const ALPHABET_URL='../harmonie-alphabet/index.html';
+const CONFIG={easy:5,normal:3,champion:2};
+const STRINGS={
+ INTRO:['Coucou Harmonie !','Me revoilà, Harmonie !','Prête pour une mission magique ?'],
+ MEMORIZE:['Regarde bien le mot…','Ouvre grand tes yeux !','On le photographie dans sa tête !'],
+ WRITE:['À toi maintenant !','Écris-le sur ton ardoise !','Allez, à toi de jouer !'],
+ SUCCESS:['Bravo Harmonie !','Trop forte !','Ouiii, tu l’as fait !','Super, la licorne est impressionnée !'],
+ RETRY:['Presque ! On regarde le modèle ensemble.','Ce mot est un petit coquin ! On réessaie.','On recommence ensemble ?'],
+ HINT:['Je te donne un petit indice !','Petit coup de pouce magique !'],
+ FINISH:['Mission réussie ! La licorne fait la fête !','Bravo Harmonie ! Tu as terminé la mission !']
+};
+let lessons=[],current=null,wordIndex=0,stars=0,hints=0,tries=0,showSeconds=3,timer=null,strokes=[],activeStroke=null,boardSize={w:0,h:0};
+let setting={music:true,voice:true,sounds:true,guide:true};let audio=null,musicOsc=null,musicGain=null,musicTimer=null,musicStep=0;
+const $=id=>document.getElementById(id);
+const wordMetrics={};
+const MASCOT_ART={unicorn:"<svg class=\"mascot-art\" viewBox=\"0 0 130 115\" role=\"img\" aria-label=\"Lili la licorne\">\n  <g class=\"mascot-body\"><ellipse cx=\"61\" cy=\"78\" rx=\"31\" ry=\"20\" fill=\"#fff\"/><path d=\"M41 88l-2 16m17-15 1 15m21-19 8 18m-1-24 12 13\" stroke=\"#765ed5\" stroke-width=\"7\" stroke-linecap=\"round\" class=\"mascot-leg\"/><path d=\"M43 68c-17-20-4-45 20-44 24 1 35 25 21 44-10 14-29 14-41 0z\" fill=\"#fff\"/><g class=\"mascot-head\"><path d=\"M76 52c3-19 15-30 29-26 13 4 15 22 7 34-8 12-25 13-36 2z\" fill=\"#fff\"/><path d=\"M98 27l7-21 7 22\" fill=\"#ffda65\" class=\"mascot-horn\"/><path d=\"M82 36c-2-17 8-26 20-27-8 7-4 14 4 15\" fill=\"#f49acb\"/><path d=\"M89 54q7-6 15 0q-8 8-15 0\" fill=\"#ffb2ca\"/><ellipse class=\"mascot-eye\" cx=\"94\" cy=\"43\" rx=\"2.4\" ry=\"3.2\" fill=\"#393456\"/><path d=\"M108 47q5 3 8-1\" fill=\"none\" stroke=\"#5c4774\" stroke-width=\"2\" stroke-linecap=\"round\"/></g><path d=\"M42 59q-18-20-12-32 14 5 17 24\" fill=\"#ff91c7\"/><path d=\"M43 64q-22-12-23 2 10 8 24 7\" fill=\"#a88bff\"/><circle cx=\"110\" cy=\"61\" r=\"3\" fill=\"#ffb2cc\"/></g>\n </svg>"};
+function mountMascots(){document.querySelectorAll('[data-mascot]').forEach(el=>{el.innerHTML=MASCOT_ART[el.dataset.mascot]||MASCOT_ART.unicorn})}
+
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function screen(id){document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));$(id).classList.add('active')}
+function safe(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function progressData(){try{return JSON.parse(localStorage.getItem('harmonie-ardoise-v1')||'{}')}catch{return {}}}
+function saveProgress(){localStorage.setItem('harmonie-ardoise-v1',JSON.stringify({words:wordMetrics,settings:setting,lessons:lessons.filter(l=>l.custom)}))}
+function loadProgress(){let d=progressData();Object.assign(wordMetrics,d.words||{});Object.assign(setting,d.settings||{})}
+function metric(word){return wordMetrics[(current?.id||'')+'|'+word] ||= {presentations:0,successes:0,retries:0,hints:0,streak:0,last:null}}
+async function loadLessons(){
+ loadProgress();
+ try{let r=await fetch(DEFAULT_URL,{cache:'no-cache'});if(!r.ok)throw Error('Leçon absente');let l=await r.json();lessons=[l]}catch(e){lessons=[]}
+ let d=progressData();for(const l of d.lessons||[])if(l&&Array.isArray(l.words)&&l.words.length)lessons.push(l);
+ renderLessons();
+}
+function renderLessons(){
+ const box=$('lessonList');box.innerHTML='';
+ if(!lessons.length){box.innerHTML='<p>Impossible de charger les leçons. Vérifie la connexion puis recharge la page.</p>';return}
+ lessons.forEach(l=>{let card=document.createElement('div');card.className='lesson-card';card.innerHTML='<strong>'+safe(l.title||('Les mots en '+l.letter))+'</strong><span>'+l.words.length+' mots · lettre '+safe(l.letter)+'</span><button>Jouer 🦄</button>';card.querySelector('button').onclick=()=>startLesson(l);box.append(card)});
+}
+function readSetting(){let d=progressData();setting={music:d.settings?.music??true,voice:d.settings?.voice??true,sounds:d.settings?.sounds??true,guide:d.settings?.guide??true};refreshToggles()}
+function refreshToggles(){$('musicToggle').textContent=setting.music?'🎵':'🔇';$('voiceToggle').textContent=setting.voice?'🗣️':'🤐';$('soundToggle').textContent=setting.sounds?'🔔':'🔕'}
+function getAudio(){if(!audio){const C=window.AudioContext||window.webkitAudioContext;if(C)audio=new C()}if(audio?.state==='suspended')audio.resume();return audio}
+function tone(freq,duration=.18,volume=.035,type='sine'){const c=getAudio();if(!c)return;const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(volume,c.currentTime);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+duration);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+duration)}
+function chime(){if(!setting.sounds)return;[660,790,990].forEach((f,i)=>setTimeout(()=>tone(f,.22,.04),i*90))}
+function musicStart(){if(!setting.music||musicTimer)return;const notes=[523,659,784,659,587,698,880,698];musicTimer=setInterval(()=>{if(!setting.music)return;const c=getAudio();if(!c)return;tone(notes[musicStep%8],.21,.011,'sine');musicStep++},520)}
+function musicStop(){clearInterval(musicTimer);musicTimer=null}
+function say(text){
+ $('speechBubble').textContent=text;
+ if(!setting.voice||!window.speechSynthesis)return;
+ speechSynthesis.cancel();document.querySelectorAll('.mascot').forEach(e=>e.classList.remove('talking'));document.querySelectorAll('.mascot').forEach(e=>e.classList.add('talking'));musicStop();
+ const u=new SpeechSynthesisUtterance(text);u.lang='fr-FR';u.pitch=1.55;u.rate=1.03;u.volume=.95;
+ const vs=speechSynthesis.getVoices();u.voice=vs.find(v=>v.lang?.toLowerCase().startsWith('fr')&&/audrey|am[ée]lie|aurelie|female|marie/i.test(v.name))||vs.find(v=>v.lang?.toLowerCase().startsWith('fr'))||null;
+ u.onstart=()=>{};u.onend=()=>{document.querySelectorAll('.mascot').forEach(e=>e.classList.remove('talking'));musicStart()};u.onerror=()=>document.querySelectorAll('.mascot').forEach(e=>e.classList.remove('talking'));speechSynthesis.speak(u);
+}
+function startLesson(l){
+ current=l;wordIndex=0;stars=0;screen('game');musicStart();say(pick(STRINGS.INTRO));renderRound();
+}
+function renderRound(){
+ clearTimeout(timer);strokes=[];activeStroke=null;hints=0;tries=0;
+ const word=current.words[wordIndex];showSeconds=CONFIG[current.difficulty]||Number(current.displaySeconds)||3;
+ const m=metric(word);m.presentations++;m.last=new Date().toISOString();saveProgress();
+ if(m.streak<0)showSeconds=Math.max(showSeconds,5);
+ $('roundNo').textContent='Mot '+(wordIndex+1)+'/'+current.words.length;$('progressBar').style.width=(wordIndex/current.words.length*100)+'%';$('starCount').textContent='⭐ '+stars;
+ $('phaseLabel').textContent='Regarde bien le mot…';$('guide').classList.toggle('hidden',!setting.guide);$('showWord').textContent=word;$('showWord').classList.remove('hidden');$('countdown').textContent='';
+ $('writeWrap').classList.remove('show');$('compare').classList.remove('show');$('writeTools').classList.remove('show');$('compareControls').classList.add('hidden');$('roundControls').classList.remove('hidden');
+ $('startRound').classList.remove('hidden');$('retry').classList.remove('hidden');$('selfSuccess').classList.remove('hidden');$('nextWord').classList.add('hidden');$('startRound').textContent='On y va ! ✨';$('gameMessage').textContent='';$('guide').classList.remove('hidden');$('trace').classList.remove('on','dotted');$('hintText').classList.remove('on');
+ resizeCanvas();$('startRound').onclick=showModel;
+}
+function showModel(){
+ const word=current.words[wordIndex];say(pick(STRINGS.MEMORIZE));$('startRound').classList.add('hidden');$('countdown').textContent=showSeconds+' s';
+ let n=showSeconds;timer=setInterval(()=>{n--;if(n>0)$('countdown').textContent=n+' s';else{clearInterval(timer);hideModel()}},1000);
+}
+function hideModel(){
+ $('showWord').textContent='';$('countdown').textContent='';$('phaseLabel').textContent='Écris le mot sur ton ardoise';$('writeWrap').classList.add('show');$('roundControls').classList.add('hidden');$('writeTools').classList.add('show');say(pick(STRINGS.WRITE));resizeCanvas();
+}
+function resizeCanvas(){
+ const c=$('board'),box=$('writeWrap'),dpr=Math.min(devicePixelRatio||1,2),w=box.clientWidth||600,h=box.clientHeight||300;
+ if(!w||!h)return;if(boardSize.w&&boardSize.h&&(w!==boardSize.w||h!==boardSize.h)){const sx=w/boardSize.w,sy=h/boardSize.h;strokes=strokes.map(st=>st.map(p=>({x:p.x*sx,y:p.y*sy})))}boardSize={w,h};c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);paint();
+}
+function paint(){const c=$('board'),ctx=c.getContext('2d'),dpr=Math.min(devicePixelRatio||1,2);ctx.clearRect(0,0,c.width/dpr,c.height/dpr);ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#524f79';ctx.lineWidth=5;for(const s of strokes){if(!s.length)continue;ctx.beginPath();ctx.moveTo(s[0].x,s[0].y);for(let i=1;i<s.length;i++){const p=s[i];ctx.lineTo(p.x,p.y)}ctx.stroke()}if(activeStroke?.length){ctx.beginPath();ctx.moveTo(activeStroke[0].x,activeStroke[0].y);activeStroke.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke()}}
+function pos(e){const r=$('board').getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+$('board').addEventListener('pointerdown',e=>{if(!$('writeWrap').classList.contains('show'))return;e.preventDefault();$('board').setPointerCapture(e.pointerId);activeStroke=[pos(e)];paint()});
+$('board').addEventListener('pointermove',e=>{if(!activeStroke)return;e.preventDefault();const es=e.getCoalescedEvents?.()||[e];for(const q of es)activeStroke.push(pos(q));paint()});
+function stopStroke(e){if(activeStroke){if(activeStroke.length>1)strokes.push(activeStroke);activeStroke=null;paint();saveProgress()}}
+$('board').addEventListener('pointerup',stopStroke);$('board').addEventListener('pointercancel',stopStroke);window.addEventListener('resize',()=>{if($('writeWrap').classList.contains('show'))resizeCanvas()});
+$('undo').onclick=()=>{strokes.pop();paint()};$('clear').onclick=()=>{strokes=[];paint()};
+$('hintBtn').onclick=()=>{
+ const word=current.words[wordIndex];hints++;metric(word).hints++;say(pick(STRINGS.HINT));$('hintText').classList.add('on');
+ if(hints===1){$('hintText').textContent='Écoute bien le mot…';say(word)}
+ else if(hints===2){$('hintText').textContent='La première lettre est : '+word[0].toLocaleUpperCase('fr');$('trace').textContent=word[0];$('trace').classList.add('on')}
+ else if(hints===3){$('hintText').textContent='Regarde vite le mot !';$('showWord').textContent=word;$('showWord').classList.remove('hidden');setTimeout(()=>{$('showWord').textContent=''},900)}
+ else{$('hintText').textContent='Tu peux repasser sur les lettres pâles.';$('trace').textContent=word;$('trace').classList.add('on','dotted')}
+ saveProgress()
+};
+$('done').onclick=()=>{
+ clearTimeout(timer);$('writeWrap').classList.remove('show');$('writeTools').classList.remove('show');$('compare').classList.add('show');$('roundControls').classList.add('hidden');$('compareControls').classList.remove('hidden');
+ $('compareWriting').innerHTML='<svg id="writtenSvg" viewBox="0 0 '+$('board').clientWidth+' '+$('board').clientHeight+'" preserveAspectRatio="none" style="width:100%;height:90px"></svg>';
+ renderStrokes();$('compareModel').textContent=current.words[wordIndex];$('phaseLabel').textContent='Compare ton mot avec le modèle';$('gameMessage').textContent='Tu peux essayer encore, ou dire que tu es contente de ton écriture.';
+};
+// Optional handwriting-recognition adapter: omitted until it can be reliable for a child's cursive; visual comparison always works.
+function renderStrokes(){const svg=document.getElementById('writtenSvg');if(!svg)return;const ns='http://www.w3.org/2000/svg';for(const s of strokes){if(s.length<2)continue;const p=document.createElementNS(ns,'polyline');p.setAttribute('points',s.map(q=>q.x+','+q.y).join(' '));p.setAttribute('fill','none');p.setAttribute('stroke','#524f79');p.setAttribute('stroke-width','7');p.setAttribute('stroke-linecap','round');p.setAttribute('stroke-linejoin','round');svg.append(p)}}
+$('retry').onclick=()=>{tries++;const m=metric(current.words[wordIndex]);m.retries++;m.streak=-Math.abs(m.streak||1);saveProgress();strokes=[];paint();$('compare').classList.remove('show');$('compareControls').classList.add('hidden');$('writeWrap').classList.add('show');$('writeTools').classList.add('show');$('phaseLabel').textContent='On réessaie ensemble';$('gameMessage').textContent='';$('trace').classList.remove('on','dotted');$('hintText').classList.remove('on');say(pick(STRINGS.RETRY))};
+$('selfSuccess').onclick=()=>{
+ const word=current.words[wordIndex],m=metric(word);m.successes++;m.streak=Math.max(0,m.streak||0)+1;m.last=new Date().toISOString();
+ const earned=hints===0&&tries===0?3:hints<3?2:1;stars+=earned;$('starCount').textContent='⭐ '+stars;
+ $('gameMessage').textContent='Bravo ! '+('⭐'.repeat(earned))+' La licorne est fière de toi !';say(pick(current.customPhrases?.length?current.customPhrases:STRINGS.SUCCESS));chime();celebrate();confetti();
+ $('retry').classList.add('hidden');$('selfSuccess').classList.add('hidden');$('nextWord').classList.remove('hidden');saveProgress();
+};
+$('nextWord').onclick=()=>{wordIndex++;if(wordIndex>=current.words.length){finishLesson();return}renderRound();say('Mot suivant !')};
+function celebrate(){document.querySelectorAll('.mascot').forEach(e=>{e.classList.add('celebrate');setTimeout(()=>e.classList.remove('celebrate'),1400)})}
+function confetti(){const c=document.createElement('div');c.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden';document.body.append(c);const bits=['✨','⭐','💖','🌈'];for(let i=0;i<22;i++){let s=document.createElement('span');s.textContent=pick(bits);s.style.cssText='position:absolute;left:'+Math.random()*100+'%;top:-30px;font-size:'+(18+Math.random()*20)+'px;animation:confetti 1.4s ease-in forwards';c.append(s)}const st=document.createElement('style');st.textContent='@keyframes confetti{to{transform:translateY(110vh) rotate(300deg);opacity:0}}';document.head.append(st);setTimeout(()=>{c.remove();st.remove()},1600)}
+function finishLesson(){musicStop();screen('finish');$('progressBar').style.width='100%';$('finalStars').textContent='⭐'.repeat(Math.min(stars,24))||'🌟';$('finalSummary').textContent='Tu as travaillé '+current.words.length+' mots et gagné '+stars+' étoiles !';const weak=current.words.filter(w=>{const m=wordMetrics[current.id+'|'+w];return m?.streak<1});$('reviewList').textContent=weak.length?'On pourra revoir tranquillement : '+weak.join(', '):'Tous les mots sont à revoir quand tu en as envie.';say(pick(STRINGS.FINISH));celebrate();}
+$('playAgain').onclick=()=>startLesson(current);$('toLessons').onclick=()=>{screen('home');renderLessons()};$('leaveGame').onclick=()=>{clearTimeout(timer);musicStop();screen('home')};
+function parentOpen(){const p=prompt('Code parent');if(p!=='2741'){if(p!==null)alert('Code incorrect.');return}screen('parent')}
+let gateTimer;const gate=$('parentGate');gate.addEventListener('pointerdown',()=>{gateTimer=setTimeout(parentOpen,1000)});['pointerup','pointercancel','pointerleave'].forEach(e=>gate.addEventListener(e,()=>clearTimeout(gateTimer)));
+$('parentDone').onclick=()=>screen('home');
+$('lessonForm').onsubmit=e=>{
+ e.preventDefault();const letter=$('letterInput').value.trim().toLocaleUpperCase('fr'),title=$('titleInput').value.trim()||('Les mots en '+letter),words=$('wordsInput').value.split(/\n/).map(s=>s.trim()).filter(Boolean);
+ if(!letter||words.length<1){$('parentMessage').textContent='Ajoute une lettre et au moins un mot.';return}
+ const lesson={id:'custom-'+Date.now(),letter,title,words,difficulty:$('difficulty').value,displaySeconds:Number($('timeInput').value),custom:true,customPhrases:$('phrasesInput').value.split(/\n/).map(s=>s.trim()).filter(Boolean)};
+ lessons=lessons.filter(x=>x.id!==lesson.id);lessons.push(lesson);saveProgress();$('parentMessage').textContent='Leçon enregistrée ! Elle apparaît dans le choix des missions.';setTimeout(()=>{screen('home');renderLessons()},600)
+};
+function setAudio(key){setting[key]=!setting[key];if(key==='music'&&!setting.music)musicStop();if(key==='music'&&setting.music)musicStart();if(key==='voice'&&!setting.voice&&window.speechSynthesis)speechSynthesis.cancel();refreshToggles();saveProgress()}
+$('guideToggle').onclick=()=>{setting.guide=!setting.guide;$('guide').classList.toggle('hidden',!setting.guide);$('guideToggle').textContent=setting.guide?'≡ Lignage':'≡ Sans lignes';saveProgress()};
+$('musicToggle').onclick=()=>setAudio('music');$('voiceToggle').onclick=()=>setAudio('voice');$('soundToggle').onclick=()=>setAudio('sounds');
+$('backAlphabet').onclick=()=>location.href=ALPHABET_URL;
+$('parentGate').setAttribute('title','Maintenir une seconde pour les parents');
+$('lessonForm').addEventListener('input',()=>{if($('letterInput').value&&$('titleInput').value==='Les mots en S')$('titleInput').value='Les mots en '+$('letterInput').value.toLocaleUpperCase('fr')});
+mountMascots();readSetting();loadLessons();window.addEventListener('pagehide',()=>{musicStop();if(window.speechSynthesis)speechSynthesis.cancel()});
+</script>
+</body>
+</html>
