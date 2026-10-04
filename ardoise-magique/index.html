@@ -70,7 +70,7 @@ header{display:flex;align-items:center;gap:12px;flex:none}.brand{display:flex;al
    <div class="message" id="gameMessage"></div>
    <div class="controls" id="roundControls"><button class="mainbtn" id="startRound">On y va ! ✨</button></div>
    <div class="write-tools" id="writeTools">
-     <button id="undo">↶ Annuler</button><button id="clear">🧽 Tout effacer</button><button id="hintBtn">💡 Petit indice</button><button id="done" class="mainbtn green">J’ai fini !</button>
+     <button id="undo">↶ Annuler</button><button id="clear">🧽 Tout effacer</button><button id="hintBtn">💡 Petit indice</button><button id="guideToggle">≡ Lignage</button><button id="done" class="mainbtn green">J’ai fini !</button>
    </div>
    <div class="controls hidden" id="compareControls"><button id="retry" class="mainbtn pink">On réessaie ensemble</button><button id="selfSuccess" class="mainbtn green">Je suis contente de mon mot ⭐</button><button id="nextWord" class="mainbtn hidden">Mot suivant ➜</button></div>
   </div>
@@ -103,7 +103,7 @@ const STRINGS={
  FINISH:['Mission réussie ! La licorne fait la fête !','Bravo Harmonie ! Tu as terminé la mission !']
 };
 let lessons=[],current=null,wordIndex=0,stars=0,hints=0,tries=0,showSeconds=3,timer=null,strokes=[],activeStroke=null;
-let setting={music:true,voice:true,sounds:true};let audio=null,musicOsc=null,musicGain=null,musicTimer=null,musicStep=0;
+let setting={music:true,voice:true,sounds:true,guide:true};let audio=null,musicOsc=null,musicGain=null,musicTimer=null,musicStep=0;
 const $=id=>document.getElementById(id);
 const wordMetrics={};
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
@@ -124,7 +124,7 @@ function renderLessons(){
  if(!lessons.length){box.innerHTML='<p>Impossible de charger les leçons. Vérifie la connexion puis recharge la page.</p>';return}
  lessons.forEach(l=>{let card=document.createElement('div');card.className='lesson-card';card.innerHTML='<strong>'+safe(l.title||('Les mots en '+l.letter))+'</strong><span>'+l.words.length+' mots · lettre '+safe(l.letter)+'</span><button>Jouer 🦄</button>';card.querySelector('button').onclick=()=>startLesson(l);box.append(card)});
 }
-function readSetting(){let d=progressData();setting={music:d.settings?.music??true,voice:d.settings?.voice??true,sounds:d.settings?.sounds??true};refreshToggles()}
+function readSetting(){let d=progressData();setting={music:d.settings?.music??true,voice:d.settings?.voice??true,sounds:d.settings?.sounds??true,guide:d.settings?.guide??true};refreshToggles()}
 function refreshToggles(){$('musicToggle').textContent=setting.music?'🎵':'🔇';$('voiceToggle').textContent=setting.voice?'🗣️':'🤐';$('soundToggle').textContent=setting.sounds?'🔔':'🔕'}
 function getAudio(){if(!audio){const C=window.AudioContext||window.webkitAudioContext;if(C)audio=new C()}if(audio?.state==='suspended')audio.resume();return audio}
 function tone(freq,duration=.18,volume=.035,type='sine'){const c=getAudio();if(!c)return;const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(volume,c.currentTime);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+duration);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+duration)}
@@ -145,10 +145,10 @@ function startLesson(l){
 function renderRound(){
  clearTimeout(timer);strokes=[];activeStroke=null;hints=0;tries=0;
  const word=current.words[wordIndex];showSeconds=CONFIG[current.difficulty]||Number(current.displaySeconds)||3;
- const m=metric(word);m.presentations++;m.last=new Date().toISOString();
+ const m=metric(word);m.presentations++;m.last=new Date().toISOString();saveProgress();
  if(m.streak<0)showSeconds=Math.max(showSeconds,5);
  $('roundNo').textContent='Mot '+(wordIndex+1)+'/'+current.words.length;$('progressBar').style.width=(wordIndex/current.words.length*100)+'%';$('starCount').textContent='⭐ '+stars;
- $('phaseLabel').textContent='Regarde bien le mot…';$('showWord').textContent=word;$('showWord').classList.remove('hidden');$('countdown').textContent='';
+ $('phaseLabel').textContent='Regarde bien le mot…';$('guide').classList.toggle('hidden',!setting.guide);$('showWord').textContent=word;$('showWord').classList.remove('hidden');$('countdown').textContent='';
  $('writeWrap').classList.remove('show');$('compare').classList.remove('show');$('writeTools').classList.remove('show');$('compareControls').classList.add('hidden');$('roundControls').classList.remove('hidden');
  $('startRound').classList.remove('hidden');$('retry').classList.remove('hidden');$('selfSuccess').classList.remove('hidden');$('nextWord').classList.add('hidden');$('startRound').textContent='On y va ! ✨';$('gameMessage').textContent='';$('guide').classList.remove('hidden');$('trace').classList.remove('on','dotted');$('hintText').classList.remove('on');
  resizeCanvas();$('startRound').onclick=showModel;
@@ -184,6 +184,7 @@ $('done').onclick=()=>{
  $('compareWriting').innerHTML='<svg id="writtenSvg" viewBox="0 0 '+$('board').width+' '+$('board').height+'" preserveAspectRatio="none" style="width:100%;height:90px"></svg>';
  renderStrokes();$('compareModel').textContent=current.words[wordIndex];$('phaseLabel').textContent='Compare ton mot avec le modèle';$('gameMessage').textContent='Tu peux essayer encore, ou dire que tu es contente de ton écriture.';
 };
+// Optional handwriting-recognition adapter: omitted until it can be reliable for a child's cursive; visual comparison always works.
 function renderStrokes(){const svg=document.getElementById('writtenSvg');if(!svg)return;const ns='http://www.w3.org/2000/svg';for(const s of strokes){if(s.length<2)continue;const p=document.createElementNS(ns,'polyline');p.setAttribute('points',s.map(q=>q.x+','+q.y).join(' '));p.setAttribute('fill','none');p.setAttribute('stroke','#524f79');p.setAttribute('stroke-width','7');p.setAttribute('stroke-linecap','round');p.setAttribute('stroke-linejoin','round');svg.append(p)}}
 $('retry').onclick=()=>{tries++;const m=metric(current.words[wordIndex]);m.retries++;m.streak=-Math.abs(m.streak||1);saveProgress();strokes=[];paint();$('compare').classList.remove('show');$('compareControls').classList.add('hidden');$('writeWrap').classList.add('show');$('writeTools').classList.add('show');$('phaseLabel').textContent='On réessaie ensemble';$('gameMessage').textContent='';$('trace').classList.remove('on','dotted');$('hintText').classList.remove('on');say(pick(STRINGS.RETRY))};
 $('selfSuccess').onclick=()=>{
@@ -207,6 +208,7 @@ $('lessonForm').onsubmit=e=>{
  lessons=lessons.filter(x=>x.id!==lesson.id);lessons.push(lesson);saveProgress();$('parentMessage').textContent='Leçon enregistrée ! Elle apparaît dans le choix des missions.';setTimeout(()=>{screen('home');renderLessons()},600)
 };
 function setAudio(key){setting[key]=!setting[key];if(key==='music'&&!setting.music)musicStop();if(key==='music'&&setting.music)musicStart();if(key==='voice'&&!setting.voice&&window.speechSynthesis)speechSynthesis.cancel();refreshToggles();saveProgress()}
+$('guideToggle').onclick=()=>{setting.guide=!setting.guide;$('guide').classList.toggle('hidden',!setting.guide);$('guideToggle').textContent=setting.guide?'≡ Lignage':'≡ Sans lignes';saveProgress()};
 $('musicToggle').onclick=()=>setAudio('music');$('voiceToggle').onclick=()=>setAudio('voice');$('soundToggle').onclick=()=>setAudio('sounds');
 $('backAlphabet').onclick=()=>location.href=ALPHABET_URL;
 $('parentGate').setAttribute('title','Maintenir une seconde pour les parents');
