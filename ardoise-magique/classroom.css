@@ -76,7 +76,7 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
   filter:drop-shadow(0 12px 13px #15251f44)
 }
 #teacherActor.motion-ready .teacher-motion-sprite.playing{
-  animation:teacherPointFrames 4.1s steps(7,end) forwards
+  animation:teacherPointFrames 5.2s steps(7,end) forwards
 }
 @keyframes teacherPointFrames{
   from{background-position:0 0}
