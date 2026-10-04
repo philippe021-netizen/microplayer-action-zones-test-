@@ -1,0 +1,10 @@
+{
+  "id": "r-01",
+  "letter": "R",
+  "title": "Les mots en R",
+  "words": ["une rue", "le roi", "le repas", "un arbre", "mon frère", "un fruit", "une voiture", "trois"],
+  "difficulty": "normal",
+  "displaySeconds": 3,
+  "customPhrases": [],
+  "rewards": []
+}
