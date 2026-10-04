@@ -143,7 +143,27 @@ function setupTeacherMotion(){
   video.muted=true;
   video.playsInline=true;
   video.preload='auto';
+  const ready=()=>showTeacherIdleFrame();
+  if(video.readyState>=2)ready();
+  else video.addEventListener('loadeddata',ready,{once:true});
   video.load();
+}
+
+function showTeacherIdleFrame(){
+  const actor=$('teacherActor');
+  if(!actor)return;
+  const video=actor.querySelector('.teacher-motion-video');
+  const canvas=actor.querySelector('.teacher-motion-canvas');
+  if(!video||!canvas||video.readyState<2)return;
+
+  actor.classList.add('motion-ready');
+  canvas.classList.add('active');
+  const paint=()=>keyTeacherFrame(actor);
+  if(Math.abs(video.currentTime-TEACHER_MOTION_START)<.04)paint();
+  else{
+    video.addEventListener('seeked',paint,{once:true});
+    try{video.currentTime=TEACHER_MOTION_START}catch{paint()}
+  }
 }
 
 function keyTeacherFrame(actor){
@@ -210,7 +230,7 @@ function startTeacherPointMotion(){
   if(!video||!canvas)return;
 
   cancelAnimationFrame(teacherMotionRAF);
-  actor.classList.add('motion-active');
+  actor.classList.add('motion-ready','motion-active');
   canvas.classList.add('active');
 
   const start=()=>{
@@ -234,10 +254,9 @@ function stopTeacherMotion(){
   const actor=$('teacherActor');
   if(!actor)return;
   const video=actor.querySelector('.teacher-motion-video');
-  const canvas=actor.querySelector('.teacher-motion-canvas');
   video?.pause();
   actor.classList.remove('motion-active');
-  canvas?.classList.remove('active');
+  showTeacherIdleFrame();
 }
 
 function screen(id){
