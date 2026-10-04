@@ -45,19 +45,27 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
 .progressbar{height:12px;flex:1;border-radius:99px;background:#ffffffa8;overflow:hidden;box-shadow:inset 0 1px 2px #2f3b4a18}
 .progressbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#e2ad45,#7a68dc);transition:width .35s ease}
 .classroom{flex:1;min-height:0;display:grid;grid-template-columns:minmax(190px,250px) 1fr;gap:10px;position:relative}
-.teacher-zone{position:relative;background:linear-gradient(180deg,#f6ead4 0 66%,#be9a6d 66%);border:2px solid #fff;border-radius:22px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:8px}
-.teacher-zone:before{content:"";position:absolute;inset:0 0 auto 0;height:34%;background:linear-gradient(#d8edf5,#edf8fb);border-bottom:8px solid #fff;box-shadow:0 6px 0 #89a8b0}
-.teacher-zone:after{content:"";position:absolute;right:10px;top:11px;width:62px;height:34px;border:5px solid #9a754d;background:#f5f1df;box-shadow:0 2px 8px #0002}
+.teacher-zone{position:relative;background:transparent;border:0;border-radius:22px;overflow:visible;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:8px;z-index:12}
+.teacher-zone:before,.teacher-zone:after{display:none}
 .teacher-speech{position:absolute;z-index:6;left:8px;right:8px;top:10px;background:#fff;border:2px solid #d6d2e8;border-radius:18px;padding:10px 11px;font-weight:800;line-height:1.25;box-shadow:0 5px 18px #2734451e;min-height:58px}
 .teacher-speech:after{content:"";position:absolute;left:35%;bottom:-11px;border:11px solid transparent;border-top-color:#fff;border-bottom:0}
-.teacher-wrap{width:100%;height:min(72%,510px);position:relative;z-index:2;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;border-radius:18px}
-.teacher-photo{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block;border-radius:18px;filter:drop-shadow(0 9px 8px #2e33482c);transform-origin:50% 82%;transition:transform .45s ease,filter .45s ease;animation:teacherPhotoBreath 2.8s ease-in-out infinite}
+.teacher-wrap{width:100%;height:min(72%,510px);position:relative;z-index:2;display:flex;align-items:flex-end;justify-content:center;overflow:visible;border-radius:18px}
+.teacher-media{position:relative;width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;overflow:visible}
+.teacher-photo{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block;border-radius:18px;filter:drop-shadow(0 9px 8px #2e33482c);transform-origin:50% 82%;transition:transform .45s ease,filter .45s ease,opacity .2s ease;animation:teacherPhotoBreath 2.8s ease-in-out infinite}
+.teacher-motion-video{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;left:-9999px!important}
+.teacher-motion-canvas{display:none;position:absolute;left:-12%;bottom:-10%;height:124%;width:auto;max-width:none;z-index:24;pointer-events:none;filter:drop-shadow(0 10px 12px #1b243036);transform-origin:38% 86%;transition:transform .38s ease,filter .38s ease}
+#teacherActor.motion-ready .teacher-photo{opacity:0}
+#teacherActor .teacher-motion-canvas.active{display:block}
+#teacherActor.pose-point .teacher-motion-canvas{transform:translateX(42px) scale(1.08);filter:drop-shadow(0 12px 13px #15251f44)}
+#teacherActor.pose-check .teacher-motion-canvas{transform:translate(20px,4px) scale(1.025) rotate(1deg)}
+#teacherActor.pose-cheer .teacher-motion-canvas{animation:teacherCanvasCheer .42s ease-in-out 3}
+@keyframes teacherCanvasCheer{0%,100%{transform:translateX(16px) translateY(0) scale(1)}50%{transform:translateX(16px) translateY(-9px) scale(1.035)}}
 .teacher-wrap.pose-point .teacher-photo{transform:translateY(-2px) scale(1.025) rotate(-1deg);filter:drop-shadow(0 10px 10px #2e334836) saturate(1.04)}
 .teacher-wrap.pose-check .teacher-photo{transform:translateY(3px) scale(1.035) rotate(1deg);filter:drop-shadow(0 10px 10px #2e334836) brightness(.98)}
 .teacher-wrap.pose-cheer .teacher-photo{animation:teacherPhotoCheer .42s ease-in-out 3}
 @keyframes teacherPhotoBreath{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.008)}}
 @keyframes teacherPhotoCheer{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-10px) scale(1.035)}}
-.board-shell{position:relative;min-height:0;background:linear-gradient(90deg,var(--wood2),var(--wood),var(--wood2));border-radius:22px;padding:13px;box-shadow:0 10px 35px #21324529}
+.board-shell{position:relative;z-index:1;min-height:0;background:linear-gradient(90deg,var(--wood2),var(--wood),var(--wood2));border-radius:22px;padding:13px;box-shadow:0 10px 35px #21324529}
 .board{position:relative;height:100%;min-height:0;background:
   radial-gradient(circle at 20% 10%,#ffffff08 0 1px,transparent 2px),
   radial-gradient(circle at 80% 70%,#ffffff06 0 1px,transparent 2px),
@@ -68,7 +76,8 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
 }
 .board:after{content:"";position:absolute;left:4%;right:4%;bottom:12px;height:12px;background:#c9b48e;border-radius:9px;box-shadow:0 5px 0 #705033}
 .board-title{color:#d5e7dc;font-weight:800;text-transform:uppercase;letter-spacing:.09em;font-size:12px;text-align:center;opacity:.85}
-.board-prompt{font-family:"Marelle","Chalkboard SE","Comic Sans MS",cursive;color:var(--chalk);text-shadow:0 0 2px #fff7;font-size:clamp(46px,7vw,86px);line-height:1.25;text-align:center;margin-top:clamp(12px,3vh,30px);min-height:1.4em;transition:opacity .35s,transform .35s}
+.board-prompt{font-family:"Marelle","Chalkboard SE","Comic Sans MS",cursive;color:var(--chalk);text-shadow:0 0 2px #fff7;font-size:clamp(46px,7vw,86px);line-height:1.25;text-align:center;margin-top:clamp(12px,3vh,30px);min-height:1.4em;transition:opacity .35s,transform .35s,left .35s;position:relative;left:0}
+.classroom.teacher-pointing .board-prompt{left:-10%}
 .board-prompt.hidden-word{opacity:0;transform:scale(.96)}
 .board-help{color:#d6e5dd;text-align:center;font-weight:750;min-height:24px;margin-top:4px}
 .board-countdown{position:absolute;right:16px;top:12px;color:#efe3a6;font-weight:900;font-size:18px}
@@ -108,3 +117,12 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
  .classroom{grid-template-columns:112px 1fr}.teacher-zone{border-radius:17px}.board-shell{border-radius:17px;padding:9px}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* L'animation plein pied dépasse volontairement sur le tableau. */
+#game .teacher-zone{pointer-events:none}
+#game .teacher-speech{pointer-events:auto}
+@media(max-width:760px){
+  #teacherActor .teacher-motion-canvas{height:112%;left:-18%;bottom:-5%}
+  #teacherActor.pose-point .teacher-motion-canvas{transform:translateX(24px) scale(1.04)}
+  .classroom.teacher-pointing .board-prompt{left:-6%}
+}
