@@ -2,7 +2,7 @@ const DEFAULT_URL='./lessons/r-01.json';
 const ALPHABET_URL='../harmonie-alphabet/index.html';
 const STORAGE_KEY='harmonie-classe-v2';
 const LEGACY_KEY='harmonie-ardoise-v1';
-const DISPLAY_SECONDS={easy:5,normal:3,champion:2};
+const DISPLAY_SECONDS={easy:6,normal:5,champion:4};
 const REVIEW_DAYS=[0,1,3,7,14,30];
 
 const $=id=>document.getElementById(id);
@@ -31,13 +31,13 @@ let state={
 };
 
 const TEACHER={
-  intro:['Bonjour Harmonie ! On va travailler comme à l’école.','Coucou Harmonie ! Prête pour le tableau ?','Bonjour ! Aujourd’hui, je suis ta maîtresse.'],
-  memorize:['Regarde bien le mot que je te montre.','Observe bien le tableau.','Photographie le mot dans ta tête.'],
-  write:['À toi. Écris tranquillement sur le tableau.','Maintenant, écris ce que tu as retenu.','À ton tour, prends ton temps.'],
+  intro:['Coucou Harmonie ! On va jouer un peu avec les mots.','Coucou Harmonie ! Prête pour le tableau ?','Bonjour Harmonie ! On va faire ça tranquillement ensemble.'],
+  memorize:['Regarde bien le mot que je te montre, prends ton temps.','Regarde bien le tableau, je te le montre avec ma règle.','Essaie de garder le mot dans ta tête comme une petite photo.'],
+  write:['À toi Harmonie, tu peux écrire doucement.','Maintenant, écris ce que tu as retenu, sans te presser.','À ton tour, prends ton temps, je regarde.'],
   math:['Regarde bien le calcul, puis écris la réponse.','On calcule tranquillement, puis tu écris le résultat.'],
   checking:['Je regarde ton travail…','Voyons ça ensemble…','Je vérifie ton tableau…'],
   success:['Bravo Harmonie ! C’est juste.','Très bien ! Tu peux être fière de toi.','Oui, c’est réussi !'],
-  retry:['On réessaie, je suis sûre que tu vas y arriver.','Regarde la correction. Ensuite on recommence ensemble.','Ce n’est pas grave. Observe bien, et on réessaie.'],
+  retry:['On réessaie ensemble, je suis sûre que tu vas y arriver.','Regarde bien la correction, puis on recommence tranquillement.','Pas de souci, regarde bien et on réessaie ensemble.'],
   finish:['La classe est terminée. Beau travail !','C’est fini pour aujourd’hui. Bravo pour tes efforts !']
 };
 
@@ -301,8 +301,11 @@ function beginTeaching(){
     else{
       clearInterval(timer);timer=null;
       $('countdown').textContent='';
-      $('boardPrompt').classList.add('hidden-word');
-      setTimeout(()=>enterWriting(true),300);
+      // Laisse la maîtresse finir son geste avant de rendre la main à Harmonie.
+      setTimeout(()=>{
+        $('boardPrompt').classList.add('hidden-word');
+        setTimeout(()=>enterWriting(true),700);
+      },600);
     }
   },1000);
 }
@@ -354,10 +357,14 @@ function sayTeacher(text){
   try{
     speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(teacherFriendlyText(text));
-    u.lang='fr-FR';u.pitch=1.14;u.rate=.96;u.volume=.96;
+    u.lang='fr-FR';
+    // Ton plus doux, souriant et rassurant pour Harmonie.
+    u.pitch=1.27;u.rate=.90;u.volume=.92;
     const voices=speechSynthesis.getVoices();
-    u.voice=voices.find(v=>v.lang?.toLowerCase().startsWith('fr')&&/audrey|am[ée]lie|aurelie|marie|female|woman/i.test(v.name))
-      ||voices.find(v=>v.lang?.toLowerCase().startsWith('fr'))
+    const french=voices.filter(v=>v.lang?.toLowerCase().startsWith('fr'));
+    u.voice=french.find(v=>/audrey|am[ée]lie|aurelie|marie|virginie|julie|female|woman/i.test(v.name)&&!/thomas|daniel|henri|male/i.test(v.name))
+      ||french.find(v=>!/thomas|daniel|henri|male/i.test(v.name))
+      ||french[0]
       ||null;
     musicStop();
     u.onend=()=>musicStart();
