@@ -26,7 +26,7 @@ assert.ok(alphabetLesson.items.slice(7).every(x=>x.showPrefix===false));
 for(const feature of ['La classe d’Harmonie','unicornQuest','unicornMascot','unicornSurprise','unicornSurpriseIcon','teacherTemplate','teacher-motion-source','teacher-motion-idle','teacher-motion-point','teacher-motion-bravo','teacher-motion-keyed','boardCanvas','alphabetZone','alphabetControls','alphabetCheck','chalkCorrection','stamp','progressScreen','J’ai fini !']){
   assert.ok(page.includes(feature),'page missing '+feature);
 }
-for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','teacher-speech','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','HARMONIE_TEACHER_BRAVO_VIDEO','teacherMotionVideos','startTeacherIdleMotion','startTeacherBravoMotion',"startTeacherVideo('bravo')",'itemsForMarche','marche-actions','selectedMarche','beginAlphabetExercise','alphabetExpected','checkAlphabetOrder','alphabetSelection','renderUnicornQuest','advanceUnicorn','showUnicornSurprise','UNICORN_SURPRISES','TEACHER_NUDGE_DELAY','scheduleTeacherNudge','clearTeacherNudge','teacherNudge','alphabetNudge']){
+for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','teacher-speech','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','HARMONIE_TEACHER_BRAVO_VIDEO','teacherMotionVideos','startTeacherIdleMotion','startTeacherBravoMotion',"startTeacherVideo('bravo')",'itemsForMarche','marche-actions','selectedMarche','beginAlphabetExercise','alphabetExpected','checkAlphabetOrder','alphabetSelection','renderUnicornQuest','advanceUnicorn','showUnicornSurprise','UNICORN_SURPRISES','TEACHER_NUDGE_DELAY','scheduleTeacherNudge','clearTeacherNudge','teacherNudge','alphabetNudge','AUTO_NEXT_DELAY','AUTO_RETRY_DELAY','autoAdvanceAfterSuccess','autoRetryAfterCorrection','clearAutoFlow']){
   assert.ok(client.includes(feature),'client missing '+feature);
 }
 for(const feature of ['pose-point','pose-check','pose-cheer','stampSlam','chalk-correction','teacher-motion-keyed','teacher-motion-source','alphabet-zone','alphabet-word','alphabet-prefix','unicorn-quest','unicorn-stairs','unicorn-mascot','unicorn-surprise']){
@@ -54,6 +54,10 @@ assert.ok(client.includes('const TEACHER_NUDGE_DELAY=30000'),'teacher encouragem
 assert.ok(client.includes("if(itemIndex===0)"),'full spoken instructions should be limited to the first exercise');
 assert.ok(!client.includes("sayTeacher('Exercice suivant.')"),'teacher must not repeat a spoken transition every exercise');
 assert.ok(client.includes("Si tu veux un indice, touche l’ampoule."),'teacher should offer the hint button in delayed encouragement');
+assert.ok(client.includes('const AUTO_NEXT_DELAY=3200'),'correct answers must auto-advance after the Bravo clip');
+assert.ok(client.includes('nextExercise(true)'),'automatic success flow must start the next exercise without another click');
+assert.ok(client.includes('const AUTO_RETRY_DELAY=3200'),'wrong writing answers must return to retry automatically after correction');
+assert.ok(client.includes('autoRetryAfterCorrection();'),'wrong writing flow must avoid an extra retry click');
 assert.ok(!page.includes('selfSuccess'),'manual child validation must stay removed');
 assert.ok(!page.includes('teacher-motion-anim'),'the classroom must use real video, not animated WebP');
 assert.ok(!page.includes('teacher-photo'),'the old static teacher photo must be removed from the classroom template');
