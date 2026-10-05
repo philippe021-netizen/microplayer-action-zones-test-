@@ -24,6 +24,10 @@ let activeStroke=null;
 let boardSize={w:0,h:0};
 let audio=null,musicTimer=null,musicStep=0;
 let teacherMotionToken=0;
+let teacherFrameVideo=null;
+let teacherVoiceNode=null;
+let teacherVoiceToken=0;
+const teacherVoiceCache=new Map();
 
 let state={
   settings:{music:true,voice:true,sounds:true,guide:true},
@@ -139,8 +143,17 @@ function mountTeachers(){
   if(actor&&room&&actor.parentElement!==room)room.appendChild(actor);
 }
 
-function teacherMotionVideo(){
-  return $('teacherActor')?.querySelector('.teacher-motion-source')||null;
+function teacherMotionVideos(){
+  const actor=$('teacherActor');
+  return {
+    idle:actor?.querySelector('.teacher-motion-idle')||null,
+    point:actor?.querySelector('.teacher-motion-point')||null
+  };
+}
+
+function teacherMotionVideo(mode=teacherVideoMode){
+  const videos=teacherMotionVideos();
+  return mode==='point'?videos.point:videos.idle;
 }
 
 function teacherMotionCanvas(){
@@ -158,7 +171,7 @@ function teacherVideoSource(mode){
     : String(window.HARMONIE_TEACHER_IDLE_VIDEO||'');
 }
 
-function stopTeacherFrameLoop(video=teacherMotionVideo()){
+function stopTeacherFrameLoop(video=teacherFrameVideo){
   if(teacherFrameMode==='video'&&teacherFrameHandle&&video?.cancelVideoFrameCallback){
     try{video.cancelVideoFrameCallback(teacherFrameHandle)}catch{}
   }else if(teacherFrameHandle){
@@ -166,6 +179,7 @@ function stopTeacherFrameLoop(video=teacherMotionVideo()){
   }
   teacherFrameHandle=0;
   teacherFrameMode='';
+  teacherFrameVideo=null;
 }
 
 function compileTeacherShader(gl,type,source){
@@ -252,9 +266,8 @@ function hideTeacherVideo(){
   actor?.classList.add('teacher-video-missing');
 }
 
-function renderTeacherFrame(token){
+function renderTeacherFrame(token,video=teacherMotionVideo()){
   if(token!==teacherMotionToken)return;
-  const video=teacherMotionVideo();
   const canvas=teacherMotionCanvas();
   const actor=$('teacherActor');
   if(!video||!canvas||!actor)return;
@@ -279,50 +292,51 @@ function renderTeacherFrame(token){
   }
 
   if(video.paused||video.ended||token!==teacherMotionToken)return;
+  teacherFrameVideo=video;
   if(video.requestVideoFrameCallback){
     teacherFrameMode='video';
-    teacherFrameHandle=video.requestVideoFrameCallback(()=>renderTeacherFrame(token));
+    teacherFrameHandle=video.requestVideoFrameCallback(()=>renderTeacherFrame(token,video));
   }else{
     teacherFrameMode='raf';
-    teacherFrameHandle=requestAnimationFrame(()=>renderTeacherFrame(token));
+    teacherFrameHandle=requestAnimationFrame(()=>renderTeacherFrame(token,video));
   }
 }
 
 function startTeacherVideo(mode){
   const actor=$('teacherActor');
-  const video=teacherMotionVideo();
   const canvas=teacherMotionCanvas();
+  const videos=teacherMotionVideos();
+  const video=mode==='point'?videos.point:videos.idle;
+  const other=mode==='point'?videos.idle:videos.point;
   if(!actor||!video||!canvas)return;
 
-  const src=teacherVideoSource(mode);
   const token=++teacherMotionToken;
   teacherVideoMode=mode;
   actor.classList.toggle('video-idle',mode==='idle');
   actor.classList.toggle('video-point',mode==='point');
-  stopTeacherFrameLoop(video);
-  try{video.pause()}catch{}
-  canvas.hidden=true;
-  actor.classList.remove('motion-loaded','teacher-video-missing');
+  actor.classList.remove('teacher-video-missing');
   actor.classList.add('motion-ready','motion-active');
 
-  if(!src){
-    hideTeacherVideo();
-    return;
-  }
+  stopTeacherFrameLoop();
+  try{other?.pause()}catch{}
 
   video.muted=true;
   video.playsInline=true;
-  video.autoplay=true;
   video.loop=mode==='idle';
   video.preload='auto';
   video.setAttribute('playsinline','');
   video.setAttribute('webkit-playsinline','');
+
   video.onended=()=>{
     if(token!==teacherMotionToken)return;
     if(mode==='point')startTeacherVideo('idle');
   };
   video.onerror=()=>{
     if(token!==teacherMotionToken)return;
+    if(mode==='point'){
+      startTeacherVideo('idle');
+      return;
+    }
     hideTeacherVideo();
   };
 
@@ -331,18 +345,16 @@ function startTeacherVideo(mode){
     try{video.currentTime=0}catch{}
     const play=video.play();
     if(play&&typeof play.then==='function'){
-      play.then(()=>renderTeacherFrame(token)).catch(()=>hideTeacherVideo());
+      play.then(()=>renderTeacherFrame(token,video)).catch(()=>{
+        if(mode==='point')startTeacherVideo('idle');
+        else hideTeacherVideo();
+      });
     }else{
-      renderTeacherFrame(token);
+      renderTeacherFrame(token,video);
     }
   };
 
-  const changed=video.getAttribute('src')!==src;
-  if(changed){
-    video.src=src;
-    video.onloadeddata=start;
-    try{video.load()}catch{}
-  }else if(video.readyState>=2){
+  if(video.readyState>=2){
     start();
   }else{
     video.onloadeddata=start;
@@ -351,12 +363,31 @@ function startTeacherVideo(mode){
 }
 
 function setupTeacherMotion(){
-  const video=teacherMotionVideo();
-  if(!video)return;
-  video.muted=true;
-  video.playsInline=true;
-  video.setAttribute('playsinline','');
-  video.setAttribute('webkit-playsinline','');
+  const videos=teacherMotionVideos();
+  const idleSrc=String(window.HARMONIE_TEACHER_IDLE_VIDEO||'');
+  const pointSrc=String(window.HARMONIE_TEACHER_POINT_VIDEO||'');
+
+  if(videos.idle){
+    videos.idle.src=idleSrc;
+    videos.idle.loop=true;
+    videos.idle.muted=true;
+    videos.idle.playsInline=true;
+    videos.idle.preload='auto';
+    videos.idle.setAttribute('playsinline','');
+    videos.idle.setAttribute('webkit-playsinline','');
+    try{videos.idle.load()}catch{}
+  }
+  if(videos.point){
+    videos.point.src=pointSrc;
+    videos.point.loop=false;
+    videos.point.muted=true;
+    videos.point.playsInline=true;
+    videos.point.preload='auto';
+    videos.point.setAttribute('playsinline','');
+    videos.point.setAttribute('webkit-playsinline','');
+    try{videos.point.load()}catch{}
+  }
+
   startTeacherVideo('idle');
 }
 
@@ -371,10 +402,11 @@ function startTeacherIdleMotion(){
 function stopTeacherMotion(){
   teacherMotionToken++;
   const actor=$('teacherActor');
-  const video=teacherMotionVideo();
+  const videos=teacherMotionVideos();
   const canvas=teacherMotionCanvas();
-  stopTeacherFrameLoop(video);
-  try{video?.pause()}catch{}
+  stopTeacherFrameLoop();
+  try{videos.idle?.pause()}catch{}
+  try{videos.point?.pause()}catch{}
   if(canvas)canvas.hidden=true;
   actor?.classList.remove('motion-ready','motion-active','motion-loaded');
 }
@@ -568,26 +600,90 @@ function teacherFriendlyText(text){
     .replace(/=/g,' égale ');
 }
 
-function sayTeacher(text){
-  $('teacherSpeech').textContent=text;
-  if(!state.settings.voice||!window.speechSynthesis)return;
+function fallbackTeacherSpeech(text,token){
+  if(!window.speechSynthesis||token!==teacherVoiceToken)return;
   try{
     speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(teacherFriendlyText(text));
     u.lang='fr-FR';
-    // Ton plus doux, souriant et rassurant pour Harmonie.
-    u.pitch=1.27;u.rate=.90;u.volume=.92;
+    u.pitch=1.08;u.rate=.94;u.volume=.95;
     const voices=speechSynthesis.getVoices();
     const french=voices.filter(v=>v.lang?.toLowerCase().startsWith('fr'));
     u.voice=french.find(v=>/audrey|am[ée]lie|aurelie|marie|virginie|julie|female|woman/i.test(v.name)&&!/thomas|daniel|henri|male/i.test(v.name))
       ||french.find(v=>!/thomas|daniel|henri|male/i.test(v.name))
       ||french[0]
       ||null;
-    musicStop();
-    u.onend=()=>musicStart();
-    u.onerror=()=>musicStart();
+    u.onend=()=>{if(token===teacherVoiceToken)musicStart()};
+    u.onerror=()=>{if(token===teacherVoiceToken)musicStart()};
     speechSynthesis.speak(u);
-  }catch{}
+  }catch{
+    if(token===teacherVoiceToken)musicStart();
+  }
+}
+
+function base64ToArrayBuffer(base64){
+  const raw=atob(base64);
+  const bytes=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+  return bytes.buffer;
+}
+
+async function naturalTeacherBuffer(text){
+  const key=teacherFriendlyText(text).trim();
+  if(!key)throw new Error('EMPTY_SPEECH');
+  if(teacherVoiceCache.has(key))return teacherVoiceCache.get(key);
+  const promise=(async()=>{
+    const r=await fetch('./api/teacher-speech',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:key})
+    });
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok||!data.ok||!data.audioContent)throw new Error(data.code||'TTS_ERROR');
+    const ctx=getAudio();
+    if(!ctx)throw new Error('NO_AUDIO_CONTEXT');
+    return await ctx.decodeAudioData(base64ToArrayBuffer(data.audioContent));
+  })();
+  teacherVoiceCache.set(key,promise);
+  try{
+    return await promise;
+  }catch(error){
+    teacherVoiceCache.delete(key);
+    throw error;
+  }
+}
+
+async function sayTeacher(text){
+  $('teacherSpeech').textContent=text;
+  if(!state.settings.voice)return;
+  const token=++teacherVoiceToken;
+  musicStop();
+  try{
+    if(window.speechSynthesis)speechSynthesis.cancel();
+    if(teacherVoiceNode){
+      try{teacherVoiceNode.stop()}catch{}
+      teacherVoiceNode=null;
+    }
+    const ctx=getAudio();
+    if(!ctx)throw new Error('NO_AUDIO_CONTEXT');
+    const buffer=await naturalTeacherBuffer(text);
+    if(token!==teacherVoiceToken)return;
+    const source=ctx.createBufferSource();
+    const gain=ctx.createGain();
+    gain.gain.value=.95;
+    source.buffer=buffer;
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    source.onended=()=>{
+      if(token!==teacherVoiceToken)return;
+      teacherVoiceNode=null;
+      musicStart();
+    };
+    teacherVoiceNode=source;
+    source.start(0);
+  }catch{
+    if(token===teacherVoiceToken)fallbackTeacherSpeech(text,token);
+  }
 }
 
 function getAudio(){
@@ -1000,7 +1096,11 @@ function toggleSetting(key){
   state.settings[key]=!state.settings[key];
   if(key==='music'&&!state.settings.music)musicStop();
   if(key==='music'&&state.settings.music&&$('game').classList.contains('active'))musicStart();
-  if(key==='voice'&&!state.settings.voice&&window.speechSynthesis)speechSynthesis.cancel();
+  if(key==='voice'&&!state.settings.voice){
+    teacherVoiceToken++;
+    if(window.speechSynthesis)speechSynthesis.cancel();
+    if(teacherVoiceNode){try{teacherVoiceNode.stop()}catch{};teacherVoiceNode=null}
+  }
   saveState();refreshToggles();
 }
 
@@ -1078,7 +1178,13 @@ $('activityType').onchange=()=>{
   $('themeInput').value=math?'Calculs':'R';
 };
 window.addEventListener('resize',()=>{if($('writeZone').classList.contains('show'))resizeCanvas()});
-window.addEventListener('pagehide',()=>{musicStop();if(window.speechSynthesis)speechSynthesis.cancel()});
+window.addEventListener('pagehide',()=>{
+  musicStop();
+  teacherVoiceToken++;
+  if(window.speechSynthesis)speechSynthesis.cancel();
+  if(teacherVoiceNode){try{teacherVoiceNode.stop()}catch{};teacherVoiceNode=null}
+  stopTeacherMotion();
+});
 
 mountTeachers();
 setupTeacherMotion();
