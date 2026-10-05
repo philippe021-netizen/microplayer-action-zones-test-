@@ -11,6 +11,7 @@ app.disable('x-powered-by');
 app.use(express.json({limit:'8mb'}));
 
 app.all('/api/teacher-speech',wrap(require('./api/teacher-speech')));
+app.all('/api/sync',wrap(require('./api/sync')));
 app.all('/api/recognize-handwriting',wrap(require('./api/recognize-handwriting')));
 app.all('/api/harmonie-idle-video',wrap(require('./api/harmonie-idle-video')));
 app.all('/api/harmonie-point-video',wrap(require('./api/harmonie-point-video')));
