@@ -127,12 +127,15 @@ module.exports=async function handler(req,res){
       .trim();
     if(!transcript)return json(res,200,{ok:true,transcript:'',score:0,missingWords:words(expected).slice(0,6),match:false,almost:false});
     const result=compare(expected,transcript);
+    const match=whole
+      ? (result.score>=0.90 || (result.score>=0.86&&result.missingWords.length<=1))
+      : (result.score>=0.82&&result.missingWords.length===0);
     return json(res,200,{
       ok:true,
       transcript,
       score:result.score,
       missingWords:result.missingWords,
-      match:result.score>=0.80,
+      match,
       almost:result.score>=0.58
     });
   }catch(error){
