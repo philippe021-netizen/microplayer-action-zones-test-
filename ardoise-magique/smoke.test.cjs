@@ -17,7 +17,7 @@ assert.equal(lesson.displaySeconds,3);
 for(const feature of ['La classe d’Harmonie','teacherTemplate','teacher-motion-source','teacher-motion-keyed','boardCanvas','chalkCorrection','stamp','progressScreen','J’ai fini !']){
   assert.ok(page.includes(feature),'page missing '+feature);
 }
-for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_VIDEO']){
+for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','startTeacherIdleMotion']){
   assert.ok(client.includes(feature),'client missing '+feature);
 }
 for(const feature of ['pose-point','pose-check','pose-cheer','stampSlam','chalk-correction','teacher-motion-keyed','teacher-motion-source']){
@@ -27,7 +27,9 @@ for(const feature of ['MYSCRIPT_APPLICATION_KEY','MYSCRIPT_HMAC_KEY','customLexi
   assert.ok(recognizer.includes(feature),'recognizer missing '+feature);
 }
 assert.ok(!page.includes('selfSuccess'),'manual child validation must stay removed');
-assert.ok(!page.includes('teacher-motion-anim'),'the classroom must use the real MP4 path, not the animated WebP as the primary motion');
+assert.ok(!page.includes('teacher-motion-anim'),'the classroom must use real video, not animated WebP');
+assert.ok(!page.includes('teacher-photo'),'the old static teacher photo must be removed from the classroom template');
+assert.ok(!page.includes('teacher-motion-fallback'),'the old static/animated fallback must not come back');
 
 assert.ok(alphabet.includes('../ardoise-magique/index.html'),'alphabet game links to classroom');
 assert.ok(!/if\s*\(\s*letter\s*===?\s*['"]R['"]/.test(client),'engine must not branch on R');
