@@ -29,12 +29,41 @@ function normalize(text){
 
 function words(text){return normalize(text).split(' ').filter(Boolean)}
 
+function editDistance(a,b){
+  const prev=Array.from({length:b.length+1},(_,i)=>i);
+  for(let i=1;i<=a.length;i++){
+    let last=prev[0];
+    prev[0]=i;
+    for(let j=1;j<=b.length;j++){
+      const old=prev[j];
+      prev[j]=Math.min(
+        prev[j]+1,
+        prev[j-1]+1,
+        last+(a[i-1]===b[j-1]?0:1)
+      );
+      last=old;
+    }
+  }
+  return prev[b.length];
+}
+
+function sameSpokenWord(expected,heard){
+  if(expected===heard)return true;
+  if(Math.min(expected.length,heard.length)>=4){
+    if(editDistance(expected,heard)<=1)return true;
+    const shorter=expected.length<=heard.length?expected:heard;
+    const longer=expected.length>heard.length?expected:heard;
+    if(longer.startsWith(shorter)&&longer.length-shorter.length<=3)return true;
+  }
+  return false;
+}
+
 function compare(expected,spoken){
   const a=words(expected),b=words(spoken);
   const dp=Array.from({length:a.length+1},()=>Array(b.length+1).fill(0));
   for(let i=1;i<=a.length;i++){
     for(let j=1;j<=b.length;j++){
-      dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
+      dp[i][j]=sameSpokenWord(a[i-1],b[j-1])?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
     }
   }
   const matched=dp[a.length][b.length];
@@ -42,7 +71,7 @@ function compare(expected,spoken){
   const missing=[];
   let i=a.length,j=b.length;
   while(i>0){
-    if(j>0&&a[i-1]===b[j-1]){i--;j--;continue}
+    if(j>0&&sameSpokenWord(a[i-1],b[j-1])){i--;j--;continue}
     if(j>0&&dp[i][j-1]>=dp[i-1][j]){j--;continue}
     missing.push(a[i-1]);i--;
   }
