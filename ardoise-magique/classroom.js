@@ -64,6 +64,11 @@ let poetryStream=null;
 let poetryChunks=[];
 let poetryAutoStop=null;
 let poetryBusy=false;
+let poetryMonitorContext=null;
+let poetryAnalyser=null;
+let poetryMeterFrame=0;
+let poetryPeak=0;
+let poetrySilentTimer=null;
 
 let state={
   settings:{music:true,voice:true,sounds:true,guide:true},
@@ -1797,29 +1802,107 @@ function preferredPoetryMime(){
   return choices.find(type=>MediaRecorder.isTypeSupported?.(type))||'';
 }
 
+function setIOSAudioSession(type){
+  try{
+    if(navigator.audioSession&&'type' in navigator.audioSession)navigator.audioSession.type=type;
+  }catch{}
+}
+
+function stopPoetryMeter(){
+  cancelAnimationFrame(poetryMeterFrame);
+  poetryMeterFrame=0;
+  clearTimeout(poetrySilentTimer);
+  poetrySilentTimer=null;
+  try{poetryMonitorContext?.close()}catch{}
+  poetryMonitorContext=null;
+  poetryAnalyser=null;
+  const level=$('poetryMicLevel');
+  if(level)level.style.width='0%';
+}
+
+function startPoetryMeter(stream){
+  stopPoetryMeter();
+  poetryPeak=0;
+  const Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx)return;
+  try{
+    poetryMonitorContext=new Ctx();
+    const source=poetryMonitorContext.createMediaStreamSource(stream);
+    poetryAnalyser=poetryMonitorContext.createAnalyser();
+    poetryAnalyser.fftSize=512;
+    poetryAnalyser.smoothingTimeConstant=.72;
+    source.connect(poetryAnalyser);
+    const data=new Uint8Array(poetryAnalyser.fftSize);
+    const tick=()=>{
+      if(!poetryAnalyser)return;
+      poetryAnalyser.getByteTimeDomainData(data);
+      let sum=0;
+      for(const value of data){
+        const v=(value-128)/128;
+        sum+=v*v;
+      }
+      const rms=Math.sqrt(sum/data.length);
+      poetryPeak=Math.max(poetryPeak,rms);
+      const pct=Math.max(2,Math.min(100,Math.round(rms*520)));
+      const level=$('poetryMicLevel');
+      if(level)level.style.width=pct+'%';
+      poetryMeterFrame=requestAnimationFrame(tick);
+    };
+    tick();
+    poetrySilentTimer=setTimeout(()=>{
+      if(poetryPeak<.012&&poetryRecorder?.state==='recording'){
+        $('poetryMicHint').textContent='Je ne t’entends presque pas. Approche-toi de l’iPad et parle un peu plus fort.';
+        $('poetryResult').innerHTML='<div class="poetry-almost">🎤 Le micro reçoit très peu de son. Vérifie que Safari a bien accès au micro.</div>';
+      }
+    },2200);
+  }catch{}
+}
+
 async function startPoetryRecording(){
   if(poetryBusy||poetryRecorder?.state==='recording')return;
   if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined'){
-    $('poetryResult').innerHTML='<b>Le micro n’est pas disponible sur ce navigateur.</b>';
+    $('poetryResult').innerHTML='<b>Le micro n’est pas disponible sur ce navigateur. Ouvre le site directement dans Safari.</b>';
     return;
   }
   try{
-    poetryStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+    setIOSAudioSession('auto');
+    poetryStream=await navigator.mediaDevices.getUserMedia({
+      audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}
+    });
+    setIOSAudioSession('play-and-record');
+
+    const tracks=poetryStream.getAudioTracks();
+    if(!tracks.length||tracks[0].readyState!=='live')throw new Error('NO_LIVE_MIC');
+
     const mime=preferredPoetryMime();
     poetryChunks=[];
+    poetryPeak=0;
     poetryRecorder=mime?new MediaRecorder(poetryStream,{mimeType:mime}):new MediaRecorder(poetryStream);
     poetryRecorder.ondataavailable=e=>{if(e.data?.size)poetryChunks.push(e.data)};
+    poetryRecorder.onerror=()=>{$('poetryMicHint').textContent='Le micro a rencontré un problème. Réessaie.'};
     poetryRecorder.onstop=finishPoetryRecording;
-    poetryRecorder.start(250);
+    poetryRecorder.start();
+
+    startPoetryMeter(poetryStream);
     fadeMusicTo(.008,420);
     $('poetryRecording').classList.remove('hidden');
     $('poetryRecord').disabled=true;
     $('poetryListen').disabled=true;
+    $('poetryRecordingText').textContent='Je t’écoute…';
+    $('poetryMicHint').textContent='Parle normalement près de l’iPad.';
     $('poetryResult').innerHTML='';
     clearTimeout(poetryAutoStop);
     poetryAutoStop=setTimeout(stopPoetryRecording,poetryPart===0?55000:25000);
-  }catch{
-    $('poetryResult').innerHTML='<b>Autorise le micro pour pouvoir réciter.</b>';
+  }catch(error){
+    stopPoetryMeter();
+    poetryStream?.getTracks?.().forEach(t=>t.stop());
+    poetryStream=null;
+    setIOSAudioSession('playback');
+    setIOSAudioSession('auto');
+    const denied=error?.name==='NotAllowedError'||error?.name==='SecurityError';
+    $('poetryResult').innerHTML=denied
+      ? '<div class="poetry-retry"><b>Le micro est bloqué.</b><br>Dans Safari : touche <b>aA</b> dans la barre d’adresse → Réglages du site web → Microphone → Autoriser, puis recharge la page.</div>'
+      : '<div class="poetry-retry"><b>Je n’arrive pas à ouvrir le micro.</b><br>Recharge la page dans Safari puis réessaie.</div>';
     musicUnduck();
   }
 }
@@ -1839,8 +1922,11 @@ function blobToDataUrl(blob){
 }
 
 async function finishPoetryRecording(){
+  stopPoetryMeter();
   poetryStream?.getTracks?.().forEach(t=>t.stop());
   poetryStream=null;
+  setIOSAudioSession('playback');
+  setIOSAudioSession('auto');
   $('poetryRecording').classList.add('hidden');
   musicUnduck();
   poetryBusy=true;
@@ -1849,6 +1935,9 @@ async function finishPoetryRecording(){
   try{
     const type=poetryRecorder?.mimeType||poetryChunks[0]?.type||'audio/webm';
     const blob=new Blob(poetryChunks,{type});
+    if(blob.size<1200||poetryPeak<.006){
+      throw new Error('MIC_SILENCE');
+    }
     const audioDataUrl=await blobToDataUrl(blob);
     const response=await fetch('./api/recognize-poetry',{
       method:'POST',
@@ -1882,9 +1971,14 @@ async function finishPoetryRecording(){
       $('poetryResult').innerHTML='<div class="poetry-retry">🌱 On recommence doucement. Écoute encore une fois, puis réessaie.</div>';
       sayTeacher('Ce n’est pas grave. Écoute encore le passage, puis on réessaie.');
     }
-  }catch{
-    $('poetryResult').innerHTML='<div class="poetry-retry">Je n’ai pas réussi à entendre correctement. Réessaie près de l’iPad.</div>';
-    sayTeacher('Je n’ai pas bien entendu. Approche-toi un peu du micro et réessaie.');
+  }catch(error){
+    if(error?.message==='MIC_SILENCE'){
+      $('poetryResult').innerHTML='<div class="poetry-retry">🎤 Je n’ai presque reçu aucun son. Vérifie le micro Safari, rapproche-toi de l’iPad et réessaie.</div>';
+      sayTeacher('Je ne t’ai presque pas entendue. Approche-toi un peu du micro et réessaie.');
+    }else{
+      $('poetryResult').innerHTML='<div class="poetry-retry">Je n’ai pas réussi à entendre correctement. Réessaie près de l’iPad.</div>';
+      sayTeacher('Je n’ai pas bien entendu. Approche-toi un peu du micro et réessaie.');
+    }
   }finally{
     poetryBusy=false;
     poetryRecorder=null;
