@@ -26,7 +26,7 @@ assert.ok(alphabetLesson.items.slice(7).every(x=>x.showPrefix===false));
 for(const feature of ['La classe d’Harmonie','unicornQuest','unicornMascot','unicornSurprise','unicornSurpriseIcon','teacherTemplate','teacher-motion-source','teacher-motion-idle','teacher-motion-point','teacher-motion-bravo','teacher-motion-keyed','boardCanvas','alphabetZone','alphabetControls','alphabetCheck','chalkCorrection','stamp','progressScreen','J’ai fini !']){
   assert.ok(page.includes(feature),'page missing '+feature);
 }
-for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','teacher-speech','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','HARMONIE_TEACHER_BRAVO_VIDEO','teacherMotionVideos','startTeacherIdleMotion','startTeacherBravoMotion',"startTeacherVideo('bravo')",'itemsForMarche','marche-actions','selectedMarche','beginAlphabetExercise','alphabetExpected','checkAlphabetOrder','alphabetSelection','renderUnicornQuest','advanceUnicorn','showUnicornSurprise','UNICORN_SURPRISES']){
+for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','teacher-speech','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','HARMONIE_TEACHER_BRAVO_VIDEO','teacherMotionVideos','startTeacherIdleMotion','startTeacherBravoMotion',"startTeacherVideo('bravo')",'itemsForMarche','marche-actions','selectedMarche','beginAlphabetExercise','alphabetExpected','checkAlphabetOrder','alphabetSelection','renderUnicornQuest','advanceUnicorn','showUnicornSurprise','UNICORN_SURPRISES','TEACHER_NUDGE_DELAY','scheduleTeacherNudge','clearTeacherNudge','teacherNudge','alphabetNudge']){
   assert.ok(client.includes(feature),'client missing '+feature);
 }
 for(const feature of ['pose-point','pose-check','pose-cheer','stampSlam','chalk-correction','teacher-motion-keyed','teacher-motion-source','alphabet-zone','alphabet-word','alphabet-prefix','unicorn-quest','unicorn-stairs','unicorn-mascot','unicorn-surprise']){
@@ -50,6 +50,10 @@ assert.ok(fs.existsSync(path.join(__dirname,'media/bravo-harmonie-2.8s.mp4')),'B
 assert.ok(client.includes("if(pose==='cheer')"),'success pose must have a dedicated branch');
 assert.ok(client.includes("startTeacherBravoMotion();"),'correct answer must trigger the Bravo video');
 assert.ok((client.match(/advanceUnicorn\(\);/g)||[]).length>=2,'writing and alphabet successes must advance the unicorn');
+assert.ok(client.includes('const TEACHER_NUDGE_DELAY=30000'),'teacher encouragement must wait 30 seconds');
+assert.ok(client.includes("if(itemIndex===0)"),'full spoken instructions should be limited to the first exercise');
+assert.ok(!client.includes("sayTeacher('Exercice suivant.')"),'teacher must not repeat a spoken transition every exercise');
+assert.ok(client.includes("Si tu veux un indice, touche l’ampoule."),'teacher should offer the hint button in delayed encouragement');
 assert.ok(!page.includes('selfSuccess'),'manual child validation must stay removed');
 assert.ok(!page.includes('teacher-motion-anim'),'the classroom must use real video, not animated WebP');
 assert.ok(!page.includes('teacher-photo'),'the old static teacher photo must be removed from the classroom template');
