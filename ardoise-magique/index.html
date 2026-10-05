@@ -32,6 +32,7 @@
         <div class="home-actions">
           <button class="softbtn" id="openProgress">📈 Mes progrès</button>
           <button class="softbtn" id="backAlphabet">🔤 Ordre alphabétique</button>
+          <button class="softbtn" id="openPoetry">🎤 Poésie</button>
         </div>
       </div>
     </div>
@@ -106,6 +107,40 @@
   <div class="controls-row hidden" id="afterControls">
     <button class="mainbtn red hidden" id="retry">On réessaie</button>
     <button class="mainbtn gold hidden" id="nextWord">Exercice suivant ➜</button>
+  </div>
+</section>
+
+<section id="poetryScreen" class="screen">
+  <div class="panel poetry-panel">
+    <div class="poetry-head">
+      <button class="softbtn" id="poetryBack">← Leçons</button>
+      <div>
+        <h2>🍂 Feuilles d’automne</h2>
+        <p>Isabelle Jaccard — écoute, mémorise puis récite.</p>
+      </div>
+    </div>
+
+    <div class="poetry-steps" id="poetrySteps"></div>
+
+    <div class="poetry-card">
+      <div class="poetry-label" id="poetryLabel">Passage 1</div>
+      <div class="poetry-text" id="poetryText"></div>
+      <div class="poetry-tip" id="poetryTip">Écoute une fois, puis essaie de le réciter.</div>
+    </div>
+
+    <div class="poetry-actions">
+      <button class="softbtn" id="poetryListen">🔊 Écouter</button>
+      <button class="softbtn" id="poetryHide">🙈 Cacher des mots</button>
+      <button class="mainbtn green" id="poetryRecord">🎤 Je récite</button>
+    </div>
+
+    <div class="poetry-recording hidden" id="poetryRecording">
+      <span class="record-dot"></span>
+      <strong id="poetryRecordingText">Je t’écoute…</strong>
+      <button class="mainbtn red" id="poetryStop">J’ai fini</button>
+    </div>
+
+    <div class="poetry-result" id="poetryResult"></div>
   </div>
 </section>
 
