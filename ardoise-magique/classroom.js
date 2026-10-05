@@ -34,6 +34,9 @@ let unicornSurpriseTimer=null;
 let boardSize={w:0,h:0};
 let audio=null;
 let backgroundMusic=null;
+let musicFadeHandle=0;
+const MUSIC_VOLUME_NORMAL=.30;
+const MUSIC_VOLUME_DUCK=.055;
 let teacherMotionToken=0;
 let teacherFrameVideo=null;
 let teacherVoiceNode=null;
@@ -1010,11 +1013,11 @@ function fallbackTeacherSpeech(text,token){
       ||french.find(v=>!/thomas|daniel|henri|male/i.test(v.name))
       ||french[0]
       ||null;
-    u.onend=()=>{if(token===teacherVoiceToken)musicStart()};
-    u.onerror=()=>{if(token===teacherVoiceToken)musicStart()};
+    u.onend=()=>{if(token===teacherVoiceToken)musicUnduck()};
+    u.onerror=()=>{if(token===teacherVoiceToken)musicUnduck()};
     speechSynthesis.speak(u);
   }catch{
-    if(token===teacherVoiceToken)musicStart();
+    if(token===teacherVoiceToken)musicUnduck();
   }
 }
 
@@ -1054,7 +1057,7 @@ async function sayTeacher(text){
   $('teacherSpeech').textContent=text;
   if(!state.settings.voice)return;
   const token=++teacherVoiceToken;
-  musicStop();
+  musicDuck();
   try{
     if(window.speechSynthesis)speechSynthesis.cancel();
     if(teacherVoiceNode){
@@ -1074,7 +1077,7 @@ async function sayTeacher(text){
     source.onended=()=>{
       if(token!==teacherVoiceToken)return;
       teacherVoiceNode=null;
-      musicStart();
+      musicUnduck();
     };
     teacherVoiceNode=source;
     source.start(0);
@@ -1113,7 +1116,7 @@ function getBackgroundMusic(){
     backgroundMusic=new Audio('./media/harmonie-musique-fond.m4a');
     backgroundMusic.loop=true;
     backgroundMusic.preload='auto';
-    backgroundMusic.volume=.32;
+    backgroundMusic.volume=MUSIC_VOLUME_NORMAL;
     backgroundMusic.setAttribute('playsinline','');
     backgroundMusic.setAttribute('webkit-playsinline','');
   }catch{
@@ -1122,15 +1125,55 @@ function getBackgroundMusic(){
   return backgroundMusic;
 }
 
+function fadeMusicTo(target,duration=650){
+  const player=getBackgroundMusic();
+  if(!player)return;
+  cancelAnimationFrame(musicFadeHandle);
+  const startVolume=Number(player.volume)||0;
+  const targetVolume=Math.max(0,Math.min(1,target));
+  const startTime=performance.now();
+  const step=now=>{
+    const p=Math.min(1,(now-startTime)/Math.max(1,duration));
+    const eased=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+    player.volume=startVolume+(targetVolume-startVolume)*eased;
+    if(p<1)musicFadeHandle=requestAnimationFrame(step);
+    else musicFadeHandle=0;
+  };
+  musicFadeHandle=requestAnimationFrame(step);
+}
+
 function musicStart(){
   if(!state.settings.music)return;
   const player=getBackgroundMusic();
-  if(!player||!player.paused)return;
-  const play=player.play();
-  if(play&&typeof play.catch==='function')play.catch(()=>{});
+  if(!player)return;
+  if(player.paused){
+    const play=player.play();
+    if(play&&typeof play.catch==='function')play.catch(()=>{});
+  }
+  fadeMusicTo(MUSIC_VOLUME_NORMAL,850);
+}
+
+function musicDuck(){
+  if(!state.settings.music)return;
+  const player=getBackgroundMusic();
+  if(!player)return;
+  if(player.paused){
+    const play=player.play();
+    if(play&&typeof play.catch==='function')play.catch(()=>{});
+  }
+  fadeMusicTo(MUSIC_VOLUME_DUCK,520);
+}
+
+function musicUnduck(){
+  if(!state.settings.music)return;
+  const player=getBackgroundMusic();
+  if(!player)return;
+  fadeMusicTo(MUSIC_VOLUME_NORMAL,900);
 }
 
 function musicStop(){
+  cancelAnimationFrame(musicFadeHandle);
+  musicFadeHandle=0;
   if(!backgroundMusic)return;
   try{backgroundMusic.pause()}catch{}
 }
@@ -1540,6 +1583,7 @@ function toggleSetting(key){
     teacherVoiceToken++;
     if(window.speechSynthesis)speechSynthesis.cancel();
     if(teacherVoiceNode){try{teacherVoiceNode.stop()}catch{};teacherVoiceNode=null}
+    musicUnduck();
   }
   saveState();refreshToggles();
 }
