@@ -841,3 +841,40 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
   font-weight:900;
   letter-spacing:.08em;
 }
+
+/* === Poésie orale === */
+.poetry-panel{max-width:900px;margin:0 auto}
+.poetry-head{display:flex;gap:18px;align-items:center;margin-bottom:14px}
+.poetry-head h2{margin:0;color:#744c2d;font-size:clamp(28px,4vw,42px)}
+.poetry-head p{margin:4px 0 0;color:#76675b;font-weight:700}
+.poetry-steps{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.poetry-step{
+  border:2px solid #dfcfb9;background:#fffaf1;color:#694c35;border-radius:999px;
+  padding:9px 15px;font-weight:900;font-size:16px
+}
+.poetry-step.active{background:#ffe3a6;border-color:#e4a83c;transform:translateY(-1px)}
+.poetry-step.done{background:#dff5df;border-color:#8cc78d;color:#286535}
+.poetry-step.final{padding-inline:20px}
+.poetry-card{
+  position:relative;border-radius:24px;padding:26px 24px;margin:16px 0;
+  background:linear-gradient(145deg,#fff9e8,#fff2d8);
+  border:3px solid #efd5a8;box-shadow:0 12px 30px #60482a22
+}
+.poetry-label{text-transform:uppercase;letter-spacing:.08em;font-weight:950;color:#a16931;font-size:13px}
+.poetry-text{
+  white-space:normal;margin:18px auto;max-width:720px;text-align:center;
+  font-family:"Marelle","Chalkboard SE","Comic Sans MS",cursive;
+  font-size:clamp(27px,4.6vw,46px);line-height:1.45;color:#4a392d;font-weight:800
+}
+.poetry-blank{color:#b8a591;border-bottom:3px dotted #c9a676;padding:0 .08em}
+.poetry-tip{text-align:center;color:#725d4a;font-weight:800}
+.poetry-actions,.poetry-recording{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin:14px 0}
+.poetry-recording{padding:13px;border-radius:18px;background:#fff1f1;border:2px solid #efb4b4}
+.record-dot{width:15px;height:15px;border-radius:50%;background:#e73838;animation:recordPulse .8s ease-in-out infinite alternate}
+@keyframes recordPulse{to{transform:scale(1.45);opacity:.45}}
+.poetry-result{min-height:62px;text-align:center;font-size:19px;font-weight:800;padding:8px}
+.poetry-good,.poetry-almost,.poetry-retry{padding:14px 18px;border-radius:16px}
+.poetry-good{background:#e6f8e6;color:#276535}.poetry-almost{background:#fff4c7;color:#6e5815}.poetry-retry{background:#fff0e3;color:#7b5030}
+@media(max-width:700px){
+  .poetry-head{align-items:flex-start}.poetry-card{padding:18px 13px}.poetry-text{font-size:clamp(23px,7vw,34px)}
+}
