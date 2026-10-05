@@ -53,7 +53,7 @@
     <textarea id="prompt">Animate the exact same adult female teacher from the reference image. Preserve her face, hairstyle, outfit, body proportions and wooden ruler. Full-body portrait shot on a perfectly uniform bright chroma key green (#00FF00) background. Keep her entire silhouette inside frame at all times: full head and hair, both arms, the complete ruler, both legs and both shoes, with generous safe margins. She is large and clearly readable, occupying about 85% of the frame height. Fixed camera, no zoom, no pan, no cuts. Gentle natural teaching movement: she smiles, subtly shifts her posture and makes a small clear pointing gesture with the ruler. Keep the green background flat and evenly lit, with no shadows or gradients. No additional people, no text, no watermark.</textarea>
 
     <div class="row">
-      <div><label for="quality">Définition</label><select id="quality"><option value="1080p" selected>1080p — meilleure netteté</option><option value="720p">720p — moins de crédits</option></select></div>
+      <div><label for="quality">Définition</label><select id="quality" disabled><option value="1080p" selected>1080p — définition cible</option></select></div>
       <div><label>Durée</label><input value="10 secondes" disabled aria-label="Durée fixée à 10 secondes"></div>
     </div>
     <p class="hint">La génération consomme des crédits API PixVerse. En 1080p, le tarif affiché par PixVerse est de 18 crédits par seconde, soit environ 180 crédits pour 10 secondes sans audio.</p>
@@ -160,7 +160,8 @@
           status.textContent = 'C’est prêt ! Appuie sur « Regarder ». ';
           return;
         }
-        if ([7,8].includes(result.status)) throw new Error('PIXVERSE_GENERATION_ERROR');
+        if (result.status === 7) throw new Error('PIXVERSE_MODERATION_REFUSED');
+        if ([6,8].includes(result.status)) throw new Error('PIXVERSE_GENERATION_FAILED');
         status.textContent = 'La magie est en préparation…';
       }
       status.textContent = 'La vidéo prend plus de temps que prévu. Attends un peu avant de relancer.';

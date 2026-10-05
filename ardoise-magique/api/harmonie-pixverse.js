@@ -100,7 +100,7 @@ module.exports = async function handler(req, res) {
   if (!image) return json(res, 400, { ok: false, code: 'INVALID_IMAGE' });
   const prompt = typeof input.prompt === 'string' ? input.prompt.trim().slice(0, 1800) : '';
   if (prompt.length < 30) return json(res, 400, { ok: false, code: 'INVALID_PROMPT' });
-  const quality = input.quality === '720p' ? '720p' : '1080p';
+  const quality = '1080p';
 
   try {
     const imgId = await pixverseService.uploadImage(image);
