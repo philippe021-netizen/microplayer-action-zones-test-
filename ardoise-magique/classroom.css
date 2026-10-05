@@ -809,3 +809,35 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
   .unicorn-mascot{left:calc(var(--unicorn-step) * 19px - 1px);font-size:20px}
   .unicorn-gift{font-size:16px}
 }
+
+/* === Synchronisation familiale === */
+.sync-card{
+  grid-column:1/-1;
+  margin-top:14px;
+  padding:16px;
+  border:2px solid #d7e5df;
+  border-radius:18px;
+  background:#f7fffb;
+}
+.sync-card h3{margin:0 0 6px;color:#214f43}
+.sync-status{font-weight:800;color:#45625a;margin:8px 0}
+.sync-code-display{
+  display:inline-block;
+  margin:6px 0 12px;
+  padding:9px 14px;
+  border-radius:12px;
+  background:#214f43;
+  color:#fff;
+  font:900 21px/1.1 system-ui,sans-serif;
+  letter-spacing:.12em;
+}
+.sync-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sync-actions input{
+  min-width:180px;
+  padding:10px 12px;
+  border:2px solid #c8d8d2;
+  border-radius:12px;
+  text-transform:uppercase;
+  font-weight:900;
+  letter-spacing:.08em;
+}
