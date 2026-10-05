@@ -14,7 +14,12 @@ function stableSsml(text){
     .replace(/\s*\.\s*/g,'. ')
     .trim();
   const parts=clean.split(/(?<=[.!?])\s+/).filter(Boolean);
-  const body=parts.map(sentence=>'<s>'+escapeSsml(sentence)+'</s>').join('<break time="140ms"/>');
+  const body=parts.map(sentence=>{
+    let spoken=escapeSsml(sentence);
+    spoken=spoken.replace(/deuxième/gi,'<phoneme alphabet="ipa" ph="dø.zjɛm">deuxième</phoneme>');
+    spoken=spoken.replace(/deuxièmes/gi,'<phoneme alphabet="ipa" ph="dø.zjɛm">deuxièmes</phoneme>');
+    return '<s>'+spoken+'</s>';
+  }).join('<break time="140ms"/>');
   return '<speak><prosody rate="94%" volume="+1dB">'+body+'</prosody></speak>';
 }
 
