@@ -22,6 +22,9 @@ let timer=null;
 let strokes=[];
 let activeStroke=null;
 let alphabetSelection=[];
+let unicornStep=0;
+let unicornTreasures=0;
+let unicornSurpriseTimer=null;
 let boardSize={w:0,h:0};
 let audio=null,musicTimer=null,musicStep=0;
 let teacherMotionToken=0;
@@ -577,6 +580,11 @@ function startLesson(lesson,overrideItems){
   currentLesson=lesson;
   currentItems=(overrideItems||lesson.items).map(x=>({...x}));
   itemIndex=0;stars=0;
+  unicornStep=0;
+  unicornTreasures=0;
+  clearTimeout(unicornSurpriseTimer);
+  hideUnicornSurprise();
+  renderUnicornQuest();
   screen('game');
   musicStart();
   sayTeacher(pick(TEACHER.intro));
@@ -585,6 +593,67 @@ function startLesson(lesson,overrideItems){
 
 function currentItem(){return currentItems[itemIndex]}
 function exerciseType(item=currentItem()){return item?._sourceType||item?.type||currentLesson?.type||'writing'}
+
+const UNICORN_SURPRISES=[
+  {icon:'🌈',title:'Arc-en-ciel magique !',text:'Tu as rempli les 5 marches !'},
+  {icon:'💎',title:'Cristal magique !',text:'La licorne a trouvé un trésor !'},
+  {icon:'🦄✨',title:'Bébé licorne !',text:'Une nouvelle amie est apparue !'},
+  {icon:'🎁',title:'Cadeau surprise !',text:'Bravo, le coffre est ouvert !'},
+  {icon:'⭐',title:'Étoile géante !',text:'Harmonie gagne une étoile magique !'}
+];
+
+function renderUnicornQuest(){
+  const quest=$('unicornQuest');
+  const mascot=$('unicornMascot');
+  if(!quest||!mascot)return;
+  quest.style.setProperty('--unicorn-step',String(Math.max(0,Math.min(5,unicornStep))));
+  quest.dataset.step=String(unicornStep);
+  quest.querySelectorAll('.unicorn-stairs i').forEach(step=>{
+    step.classList.toggle('reached',Number(step.dataset.step)<=unicornStep);
+  });
+  mascot.classList.remove('hop');
+  void mascot.offsetWidth;
+  if(unicornStep>0)mascot.classList.add('hop');
+}
+
+function hideUnicornSurprise(){
+  const box=$('unicornSurprise');
+  if(!box)return;
+  box.classList.remove('show');
+  box.setAttribute('aria-hidden','true');
+}
+
+function showUnicornSurprise(){
+  const box=$('unicornSurprise');
+  if(!box)return;
+  const surprise=pick(UNICORN_SURPRISES);
+  unicornTreasures++;
+  $('unicornSurpriseIcon').textContent=surprise.icon;
+  $('unicornSurpriseTitle').textContent=surprise.title;
+  $('unicornSurpriseText').textContent=surprise.text;
+  box.classList.remove('show');
+  void box.offsetWidth;
+  box.classList.add('show');
+  box.setAttribute('aria-hidden','false');
+  if(state.settings.sounds){
+    [784,988,1175,1568].forEach((f,i)=>setTimeout(()=>tone(f,.2,.035,'sine'),i*90));
+  }
+  clearTimeout(unicornSurpriseTimer);
+  unicornSurpriseTimer=setTimeout(()=>{
+    hideUnicornSurprise();
+    unicornStep=0;
+    renderUnicornQuest();
+  },2200);
+}
+
+function advanceUnicorn(){
+  if(unicornStep>=5)unicornStep=0;
+  unicornStep++;
+  renderUnicornQuest();
+  if(unicornStep===5){
+    setTimeout(showUnicornSurprise,420);
+  }
+}
 
 function alphabetNormalize(word){
   return String(word||'')
@@ -710,6 +779,7 @@ function checkAlphabetOrder(){
     showStamp('BRAVO','good');
     setTeacherPose('cheer');
     chime(true);
+    advanceUnicorn();
     sayTeacher(pick(TEACHER.success));
     $('afterControls').classList.remove('hidden');
     $('retry').classList.add('hidden');
@@ -1185,6 +1255,7 @@ function handleCorrect(){
   showStamp('BRAVO','good');
   setTeacherPose('cheer');
   chime(true);
+  advanceUnicorn();
   sayTeacher(pick(currentLesson.customPhrases?.length?currentLesson.customPhrases:TEACHER.success));
   $('afterControls').classList.remove('hidden');
   $('retry').classList.add('hidden');
@@ -1444,6 +1515,7 @@ $('activityType').onchange=()=>{
 };
 window.addEventListener('resize',()=>{if($('writeZone').classList.contains('show'))resizeCanvas()});
 window.addEventListener('pagehide',()=>{
+  clearTimeout(unicornSurpriseTimer);
   musicStop();
   teacherVoiceToken++;
   if(window.speechSynthesis)speechSynthesis.cancel();
