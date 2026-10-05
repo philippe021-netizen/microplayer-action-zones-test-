@@ -40,10 +40,11 @@ for(const feature of ['makeRecognitionImage','toDataURL','image/png']){
 }
 assert.ok(!recognizer.includes('MYSCRIPT_APPLICATION_KEY'),'MyScript credentials must no longer be required');
 assert.ok(!client.includes('MYSCRIPT_NOT_CONFIGURED'),'MyScript UI error path must be removed');
-for(const feature of ['GOOGLE_TTS_API_KEY','fr-FR-Chirp3-HD-Leda','text:synthesize','audioContent']){
+for(const feature of ['GOOGLE_TTS_API_KEY','fr-FR-Chirp3-HD-Leda','text:synthesize','audioContent','stableSsml','<prosody rate="94%" volume="+1dB">','<break time="140ms"/>']){
   assert.ok(teacherSpeech.includes(feature),'teacher speech API missing '+feature);
 }
 assert.ok(client.includes('teacherVoiceCache'),'natural teacher audio should be cached in the browser');
+assert.ok(client.includes("replace(/\\b2e\\b/gi,'deuxième')"),'teacher speech should expand ordinal abbreviations');
 assert.ok(client.includes('decodeAudioData'),'teacher voice should play through unlocked WebAudio on iPad');
 assert.ok(fs.existsSync(path.join(__dirname,'media/bravo-harmonie-2.8s.mp4')),'Bravo teacher clip must be packaged with the app');
 assert.ok(client.includes("if(pose==='cheer')"),'success pose must have a dedicated branch');
