@@ -1,4 +1,4 @@
-const DEFAULT_URL='./lessons/r-01.json';
+const DEFAULT_URLS=['./lessons/r-01.json','./lessons/alphabet-2letters.json'];
 const ALPHABET_URL='../harmonie-alphabet/index.html';
 const STORAGE_KEY='harmonie-classe-v2';
 const LEGACY_KEY='harmonie-ardoise-v1';
@@ -21,6 +21,7 @@ let recognitionBusy=false;
 let timer=null;
 let strokes=[];
 let activeStroke=null;
+let alphabetSelection=[];
 let boardSize={w:0,h:0};
 let audio=null,musicTimer=null,musicStep=0;
 let teacherMotionToken=0;
@@ -85,12 +86,25 @@ function saveState(){
 }
 
 function normalizeLesson(raw){
-  const type=raw.type==='math'?'math':'writing';
+  const type=raw.type==='math'?'math':(raw.type==='alphabet'?'alphabet':'writing');
   const sourceItems=Array.isArray(raw.items)&&raw.items.length
     ? raw.items
     : (raw.words||[]).map((word,i)=>({id:'w'+(i+1),prompt:String(word),expected:String(word),mode:'memory'}));
   const items=sourceItems.map((item,i)=>{
     if(typeof item==='string')return {id:'i'+(i+1),prompt:item,expected:item,mode:type==='math'?'solve':'memory'};
+    if(type==='alphabet'&&Array.isArray(item.words)){
+      const words=item.words.map(w=>String(w||'').trim()).filter(Boolean);
+      return {
+        id:item.id||('a'+(i+1)),
+        prompt:words.join(' · '),
+        expected:words.join('|'),
+        words,
+        note:String(item.note||''),
+        showPrefix:item.showPrefix!==false,
+        mode:'alphabet',
+        type:'alphabet'
+      };
+    }
     return {
       id:item.id||('i'+(i+1)),
       prompt:String(item.prompt??item.expected??''),
@@ -98,7 +112,7 @@ function normalizeLesson(raw){
       mode:item.mode||(type==='math'?'solve':'memory'),
       type:item.type==='math'?'math':type
     };
-  }).filter(x=>x.prompt&&x.expected);
+  }).filter(x=>type==='alphabet'?Array.isArray(x.words)&&x.words.length>1:(x.prompt&&x.expected));
   const marches=Array.isArray(raw.marches)
     ? raw.marches.map((marche,i)=>({
         id:String(marche?.id||('marche-'+(i+1))),
@@ -147,11 +161,14 @@ function itemsForMarche(lesson,marcheIndex){
 async function loadLessons(){
   loadState();
   const loaded=[];
-  try{
-    const r=await fetch(DEFAULT_URL,{cache:'no-cache'});
-    if(!r.ok)throw new Error('lesson');
-    loaded.push(normalizeLesson(await r.json()));
-  }catch{}
+  for(const url of DEFAULT_URLS){
+    try{
+      const r=await fetch(url,{cache:'no-cache'});
+      if(!r.ok)throw new Error('lesson');
+      const lesson=normalizeLesson(await r.json());
+      if(lesson.items.length)loaded.push(lesson);
+    }catch{}
+  }
   for(const l of state.customLessons||[]){
     const n=normalizeLesson(l);
     if(n.items.length)loaded.push(n);
@@ -512,7 +529,7 @@ function renderLessons(){
   for(const lesson of lessons){
     const card=document.createElement('div');
     card.className='lesson-card';
-    const kind=lesson.type==='math'?'➕ Maths':'✏️ Écriture';
+    const kind=lesson.type==='math'?'➕ Maths':(lesson.type==='alphabet'?'🔤 Ordre alphabétique':'✏️ Écriture');
     if(Array.isArray(lesson.marches)&&lesson.marches.length){
       card.classList.add('marches-card');
       card.innerHTML='<strong>'+safe(lesson.title)+'</strong><span>'+kind+' · 3 marches progressives</span><div class="marche-actions"></div>';
@@ -569,9 +586,153 @@ function startLesson(lesson,overrideItems){
 function currentItem(){return currentItems[itemIndex]}
 function exerciseType(item=currentItem()){return item?._sourceType||item?.type||currentLesson?.type||'writing'}
 
+function alphabetNormalize(word){
+  return String(word||'')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .toLocaleLowerCase('fr')
+    .replace(/[^a-zœæ]/g,'');
+}
+
+function alphabetPrefix(word){
+  return alphabetNormalize(word).slice(0,2);
+}
+
+function alphabetExpected(words){
+  return [...words].sort((a,b)=>{
+    const pa=alphabetPrefix(a),pb=alphabetPrefix(b);
+    const prefix=pa.localeCompare(pb,'fr');
+    return prefix||alphabetNormalize(a).localeCompare(alphabetNormalize(b),'fr');
+  });
+}
+
+function shuffleWords(words){
+  const out=[...words];
+  for(let i=out.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [out[i],out[j]]=[out[j],out[i]];
+  }
+  return out;
+}
+
+function resetAlphabetSelection(){
+  alphabetSelection=[];
+  const zone=$('alphabetZone');
+  if(!zone)return;
+  zone.querySelectorAll('.alphabet-word').forEach(button=>{
+    button.classList.remove('chosen');
+    button.querySelector('.alphabet-order').textContent='';
+  });
+  zone.classList.remove('wrong-shake');
+  $('feedback').textContent='';
+}
+
+function renderAlphabetExercise(){
+  const item=currentItem();
+  const zone=$('alphabetZone');
+  zone.innerHTML='';
+  alphabetSelection=[];
+  const words=shuffleWords(item.words);
+  words.forEach(word=>{
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='alphabet-word';
+    button.dataset.word=word;
+
+    const order=document.createElement('span');
+    order.className='alphabet-order';
+
+    const label=document.createElement('span');
+    label.className='alphabet-label';
+    label.textContent=word;
+
+    button.append(order,label);
+    if(item.showPrefix){
+      const prefix=document.createElement('span');
+      prefix.className='alphabet-prefix';
+      prefix.textContent=alphabetPrefix(word).toLocaleUpperCase('fr');
+      button.append(prefix);
+    }
+
+    button.onclick=()=>{
+      const existing=alphabetSelection.indexOf(word);
+      if(existing>=0){
+        alphabetSelection.splice(existing,1);
+      }else{
+        alphabetSelection.push(word);
+      }
+      zone.querySelectorAll('.alphabet-word').forEach(btn=>{
+        const n=alphabetSelection.indexOf(btn.dataset.word);
+        btn.classList.toggle('chosen',n>=0);
+        btn.querySelector('.alphabet-order').textContent=n>=0?String(n+1):'';
+      });
+      zone.classList.remove('wrong-shake');
+      $('feedback').textContent='';
+    };
+    zone.append(button);
+  });
+}
+
+function beginAlphabetExercise(){
+  $('roundControls').classList.add('hidden');
+  $('writeControls').classList.add('hidden');
+  $('alphabetControls').classList.remove('hidden');
+  $('alphabetZone').classList.add('show');
+  $('boardPrompt').textContent='';
+  $('boardTitle').textContent='Classe les mots dans l’ordre alphabétique';
+  $('boardHelp').textContent=currentItem().note||'Touche les mots dans l’ordre : 1, puis 2, puis 3…';
+  setTeacherPose('point');
+  sayTeacher('Regarde d’abord la première lettre. Si elle est pareille, regarde la deuxième. Puis touche les mots dans le bon ordre.');
+  renderAlphabetExercise();
+  setTimeout(()=>setTeacherPose('idle'),1400);
+}
+
+function checkAlphabetOrder(){
+  const item=currentItem();
+  if(alphabetSelection.length!==item.words.length){
+    $('feedback').textContent='Choisis tous les mots dans l’ordre.';
+    chime(false);
+    sayTeacher('Choisis tous les mots, du premier au dernier.');
+    return;
+  }
+
+  const expected=alphabetExpected(item.words);
+  const correct=alphabetSelection.every((word,i)=>word===expected[i]);
+  if(correct){
+    recordAttempt(true);
+    const earned=roundTries===0?3:(roundTries===1?2:1);
+    stars+=earned;
+    $('starCount').textContent='⭐ '+stars;
+    $('alphabetControls').classList.add('hidden');
+    $('boardTitle').textContent='Très bien !';
+    $('boardHelp').textContent='Ordre parfait : '+expected.join(' → ');
+    $('feedback').textContent='Réussi '+('⭐'.repeat(earned));
+    showStamp('BRAVO','good');
+    setTeacherPose('cheer');
+    chime(true);
+    sayTeacher(pick(TEACHER.success));
+    $('afterControls').classList.remove('hidden');
+    $('retry').classList.add('hidden');
+    $('nextWord').classList.remove('hidden');
+    return;
+  }
+
+  recordAttempt(false);
+  roundTries++;
+  const zone=$('alphabetZone');
+  zone.classList.remove('wrong-shake');
+  void zone.offsetWidth;
+  zone.classList.add('wrong-shake');
+  $('feedback').textContent='Presque ! Regarde seulement les deux premières lettres.';
+  $('boardHelp').textContent='Compare la 1re lettre, puis la 2e si la 1re est identique.';
+  chime(false);
+  setTeacherPose('point');
+  sayTeacher('Presque. Regarde la première lettre, puis seulement la deuxième si elle est pareille.');
+}
+
 function prepareRound(){
   clearInterval(timer);
-  strokes=[];activeStroke=null;hints=0;roundTries=0;recognitionBusy=false;
+  strokes=[];activeStroke=null;alphabetSelection=[];hints=0;roundTries=0;recognitionBusy=false;
   $('done').disabled=false;$('done').textContent='J’ai fini !';
   $('roundNo').textContent='Exercice '+(itemIndex+1)+'/'+currentItems.length;
   $('progressBar').style.width=((itemIndex/currentItems.length)*100)+'%';
@@ -583,6 +744,9 @@ function prepareRound(){
   $('countdown').textContent='';
   $('feedback').textContent='';
   $('writeZone').classList.remove('show');
+  $('alphabetZone').classList.remove('show','wrong-shake');
+  $('alphabetZone').innerHTML='';
+  $('alphabetControls').classList.add('hidden');
   $('roundControls').classList.remove('hidden');
   $('writeControls').classList.add('hidden');
   $('afterControls').classList.add('hidden');
@@ -597,6 +761,10 @@ function prepareRound(){
 
 function beginTeaching(){
   const item=currentItem();
+  if(exerciseType(item)==='alphabet'){
+    beginAlphabetExercise();
+    return;
+  }
   $('roundControls').classList.add('hidden');
   setTeacherPose('point');
   if(exerciseType(item)==='math'||item.mode==='solve'){
@@ -1033,6 +1201,16 @@ function handleWrong(result){
 }
 
 function retryCurrent(){
+  if(exerciseType()==='alphabet'){
+    hideStamp();
+    $('afterControls').classList.add('hidden');
+    $('alphabetControls').classList.remove('hidden');
+    resetAlphabetSelection();
+    $('boardTitle').textContent='On réessaie';
+    $('boardHelp').textContent='Regarde la 1re lettre, puis la 2e.';
+    setTeacherPose('idle');
+    return;
+  }
   hideStamp();
   $('chalkCorrection').classList.remove('show');
   $('chalkCorrection').innerHTML='';
@@ -1203,6 +1381,8 @@ $('boardCanvas').addEventListener('pointercancel',stopStroke);
 
 $('startRound').onclick=beginTeaching;
 $('done').onclick=checkWriting;
+$('alphabetCheck').onclick=checkAlphabetOrder;
+$('alphabetReset').onclick=resetAlphabetSelection;
 $('retry').onclick=retryCurrent;
 $('nextWord').onclick=nextExercise;
 $('undo').onclick=()=>{strokes.pop();paint()};
@@ -1234,7 +1414,11 @@ $('playAgain').onclick=()=>startLesson(currentLesson);
 $('finishProgress').onclick=openProgress;
 $('openProgress').onclick=openProgress;
 $('progressBack').onclick=()=>{screen('home');renderLessons()};
-$('backAlphabet').onclick=()=>location.href=ALPHABET_URL;
+$('backAlphabet').onclick=()=>{
+  const lesson=lessons.find(l=>l.type==='alphabet');
+  if(lesson)startLesson(lesson);
+  else location.href=ALPHABET_URL;
+};
 
 $('musicToggle').onclick=()=>toggleSetting('music');
 $('voiceToggle').onclick=()=>toggleSetting('voice');
