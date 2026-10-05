@@ -3,8 +3,8 @@ window.HARMONIE_TEACHER_POINT_VIDEO="/api/harmonie-point-video";
 window.HARMONIE_CHROMA_KEY={
   key:[0.0,0.6941176471,0.0],
   inner:0.035,
-  outer:0.18,
-  greenLow:0.04,
-  greenHigh:0.24,
-  spill:0.95
+  outer:0.20,
+  greenLow:0.015,
+  greenHigh:0.14,
+  spill:0.98
 };
