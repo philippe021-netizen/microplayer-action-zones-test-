@@ -1,7 +1,7 @@
 'use strict';
 
 const {v2}=require('@google-cloud/speech');
-const speechClient=new v2.SpeechClient();
+const speechClient=new v2.SpeechClient({apiEndpoint:'eu-speech.googleapis.com'});
 
 const POEM=[
   'J’ai regardé les feuilles rouges, elles tombaient.',
@@ -111,11 +111,11 @@ module.exports=async function handler(req,res){
   try{
     const projectId=process.env.GOOGLE_CLOUD_PROJECT||process.env.GCLOUD_PROJECT||'harmonie-ardoise-philippe';
     const [response]=await speechClient.recognize({
-      recognizer:`projects/${projectId}/locations/global/recognizers/_`,
+      recognizer:`projects/${projectId}/locations/eu/recognizers/_`,
       config:{
         autoDecodingConfig:{},
         languageCodes:['fr-FR'],
-        model:'short',
+        model:'chirp_3',
         features:{enableAutomaticPunctuation:true}
       },
       content:audio.bytes
