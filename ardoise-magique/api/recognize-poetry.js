@@ -54,6 +54,9 @@ function sameSpokenWord(expected,heard){
     const shorter=expected.length<=heard.length?expected:heard;
     const longer=expected.length>heard.length?expected:heard;
     if(longer.startsWith(shorter)&&longer.length-shorter.length<=3)return true;
+    let prefix=0;
+    while(prefix<expected.length&&prefix<heard.length&&expected[prefix]===heard[prefix])prefix++;
+    if(prefix>=4&&editDistance(expected,heard)<=3)return true;
   }
   return false;
 }
