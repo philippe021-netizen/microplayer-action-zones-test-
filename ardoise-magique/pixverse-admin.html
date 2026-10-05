@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6f3ec">
+  <title>Préparer la vidéo de l’institutrice — Harmonie</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17251f;background:#f6f3ec;font-synthesis:none}
+    *{box-sizing:border-box}
+    body{margin:0;padding:clamp(16px,4vw,36px);min-height:100vh}
+    main{max-width:980px;margin:0 auto}
+    h1{font-size:clamp(1.55rem,4vw,2.2rem);margin:.25rem 0 .5rem}
+    p{line-height:1.5;color:#52615a}
+    .card{background:#fff;border:1px solid #e0e5de;border-radius:18px;padding:clamp(16px,3vw,26px);margin:18px 0;box-shadow:0 8px 24px #1022180a}
+    label{display:block;font-weight:650;margin:14px 0 7px}
+    input,textarea,select,button{font:inherit}
+    input[type=password],input[type=file],textarea,select{width:100%;border:1px solid #cbd4cc;border-radius:10px;padding:12px;background:#fff;color:#17251f}
+    textarea{min-height:170px;resize:vertical;line-height:1.45}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .preview{display:grid;grid-template-columns:minmax(180px,320px) 1fr;align-items:center;gap:22px}
+    .image-frame{background:#00ff00;aspect-ratio:9/16;border-radius:12px;overflow:hidden;display:grid;place-items:center;color:#123}
+    .image-frame img{width:100%;height:100%;object-fit:contain}
+    button{border:0;border-radius:11px;padding:13px 20px;background:#146c4a;color:white;font-weight:700;cursor:pointer}
+    button:disabled{opacity:.55;cursor:wait}
+    .status{min-height:1.6em;font-weight:600}
+    .hint{font-size:.92rem}
+    video{width:100%;max-height:70vh;background:#00ff00;border-radius:12px}
+    [hidden]{display:none!important}
+    @media(max-width:650px){.row,.preview{grid-template-columns:1fr}.image-frame{max-height:65vh;margin:auto;width:min(100%,300px)}}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Nouvelle vidéo de l’institutrice</h1>
+  <p>Image→Vidéo PixVerse, 10 secondes, portrait et fond vert. Choisissez un visuel source net où la tête, les cheveux, les pieds et la règle ont de l’espace autour.</p>
+
+  <section class="card">
+    <label for="bridgeToken">Jeton Harmonie</label>
+    <input id="bridgeToken" type="password" autocomplete="off" placeholder="Jeton d’accès configuré pour cette page">
+    <p class="hint">Ce n’est pas la clé PixVerse. La clé PixVerse reste côté serveur et n’est jamais affichée ici.</p>
+
+    <label for="sourceImage">Image source portrait 9:16 (PNG, JPEG ou WebP)</label>
+    <input id="sourceImage" type="file" accept="image/png,image/jpeg,image/webp">
+    <p id="imageInfo" class="hint">Conseillé : au moins 720 × 1280 px, silhouette entière et marge visible.</p>
+
+    <div class="preview" id="previewPanel" hidden>
+      <div class="image-frame"><img id="previewImage" alt="Aperçu de l’image source"></div>
+      <div><strong>Vérifiez le cadrage avant génération.</strong><p class="hint">PixVerse anime l’image fournie ; le fond vert uniforme facilite ensuite le chromakey. Toute l’image reste dans le cadre source.</p></div>
+    </div>
+
+    <label for="prompt">Consigne d’animation</label>
+    <textarea id="prompt">Animate the exact same adult female teacher from the reference image. Preserve her face, hairstyle, outfit, body proportions and wooden ruler. Full-body portrait shot on a perfectly uniform bright chroma key green (#00FF00) background. Keep her entire silhouette inside frame at all times: full head and hair, both arms, the complete ruler, both legs and both shoes, with generous safe margins. She is large and clearly readable, occupying about 85% of the frame height. Fixed camera, no zoom, no pan, no cuts. Gentle natural teaching movement: she smiles, subtly shifts her posture and makes a small clear pointing gesture with the ruler. Keep the green background flat and evenly lit, with no shadows or gradients. No additional people, no text, no watermark.</textarea>
+
+    <div class="row">
+      <div><label for="quality">Définition</label><select id="quality"><option value="1080p" selected>1080p — meilleure netteté</option><option value="720p">720p — moins de crédits</option></select></div>
+      <div><label>Durée</label><input value="10 secondes" disabled aria-label="Durée fixée à 10 secondes"></div>
+    </div>
+    <p class="hint">La génération consomme des crédits API PixVerse. En 1080p, le tarif affiché par PixVerse est de 18 crédits par seconde, soit environ 180 crédits pour 10 secondes sans audio.</p>
+    <button id="generate" type="button" disabled>Générer la vidéo 10 s</button>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="card" id="resultPanel" hidden>
+    <h2>Résultat PixVerse</h2>
+    <video id="resultVideo" controls playsinline></video>
+    <p><a id="downloadLink" download="institutrice-harmonie-10s.mp4">Télécharger la vidéo MP4</a></p>
+  </section>
+</main>
+<script>
+(() => {
+  const tokenInput = document.querySelector('#bridgeToken');
+  const fileInput = document.querySelector('#sourceImage');
+  const previewPanel = document.querySelector('#previewPanel');
+  const previewImage = document.querySelector('#previewImage');
+  const imageInfo = document.querySelector('#imageInfo');
+  const generateButton = document.querySelector('#generate');
+  const status = document.querySelector('#status');
+  let imageDataUrl = '';
+  let validImage = false;
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    validImage = false;
+    imageDataUrl = '';
+    generateButton.disabled = true;
+    if (!file) { previewPanel.hidden = true; return; }
+    if (!['image/png','image/jpeg','image/webp'].includes(file.type) || file.size > 3 * 1024 * 1024) {
+      imageInfo.textContent = 'Fichier non accepté : choisissez PNG, JPEG ou WebP de 3 Mo maximum.';
+      previewPanel.hidden = true;
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      imageDataUrl = String(reader.result || '');
+      const probe = new Image();
+      probe.onload = () => {
+        const ratio = probe.width / probe.height;
+        validImage = probe.width >= 720 && probe.height >= 1280 && ratio >= .52 && ratio <= .60;
+        previewImage.src = imageDataUrl;
+        previewPanel.hidden = false;
+        imageInfo.textContent = `${probe.width} × ${probe.height} px — ${validImage ? 'format portrait adapté.' : 'visez au moins 720 × 1280 px et un ratio proche de 9:16.'}`;
+        generateButton.disabled = !validImage || !tokenInput.value.trim();
+      };
+      probe.src = imageDataUrl;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  tokenInput.addEventListener('input', () => { generateButton.disabled = !validImage || !tokenInput.value.trim(); });
+
+  async function callBridge(payload) {
+    const response = await fetch('/api/harmonie-pixverse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tokenInput.value.trim()}` },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.code || 'REQUEST_FAILED');
+    return data;
+  }
+
+  const messages = {
+    UNAUTHORIZED: 'Jeton Harmonie incorrect.',
+    BRIDGE_NOT_CONFIGURED: 'Le jeton Harmonie doit être configuré sur le serveur.',
+    PIXVERSE_NOT_CONFIGURED: 'La clé API PixVerse doit être configurée côté serveur.',
+    PIXVERSE_GENERATION_ERROR: 'PixVerse n’a pas pu lancer la génération. Vérifiez les crédits et réessayez.',
+    PIXVERSE_TIMEOUT: 'PixVerse met trop de temps à répondre. Vérifiez le tableau de bord avant de relancer.',
+    PIXVERSE_STATUS_ERROR: 'Le statut PixVerse est momentanément indisponible.'
+  };
+
+  generateButton.addEventListener('click', async () => {
+    if (!validImage || !imageDataUrl || !tokenInput.value.trim()) return;
+    if (!window.confirm('Lancer une génération PixVerse de 10 secondes ? Des crédits API seront consommés.')) return;
+    generateButton.disabled = true;
+    status.textContent = 'Envoi de l’image puis lancement de la génération…';
+    document.querySelector('#resultPanel').hidden = true;
+    try {
+      const created = await callBridge({ action: 'generate', imageDataUrl, quality: document.querySelector('#quality').value, prompt: document.querySelector('#prompt').value });
+      status.textContent = `Vidéo ${created.videoId} en cours de génération…`;
+      let attempts = 0;
+      while (attempts++ < 90) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        const result = await callBridge({ action: 'status', videoId: created.videoId });
+        if (result.status === 1 && result.url) {
+          const video = document.querySelector('#resultVideo');
+          video.src = result.url;
+          document.querySelector('#downloadLink').href = result.url;
+          document.querySelector('#resultPanel').hidden = false;
+          status.textContent = `Prête — ${result.outputWidth || '?'} × ${result.outputHeight || '?'} px.`;
+          return;
+        }
+        if ([7,8].includes(result.status)) throw new Error('PIXVERSE_GENERATION_ERROR');
+        status.textContent = `PixVerse génère la vidéo… (${attempts * 5} s)`;
+      }
+      status.textContent = `Le suivi automatique s’est arrêté. L’identifiant de la tâche est ${created.videoId}; vérifiez son état avant de relancer.`;
+    } catch (error) {
+      status.textContent = messages[error.message] || 'Erreur pendant la génération. Vérifiez le jeton et le tableau de bord PixVerse.';
+    } finally {
+      generateButton.disabled = !validImage || !tokenInput.value.trim();
+    }
+  });
+})();
+</script>
+</body>
+</html>
