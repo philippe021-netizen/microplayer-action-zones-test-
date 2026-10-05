@@ -9,6 +9,7 @@ const css=fs.readFileSync(path.join(__dirname,'classroom.css'),'utf8');
 const recognizer=fs.readFileSync(path.join(__dirname,'api/recognize-handwriting.js'),'utf8');
 const teacherSpeech=fs.readFileSync(path.join(__dirname,'api/teacher-speech.js'),'utf8');
 const lesson=JSON.parse(fs.readFileSync(path.join(__dirname,'lessons/r-01.json'),'utf8'));
+const alphabetLesson=JSON.parse(fs.readFileSync(path.join(__dirname,'lessons/alphabet-2letters.json'),'utf8'));
 const alphabet=fs.readFileSync(path.join(__dirname,'../harmonie-alphabet/index.html'),'utf8');
 
 assert.deepEqual(lesson.words,['une rue','le roi','le repas','un arbre','mon frère','un fruit','une voiture','trois']);
@@ -17,14 +18,18 @@ assert.deepEqual(lesson.marches[1].words,['la reine','mon père','après','il ro
 assert.deepEqual(lesson.marches[2].words,['rond','ronde','aujourd’hui','hier','derrière','un carré']);
 assert.equal(lesson.difficulty,'normal');
 assert.equal(lesson.displaySeconds,3);
+assert.equal(alphabetLesson.type,'alphabet');
+assert.equal(alphabetLesson.items.length,10);
+assert.ok(alphabetLesson.items.slice(0,7).every(x=>x.showPrefix!==false));
+assert.ok(alphabetLesson.items.slice(7).every(x=>x.showPrefix===false));
 
-for(const feature of ['La classe d’Harmonie','teacherTemplate','teacher-motion-source','teacher-motion-idle','teacher-motion-point','teacher-motion-bravo','teacher-motion-keyed','boardCanvas','chalkCorrection','stamp','progressScreen','J’ai fini !']){
+for(const feature of ['La classe d’Harmonie','teacherTemplate','teacher-motion-source','teacher-motion-idle','teacher-motion-point','teacher-motion-bravo','teacher-motion-keyed','boardCanvas','alphabetZone','alphabetControls','alphabetCheck','chalkCorrection','stamp','progressScreen','J’ai fini !']){
   assert.ok(page.includes(feature),'page missing '+feature);
 }
-for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','teacher-speech','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','HARMONIE_TEACHER_BRAVO_VIDEO','teacherMotionVideos','startTeacherIdleMotion','startTeacherBravoMotion',"startTeacherVideo('bravo')",'itemsForMarche','marche-actions','selectedMarche']){
+for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','teacher-speech','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','HARMONIE_TEACHER_BRAVO_VIDEO','teacherMotionVideos','startTeacherIdleMotion','startTeacherBravoMotion',"startTeacherVideo('bravo')",'itemsForMarche','marche-actions','selectedMarche','beginAlphabetExercise','alphabetExpected','checkAlphabetOrder','alphabetSelection']){
   assert.ok(client.includes(feature),'client missing '+feature);
 }
-for(const feature of ['pose-point','pose-check','pose-cheer','stampSlam','chalk-correction','teacher-motion-keyed','teacher-motion-source']){
+for(const feature of ['pose-point','pose-check','pose-cheer','stampSlam','chalk-correction','teacher-motion-keyed','teacher-motion-source','alphabet-zone','alphabet-word','alphabet-prefix']){
   assert.ok(css.includes(feature),'css missing '+feature);
 }
 for(const feature of ['GOOGLE_VISION_API_KEY','DOCUMENT_TEXT_DETECTION','fullTextAnnotation','textAnnotations','mistakePositions']){
