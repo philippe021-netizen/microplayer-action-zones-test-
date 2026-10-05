@@ -40,7 +40,7 @@ for(const feature of ['makeRecognitionImage','toDataURL','image/png']){
 }
 assert.ok(!recognizer.includes('MYSCRIPT_APPLICATION_KEY'),'MyScript credentials must no longer be required');
 assert.ok(!client.includes('MYSCRIPT_NOT_CONFIGURED'),'MyScript UI error path must be removed');
-for(const feature of ['GOOGLE_TTS_API_KEY','fr-FR-Chirp3-HD-Leda','text:synthesize','audioContent','stableSsml','<prosody rate="94%" volume="+1dB">','<break time="140ms"/>']){
+for(const feature of ['GOOGLE_TTS_API_KEY','fr-FR-Chirp3-HD-Leda','text:synthesize','audioContent','stableSsml','<prosody rate="94%" volume="+1dB">','<break time="140ms"/>','<phoneme alphabet="ipa" ph="dø.zjɛm">deuxième</phoneme>']){
   assert.ok(teacherSpeech.includes(feature),'teacher speech API missing '+feature);
 }
 assert.ok(client.includes('teacherVoiceCache'),'natural teacher audio should be cached in the browser');
