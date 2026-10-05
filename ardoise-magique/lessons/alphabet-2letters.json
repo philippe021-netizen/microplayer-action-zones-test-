@@ -1,0 +1,120 @@
+{
+  "id": "alphabet-2letters",
+  "type": "alphabet",
+  "title": "Ordre alphabétique — 2 premières lettres",
+  "theme": "1re lettre puis 2e lettre",
+  "difficulty": "normal",
+  "displaySeconds": 0,
+  "customPhrases": [
+    "Bravo Harmonie ! Tu as trouvé le bon ordre.",
+    "Très bien ! Première lettre, puis deuxième : c’est réussi.",
+    "Super ! Ton classement est juste."
+  ],
+  "items": [
+    {
+      "id": "a1",
+      "words": [
+        "arbre",
+        "bateau",
+        "chat"
+      ],
+      "note": "Commence par la première lettre.",
+      "showPrefix": true
+    },
+    {
+      "id": "a2",
+      "words": [
+        "dame",
+        "lapin",
+        "moto"
+      ],
+      "note": "Les premières lettres sont toutes différentes.",
+      "showPrefix": true
+    },
+    {
+      "id": "a3",
+      "words": [
+        "avion",
+        "fleur",
+        "poule",
+        "soleil"
+      ],
+      "note": "Classe de A vers Z.",
+      "showPrefix": true
+    },
+    {
+      "id": "a4",
+      "words": [
+        "ballon",
+        "bébé",
+        "bille"
+      ],
+      "note": "Même première lettre B : compare BA, BÉ, BI.",
+      "showPrefix": true
+    },
+    {
+      "id": "a5",
+      "words": [
+        "cadeau",
+        "cerise",
+        "citron"
+      ],
+      "note": "Même première lettre C : compare CA, CE, CI.",
+      "showPrefix": true
+    },
+    {
+      "id": "a6",
+      "words": [
+        "dame",
+        "dessin",
+        "domino"
+      ],
+      "note": "Même première lettre D : compare DA, DE, DO.",
+      "showPrefix": true
+    },
+    {
+      "id": "a7",
+      "words": [
+        "farine",
+        "fenêtre",
+        "fille",
+        "forêt"
+      ],
+      "note": "Même première lettre F : compare FA, FE, FI, FO.",
+      "showPrefix": true
+    },
+    {
+      "id": "a8",
+      "words": [
+        "lapin",
+        "livre",
+        "lune"
+      ],
+      "note": "Mini-évaluation : plus d’aide sur les lettres.",
+      "showPrefix": false
+    },
+    {
+      "id": "a9",
+      "words": [
+        "panda",
+        "peluche",
+        "pirate",
+        "poule"
+      ],
+      "note": "Mini-évaluation : utilise seulement les deux premières lettres.",
+      "showPrefix": false
+    },
+    {
+      "id": "a10",
+      "words": [
+        "rat",
+        "renard",
+        "riz",
+        "robot",
+        "rue"
+      ],
+      "note": "Défi final : RA, RE, RI, RO, RU.",
+      "showPrefix": false
+    }
+  ]
+}
