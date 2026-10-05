@@ -552,3 +552,51 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
   .marche-actions{grid-template-columns:1fr}
   .lesson-card .marche-btn{min-height:54px}
 }
+
+/* === 2026-10-05 : bulle de la maîtresse sous le tableau === */
+#game .classroom{
+  padding-bottom:72px!important;
+}
+#game .board-shell{
+  bottom:72px!important;
+  height:auto!important;
+}
+#game .teacher-speech{
+  top:auto!important;
+  bottom:4px!important;
+  left:50%!important;
+  right:auto!important;
+  width:min(680px,82%)!important;
+  min-height:54px!important;
+  transform:translateX(-50%)!important;
+  text-align:center!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:9px 16px!important;
+}
+#game .teacher-speech:after{
+  left:50%!important;
+  right:auto!important;
+  top:-11px!important;
+  bottom:auto!important;
+  transform:translateX(-50%)!important;
+  border:11px solid transparent!important;
+  border-bottom-color:#fff!important;
+  border-top:0!important;
+}
+#game #teacherActor{
+  bottom:70px!important;
+}
+@media(max-width:760px){
+  #game .classroom{padding-bottom:64px!important}
+  #game .board-shell{bottom:64px!important}
+  #game .teacher-speech{
+    bottom:3px!important;
+    width:88%!important;
+    min-height:48px!important;
+    font-size:12px!important;
+    padding:7px 11px!important;
+  }
+  #game #teacherActor{bottom:62px!important}
+}
