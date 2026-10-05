@@ -878,3 +878,30 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
 @media(max-width:700px){
   .poetry-head{align-items:flex-start}.poetry-card{padding:18px 13px}.poetry-text{font-size:clamp(23px,7vw,34px)}
 }
+
+/* === Micro poésie iPad : niveau audio visible === */
+.poetry-recording{flex-direction:column}
+.mic-meter{
+  width:min(420px,78vw);
+  height:14px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#eadede;
+  box-shadow:inset 0 1px 4px #5b2c2c33;
+}
+.mic-meter i{
+  display:block;
+  width:0%;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#75b97a,#e6c858,#e45c5c);
+  transition:width .08s linear;
+}
+.mic-hint{
+  display:block;
+  max-width:620px;
+  text-align:center;
+  color:#6c5353;
+  font-weight:800;
+  font-size:14px;
+}
