@@ -99,6 +99,15 @@ function normalizeLesson(raw){
       type:item.type==='math'?'math':type
     };
   }).filter(x=>x.prompt&&x.expected);
+  const marches=Array.isArray(raw.marches)
+    ? raw.marches.map((marche,i)=>({
+        id:String(marche?.id||('marche-'+(i+1))),
+        label:String(marche?.label||('Marche '+(i+1))),
+        words:(Array.isArray(marche?.words)?marche.words:[])
+          .map(word=>String(word||'').trim())
+          .filter(Boolean)
+      })).filter(m=>m.words.length)
+    : [];
   return {
     ...raw,
     id:raw.id||('lesson-'+Date.now()),
@@ -108,8 +117,31 @@ function normalizeLesson(raw){
     difficulty:raw.difficulty||'normal',
     displaySeconds:Number(raw.displaySeconds||3),
     customPhrases:Array.isArray(raw.customPhrases)?raw.customPhrases:[],
+    marches,
     items
   };
+}
+
+function itemsForMarche(lesson,marcheIndex){
+  if(!Array.isArray(lesson.marches)||!lesson.marches.length)return lesson.items.map(x=>({...x}));
+  const out=lesson.items.map(x=>({...x}));
+  const seen=new Set(out.map(x=>String(x.expected).normalize('NFC').toLocaleLowerCase('fr')));
+  for(let i=1;i<=marcheIndex&&i<lesson.marches.length;i++){
+    lesson.marches[i].words.forEach((word,j)=>{
+      const key=String(word).normalize('NFC').toLocaleLowerCase('fr');
+      if(seen.has(key))return;
+      seen.add(key);
+      out.push({
+        id:'m'+(i+1)+'-w'+(j+1),
+        prompt:String(word),
+        expected:String(word),
+        mode:'memory',
+        type:'writing',
+        _marche:i+1
+      });
+    });
+  }
+  return out;
 }
 
 async function loadLessons(){
@@ -481,8 +513,25 @@ function renderLessons(){
     const card=document.createElement('div');
     card.className='lesson-card';
     const kind=lesson.type==='math'?'➕ Maths':'✏️ Écriture';
-    card.innerHTML='<strong>'+safe(lesson.title)+'</strong><span>'+kind+' · '+lesson.items.length+' exercices</span><button class="mainbtn">Entrer en classe</button>';
-    card.querySelector('button').onclick=()=>startLesson(lesson);
+    if(Array.isArray(lesson.marches)&&lesson.marches.length){
+      card.classList.add('marches-card');
+      card.innerHTML='<strong>'+safe(lesson.title)+'</strong><span>'+kind+' · 3 marches progressives</span><div class="marche-actions"></div>';
+      const actions=card.querySelector('.marche-actions');
+      lesson.marches.forEach((marche,i)=>{
+        const items=itemsForMarche(lesson,i);
+        const button=document.createElement('button');
+        button.className='mainbtn marche-btn marche-'+(i+1);
+        button.innerHTML='<b>'+safe(marche.label)+'</b><small>'+items.length+' mots · '+('⭐'.repeat(i+1))+'</small>';
+        button.onclick=()=>{
+          const selected={...lesson,title:lesson.title+' — '+marche.label,selectedMarche:i+1};
+          startLesson(selected,items);
+        };
+        actions.append(button);
+      });
+    }else{
+      card.innerHTML='<strong>'+safe(lesson.title)+'</strong><span>'+kind+' · '+lesson.items.length+' exercices</span><button class="mainbtn">Entrer en classe</button>';
+      card.querySelector('button').onclick=()=>startLesson(lesson);
+    }
     box.append(card);
   }
 }
