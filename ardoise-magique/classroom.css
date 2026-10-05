@@ -399,3 +399,94 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
   #game .write-zone.show{left:32%!important}
   #game .chalk-correction{left:32%!important}
 }
+
+
+/* === 2026-10-05 : VRAIE VIDÉO MP4 + CHROMAKEY GPU POUR iPAD/SAFARI === */
+.teacher-motion-source{
+  position:absolute!important;
+  left:0!important;
+  bottom:0!important;
+  width:2px!important;
+  height:2px!important;
+  opacity:.001!important;
+  pointer-events:none!important;
+  clip-path:inset(50%)!important;
+}
+.teacher-motion-keyed,
+.teacher-motion-fallback{
+  position:absolute;
+  left:-2%;
+  bottom:-2%;
+  height:112%;
+  width:auto;
+  max-width:none;
+  aspect-ratio:9/16;
+  z-index:140;
+  pointer-events:none;
+  filter:drop-shadow(0 12px 14px #15251f44);
+  transform:translateZ(0);
+  -webkit-transform:translateZ(0);
+}
+.teacher-motion-keyed[hidden],
+.teacher-motion-fallback[hidden]{display:none!important}
+.teacher-motion-anim,
+.teacher-motion-sprite,
+.teacher-motion-canvas{display:none!important}
+
+#game #teacherActor{
+  width:44%!important;
+  height:98%!important;
+  left:-3%!important;
+  bottom:-2%!important;
+  z-index:130!important;
+  overflow:visible!important;
+}
+#game #teacherActor.pose-point{
+  width:52%!important;
+  height:104%!important;
+  left:-4%!important;
+  bottom:-2%!important;
+}
+#game #teacherActor .teacher-media{overflow:visible!important}
+#game #teacherActor .teacher-photo{
+  display:block!important;
+  width:auto!important;
+  height:100%!important;
+  max-width:none!important;
+  object-fit:contain!important;
+  object-position:left bottom!important;
+  opacity:1!important;
+  visibility:visible!important;
+  border-radius:0!important;
+}
+#game #teacherActor.motion-ready.motion-loaded .teacher-photo{opacity:0!important}
+#game #teacherActor.motion-fallback .teacher-motion-fallback{display:block!important}
+#game .teacher-speech{
+  left:auto!important;
+  right:8px!important;
+  top:8px!important;
+  width:min(310px,27vw)!important;
+  z-index:160!important;
+}
+#game .teacher-speech:after{
+  left:auto!important;
+  right:28%!important;
+}
+#game .classroom.teacher-pointing .board-prompt{left:18%!important}
+#game .write-zone.show{left:31%!important}
+#game .chalk-correction{left:31%!important;right:5%!important}
+
+@media (min-width:761px) and (orientation:landscape){
+  #game #teacherActor{width:43%!important;height:98%!important;left:-3%!important}
+  #game #teacherActor.pose-point{width:51%!important;height:104%!important;left:-4%!important}
+  #game .teacher-motion-keyed,#game .teacher-motion-fallback{height:113%!important}
+}
+@media (max-width:760px){
+  #game #teacherActor{width:48%!important;height:94%!important;left:-5%!important}
+  #game #teacherActor.pose-point{width:58%!important;height:102%!important;left:-6%!important}
+  #game .teacher-motion-keyed,#game .teacher-motion-fallback{height:110%!important}
+  #game .teacher-speech{right:5px!important;left:auto!important;top:5px!important;width:132px!important}
+  #game .classroom.teacher-pointing .board-prompt{left:18%!important}
+  #game .write-zone.show{left:34%!important}
+  #game .chalk-correction{left:34%!important}
+}
