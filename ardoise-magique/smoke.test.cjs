@@ -34,7 +34,9 @@ assert.ok(client.includes("classList.toggle('video-idle',mode==='idle')"),'idle 
 assert.ok(client.includes('uniform vec3 u_key'),'keyer must use one fixed chroma color for A1 and A2');
 assert.ok(client.includes("gl.uniform3f(gl.getUniformLocation(program,'u_key')"),'fixed chroma color must be sent to the shader');
 assert.ok(client.includes("Number(key.inner)||0.035"),'fixed key must use a narrow inner tolerance');
-assert.ok(client.includes("Number(key.outer)||0.16"),'fixed key must use a controlled feather tolerance');
+assert.ok(client.includes("Number(key.outer)||0.18"),'fixed key must use a controlled feather tolerance');
+assert.ok(client.includes('uniform float u_greenLow')&&client.includes('uniform float u_greenHigh'),'standard chroma key must remove green spill by global green dominance');
+assert.ok(client.includes('float greenAlpha='),'standard chroma key must blend exact-key and green-dominance alpha');
 assert.ok(!client.includes('float md('),'adaptive background sampling must be removed');
 assert.ok(!client.includes('float warm='),'skin/hair protection hack must be removed');
 assert.ok(!client.includes('blueProtect'),'jeans protection hack must be removed');
