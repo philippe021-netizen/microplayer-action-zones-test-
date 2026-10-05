@@ -87,11 +87,11 @@ function compare(expected,spoken){
 }
 
 function parseAudio(value){
-  const match=String(value||'').match(/^data:(audio\/[a-z0-9.+-]+);base64,([A-Za-z0-9+/]+={0,2})$/i);
+  const match=String(value||'').match(/^data:(audio\/[a-z0-9.+-]+)(?:;[^,;=]+=[^,;]*)*;base64,([A-Za-z0-9+/]+={0,2})$/i);
   if(!match)return null;
   const bytes=Buffer.from(match[2],'base64');
   if(!bytes.length||bytes.length>MAX_AUDIO_BYTES)return null;
-  return {mimeType:match[1],bytes};
+  return {mimeType:match[1].toLowerCase(),bytes};
 }
 
 module.exports=async function handler(req,res){
@@ -105,7 +105,11 @@ module.exports=async function handler(req,res){
     return json(res,400,{ok:false,code:'INVALID_POEM_PART'});
   }
   const audio=parseAudio(req.body?.audioDataUrl);
-  if(!audio)return json(res,400,{ok:false,code:'INVALID_AUDIO'});
+  if(!audio){
+    const prefix=String(req.body?.audioDataUrl||'').slice(0,96);
+    console.warn('Poetry invalid audio container',prefix.replace(/base64,.*/,'base64,…'));
+    return json(res,400,{ok:false,code:'INVALID_AUDIO'});
+  }
   const expected=whole?POEM.join(' '):POEM[part-1];
 
   try{
