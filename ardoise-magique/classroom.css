@@ -537,3 +537,18 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
 #game #teacherActor.video-point .teacher-motion-keyed{
   filter:drop-shadow(0 12px 14px #15251f44)!important;
 }
+
+/* === Progression hebdomadaire par 3 marches === */
+.marches-card{grid-column:span 2}
+.marche-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}
+.lesson-card .marche-btn{margin-top:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:68px}
+.marche-btn b{font-size:16px}
+.marche-btn small{font-size:11px;opacity:.9;font-weight:800}
+.marche-btn.marche-1{background:#59a884}
+.marche-btn.marche-2{background:#7764da}
+.marche-btn.marche-3{background:#d39c2f}
+@media(max-width:700px){
+  .marches-card{grid-column:span 1}
+  .marche-actions{grid-template-columns:1fr}
+  .lesson-card .marche-btn{min-height:54px}
+}
