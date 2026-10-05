@@ -666,28 +666,62 @@ function stopStroke(){
   activeStroke=null;paint();
 }
 
+function makeRecognitionImage(){
+  const ink=strokes.filter(st=>st.length>1);
+  if(!ink.length)return '';
+
+  const points=ink.flat();
+  let minX=Math.min(...points.map(p=>p.x));
+  let maxX=Math.max(...points.map(p=>p.x));
+  let minY=Math.min(...points.map(p=>p.y));
+  let maxY=Math.max(...points.map(p=>p.y));
+
+  const pad=28;
+  minX-=pad;maxX+=pad;minY-=pad;maxY+=pad;
+  const sourceW=Math.max(40,maxX-minX);
+  const sourceH=Math.max(40,maxY-minY);
+
+  let scale=2.5;
+  scale=Math.min(scale,1600/sourceW,900/sourceH);
+  scale=Math.max(1.4,scale);
+
+  const out=document.createElement('canvas');
+  out.width=Math.max(120,Math.round(sourceW*scale));
+  out.height=Math.max(90,Math.round(sourceH*scale));
+  const ctx=out.getContext('2d');
+
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect(0,0,out.width,out.height);
+  ctx.strokeStyle='#000000';
+  ctx.lineCap='round';
+  ctx.lineJoin='round';
+  ctx.lineWidth=Math.max(7,5.5*scale);
+
+  for(const st of ink){
+    ctx.beginPath();
+    ctx.moveTo((st[0].x-minX)*scale,(st[0].y-minY)*scale);
+    for(let i=1;i<st.length;i++){
+      ctx.lineTo((st[i].x-minX)*scale,(st[i].y-minY)*scale);
+    }
+    ctx.stroke();
+  }
+
+  return out.toDataURL('image/png').split(',')[1]||'';
+}
+
 function makeRecognitionPayload(){
   const item=currentItem();
   const type=exerciseType(item);
-  const lexicon=type==='writing'
-    ? currentItems.filter(i=>exerciseType(i)==='writing').map(i=>i.expected)
-    : [];
   return {
     expected:item.expected,
     mode:type==='math'?'math':'text',
-    lexicon,
-    board:{width:$('boardCanvas').clientWidth,height:$('boardCanvas').clientHeight},
-    strokes:strokes.filter(s=>s.length>1).map(st=>({
-      x:st.map(p=>Math.round(p.x*10)/10),
-      y:st.map(p=>Math.round(p.y*10)/10),
-      t:st.map(p=>Math.round(p.t))
-    }))
+    image:makeRecognitionImage()
   };
 }
 
 async function recognizeWriting(){
   const payload=makeRecognitionPayload();
-  if(!payload.strokes.length)return {ok:true,match:false,empty:true};
+  if(!payload.image)return {ok:true,match:false,empty:true};
   const r=await fetch('./api/recognize-handwriting',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -782,8 +816,8 @@ async function checkWriting(){
   }catch(err){
     setTeacherPose('idle');
     $('writeControls').classList.remove('hidden');
-    if(err.code==='MYSCRIPT_NOT_CONFIGURED'){
-      $('feedback').textContent='La reconnaissance MyScript doit encore être activée dans les réglages du projet.';
+    if(err.code==='GOOGLE_VISION_NOT_CONFIGURED'){
+      $('feedback').textContent='La correction automatique Google Vision doit encore être activée.';
       sayTeacher('La correction automatique n’est pas encore activée.');
     }else{
       $('feedback').textContent='La correction automatique a eu un problème. Réessaie dans un instant.';
