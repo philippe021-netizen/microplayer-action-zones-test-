@@ -114,3 +114,8 @@ assert.ok(page.includes('poetryMicLevel'),'poetry recorder must show a live micr
 
 const poetryRecognizerSafari=fs.readFileSync(path.join(__dirname,'api/recognize-poetry.js'),'utf8');
 assert.ok(poetryRecognizerSafari.includes("(?:;[^,;=]+=[^,;]*)*;base64"),'poetry recognizer must accept Safari audio MIME codec parameters');
+
+assert.ok(client.includes("all.onclick=()=>{poetryPart=0;poetryMask=2;renderPoetry()}"),'whole-poem mode must start fully hidden');
+assert.ok(client.includes("poetry-memory-blank"),'poetry must have a true no-letters memory mode');
+assert.ok(client.includes("const memoryMode=poetryMask===2"),'poetry memory mode must hide all poem text');
+assert.ok(css.includes('.poetry-card.memory-mode'),'poetry no-letters mode must have dedicated styling');
