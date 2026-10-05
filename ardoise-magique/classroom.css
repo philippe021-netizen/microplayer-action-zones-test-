@@ -490,3 +490,43 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
   #game .write-zone.show{left:34%!important}
   #game .chalk-correction{left:34%!important}
 }
+
+
+/* === 2026-10-05b : ZÉRO PHOTO, 2 ÉTATS VIDÉO, CHROMAKEY PLUS FRANC === */
+.teacher-photo,
+.teacher-motion-fallback,
+.teacher-motion-anim,
+.teacher-motion-sprite,
+.teacher-motion-canvas{display:none!important}
+#game #teacherActor .teacher-media{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+#game #teacherActor.teacher-video-missing{
+  opacity:0!important;
+  visibility:hidden!important;
+}
+#game #teacherActor:not(.teacher-video-missing){
+  opacity:1!important;
+  visibility:visible!important;
+}
+#game #teacherActor .teacher-motion-keyed{
+  display:block;
+  background:transparent!important;
+  opacity:1!important;
+  visibility:visible!important;
+  mix-blend-mode:normal!important;
+  left:-3%!important;
+  bottom:-2%!important;
+  height:114%!important;
+  width:auto!important;
+  max-width:none!important;
+}
+#game #teacherActor .teacher-motion-keyed[hidden]{display:none!important}
+#game #teacherActor.pose-point .teacher-motion-keyed{
+  height:116%!important;
+}
+@media(max-width:760px){
+  #game #teacherActor .teacher-motion-keyed{height:112%!important}
+  #game #teacherActor.pose-point .teacher-motion-keyed{height:114%!important}
+}
