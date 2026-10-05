@@ -673,3 +673,139 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
   .alphabet-order{width:28px;height:28px;font-size:15px;left:7px}
   .alphabet-prefix{font-size:10px;right:6px;top:6px}
 }
+
+/* === 2026-10-05 : les marches magiques de la licorne === */
+.class-top{position:relative}
+.unicorn-quest{
+  --unicorn-step:0;
+  width:170px;
+  min-width:170px;
+  height:54px;
+  border-radius:15px;
+  background:linear-gradient(180deg,#fff8ff,#f0ecff);
+  border:2px solid #fff;
+  box-shadow:0 4px 14px #685c9220;
+  padding:4px 8px;
+  overflow:hidden;
+}
+.unicorn-stairs{
+  position:relative;
+  width:100%;
+  height:100%;
+}
+.unicorn-stairs i{
+  position:absolute;
+  bottom:1px;
+  width:27px;
+  border-radius:6px 6px 2px 2px;
+  background:#d9d3e9;
+  box-shadow:inset 0 -2px 0 #aaa2c744;
+  transition:background .25s,transform .25s;
+}
+.unicorn-stairs i.reached{
+  background:linear-gradient(180deg,#ffd86b,#f3a7dc);
+  transform:translateY(-1px);
+}
+.unicorn-stairs i:nth-of-type(1){left:0;height:10px}
+.unicorn-stairs i:nth-of-type(2){left:29px;height:17px}
+.unicorn-stairs i:nth-of-type(3){left:58px;height:24px}
+.unicorn-stairs i:nth-of-type(4){left:87px;height:31px}
+.unicorn-stairs i:nth-of-type(5){left:116px;height:38px}
+.unicorn-mascot{
+  position:absolute;
+  z-index:4;
+  left:calc(var(--unicorn-step) * 29px - 1px);
+  bottom:calc(5px + var(--unicorn-step) * 7px);
+  font-size:25px;
+  line-height:1;
+  filter:drop-shadow(0 3px 2px #5d477b33);
+  transition:left .42s cubic-bezier(.2,.85,.3,1.2),bottom .42s cubic-bezier(.2,.85,.3,1.2);
+}
+.unicorn-mascot.hop{animation:unicornHop .45s ease}
+@keyframes unicornHop{50%{transform:translateY(-9px) rotate(-7deg) scale(1.15)}}
+.unicorn-gift{
+  position:absolute;
+  right:-1px;
+  top:-2px;
+  font-size:21px;
+  filter:drop-shadow(0 2px 2px #6b4c7630);
+}
+#game{position:relative}
+.unicorn-surprise{
+  position:absolute;
+  inset:68px 14px 70px;
+  z-index:500;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+  opacity:0;
+  visibility:hidden;
+}
+.unicorn-surprise.show{
+  visibility:visible;
+  animation:unicornSurpriseIn 2.2s ease both;
+}
+.unicorn-surprise-card{
+  min-width:min(420px,82vw);
+  max-width:520px;
+  text-align:center;
+  border-radius:28px;
+  padding:20px 28px;
+  background:
+    radial-gradient(circle at 20% 10%,#fff 0 3px,transparent 4px),
+    radial-gradient(circle at 75% 24%,#fff 0 2px,transparent 3px),
+    linear-gradient(135deg,#fff5c7,#f7e2ff 55%,#dff8ff);
+  border:4px solid #fff;
+  box-shadow:0 18px 55px #392b6750;
+  transform-origin:center;
+}
+.unicorn-surprise-icon{
+  font-size:64px;
+  line-height:1.1;
+  animation:surpriseBounce .7s ease-in-out infinite alternate;
+}
+.unicorn-surprise-card strong{
+  display:block;
+  font-size:clamp(24px,4vw,40px);
+  color:#6546a8;
+  margin:5px 0;
+}
+.unicorn-surprise-card span{
+  display:block;
+  font-size:18px;
+  font-weight:850;
+  color:#554f6d;
+}
+.unicorn-sparkles{
+  margin-top:9px;
+  font-size:25px;
+  letter-spacing:8px;
+}
+@keyframes unicornSurpriseIn{
+  0%{opacity:0;transform:scale(.6) rotate(-4deg)}
+  12%,78%{opacity:1;transform:scale(1) rotate(0)}
+  92%,100%{opacity:0;transform:scale(1.08)}
+}
+@keyframes surpriseBounce{to{transform:translateY(-8px) scale(1.08)}}
+@media(max-width:760px){
+  .unicorn-quest{width:132px;min-width:132px;height:48px;padding:3px 5px}
+  .unicorn-stairs i{width:21px}
+  .unicorn-stairs i:nth-of-type(1){left:0}
+  .unicorn-stairs i:nth-of-type(2){left:22px}
+  .unicorn-stairs i:nth-of-type(3){left:44px}
+  .unicorn-stairs i:nth-of-type(4){left:66px}
+  .unicorn-stairs i:nth-of-type(5){left:88px}
+  .unicorn-mascot{left:calc(var(--unicorn-step) * 22px - 1px);font-size:22px}
+  .unicorn-gift{font-size:18px}
+  .unicorn-surprise{inset:62px 8px 64px}
+}
+@media(max-width:560px){
+  .unicorn-quest{width:110px;min-width:110px}
+  .unicorn-stairs i{width:18px}
+  .unicorn-stairs i:nth-of-type(2){left:19px}
+  .unicorn-stairs i:nth-of-type(3){left:38px}
+  .unicorn-stairs i:nth-of-type(4){left:57px}
+  .unicorn-stairs i:nth-of-type(5){left:76px}
+  .unicorn-mascot{left:calc(var(--unicorn-step) * 19px - 1px);font-size:20px}
+  .unicorn-gift{font-size:16px}
+}
