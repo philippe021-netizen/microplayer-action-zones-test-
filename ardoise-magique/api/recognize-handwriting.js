@@ -67,13 +67,22 @@ function diffExpectedIndices(expected,recognized){
 }
 
 module.exports=async function handler(req,res){
-  if(req.method!=='POST'){
-    res.setHeader('Allow','POST');
-    return res.status(405).json({ok:false,code:'METHOD_NOT_ALLOWED',message:'POST uniquement.'});
-  }
-
   const applicationKey=process.env.MYSCRIPT_APPLICATION_KEY;
   const hmacKey=process.env.MYSCRIPT_HMAC_KEY;
+
+  if(req.method==='GET'){
+    return res.status(200).json({
+      ok:true,
+      provider:'myscript',
+      configured:Boolean(applicationKey&&hmacKey),
+      language:'fr_FR'
+    });
+  }
+
+  if(req.method!=='POST'){
+    res.setHeader('Allow','GET, POST');
+    return res.status(405).json({ok:false,code:'METHOD_NOT_ALLOWED',message:'GET ou POST uniquement.'});
+  }
   if(!applicationKey||!hmacKey){
     return res.status(503).json({ok:false,code:'MYSCRIPT_NOT_CONFIGURED',message:'Clés MyScript non configurées.'});
   }
