@@ -8,6 +8,7 @@ const client=fs.readFileSync(path.join(__dirname,'classroom.js'),'utf8');
 const css=fs.readFileSync(path.join(__dirname,'classroom.css'),'utf8');
 const recognizer=fs.readFileSync(path.join(__dirname,'api/recognize-handwriting.js'),'utf8');
 const teacherSpeech=fs.readFileSync(path.join(__dirname,'api/teacher-speech.js'),'utf8');
+const server=fs.readFileSync(path.join(__dirname,'server.js'),'utf8');
 const lesson=JSON.parse(fs.readFileSync(path.join(__dirname,'lessons/r-01.json'),'utf8'));
 const alphabetLesson=JSON.parse(fs.readFileSync(path.join(__dirname,'lessons/alphabet-2letters.json'),'utf8'));
 const alphabet=fs.readFileSync(path.join(__dirname,'../harmonie-alphabet/index.html'),'utf8');
