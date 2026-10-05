@@ -4,6 +4,7 @@ const STORAGE_KEY='harmonie-classe-v2';
 const LEGACY_KEY='harmonie-ardoise-v1';
 const DISPLAY_SECONDS={easy:6,normal:5,champion:4};
 const TEACHER_MOTION_SECONDS=10;
+const TEACHER_NUDGE_DELAY=30000;
 const REVIEW_DAYS=[0,1,3,7,14,30];
 
 const $=id=>document.getElementById(id);
@@ -19,6 +20,8 @@ let hints=0;
 let roundTries=0;
 let recognitionBusy=false;
 let timer=null;
+let teacherNudgeTimer=null;
+let teacherNudgeIndex=0;
 let strokes=[];
 let activeStroke=null;
 let alphabetSelection=[];
@@ -48,6 +51,21 @@ const TEACHER={
   checking:['Je regarde ton travail…','Voyons ça ensemble…','Je vérifie ton tableau…'],
   success:['Bravo Harmonie ! C’est juste.','Très bien ! Tu peux être fière de toi.','Oui, c’est réussi !'],
   retry:['On réessaie ensemble, je suis sûre que tu vas y arriver.','Regarde bien la correction, puis on recommence tranquillement.','Pas de souci, regarde bien et on réessaie ensemble.'],
+  nudge:[
+    'Allez Harmonie, je sais que tu vas y arriver.',
+    'Prends ton temps, réfléchis tranquillement.',
+    'Si tu veux un indice, touche l’ampoule.',
+    'Tu peux y arriver toute seule, prends ton temps.',
+    'Encore un petit effort, la licorne t’attend !',
+    'Pas besoin de te presser, je te laisse chercher.'
+  ],
+  alphabetNudge:[
+    'Regarde bien les deux premières lettres.',
+    'Si tu hésites, commence par la première lettre.',
+    'Prends ton temps, les mots peuvent attendre.',
+    'Si tu veux un indice, regarde les petites lettres en haut des cartes.',
+    'Allez Harmonie, la licorne compte sur toi !'
+  ],
   finish:['La classe est terminée. Beau travail !','C’est fini pour aujourd’hui. Bravo pour tes efforts !']
 };
 
@@ -580,6 +598,8 @@ function startLesson(lesson,overrideItems){
   currentLesson=lesson;
   currentItems=(overrideItems||lesson.items).map(x=>({...x}));
   itemIndex=0;stars=0;
+  teacherNudgeIndex=0;
+  clearTeacherNudge();
   unicornStep=0;
   unicornTreasures=0;
   clearTimeout(unicornSurpriseTimer);
@@ -593,6 +613,28 @@ function startLesson(lesson,overrideItems){
 
 function currentItem(){return currentItems[itemIndex]}
 function exerciseType(item=currentItem()){return item?._sourceType||item?.type||currentLesson?.type||'writing'}
+
+function clearTeacherNudge(){
+  if(teacherNudgeTimer)clearTimeout(teacherNudgeTimer);
+  teacherNudgeTimer=null;
+}
+
+function teacherNudge(kind){
+  const alphabetActive=kind==='alphabet'&&$('alphabetZone')?.classList.contains('show');
+  const writingActive=kind!=='alphabet'&&$('writeZone')?.classList.contains('show');
+  if(!alphabetActive&&!writingActive)return;
+  if(recognitionBusy)return;
+  const phrases=kind==='alphabet'?TEACHER.alphabetNudge:TEACHER.nudge;
+  const phrase=phrases[teacherNudgeIndex%phrases.length];
+  teacherNudgeIndex++;
+  sayTeacher(phrase);
+  teacherNudgeTimer=setTimeout(()=>teacherNudge(kind),TEACHER_NUDGE_DELAY);
+}
+
+function scheduleTeacherNudge(kind=exerciseType()){
+  clearTeacherNudge();
+  teacherNudgeTimer=setTimeout(()=>teacherNudge(kind),TEACHER_NUDGE_DELAY);
+}
 
 const UNICORN_SURPRISES=[
   {icon:'🌈',title:'Arc-en-ciel magique !',text:'Tu as rempli les 5 marches !'},
@@ -751,12 +793,16 @@ function beginAlphabetExercise(){
   $('boardTitle').textContent='Classe les mots dans l’ordre alphabétique';
   $('boardHelp').textContent=currentItem().note||'Touche les mots dans l’ordre : 1, puis 2, puis 3…';
   setTeacherPose('point');
-  sayTeacher('Regarde d’abord la première lettre. Si elle est pareille, regarde la deuxième. Puis touche les mots dans le bon ordre.');
+  if(itemIndex===0){
+    sayTeacher('Je te l’explique une fois. Pour classer les mots, regarde d’abord la première lettre. Si elle est pareille, regarde la lettre juste après. Puis touche les mots dans le bon ordre.');
+  }
   renderAlphabetExercise();
+  scheduleTeacherNudge('alphabet');
   setTimeout(()=>setTeacherPose('idle'),1400);
 }
 
 function checkAlphabetOrder(){
+  clearTeacherNudge();
   const item=currentItem();
   if(alphabetSelection.length!==item.words.length){
     $('feedback').textContent='Choisis tous les mots dans l’ordre.';
@@ -801,6 +847,7 @@ function checkAlphabetOrder(){
 }
 
 function prepareRound(){
+  clearTeacherNudge();
   clearInterval(timer);
   strokes=[];activeStroke=null;alphabetSelection=[];hints=0;roundTries=0;recognitionBusy=false;
   $('done').disabled=false;$('done').textContent='J’ai fini !';
@@ -840,7 +887,7 @@ function beginTeaching(){
   if(exerciseType(item)==='math'||item.mode==='solve'){
     $('boardPrompt').textContent=item.prompt;
     $('boardTitle').textContent='À toi de calculer';
-    sayTeacher(pick(TEACHER.math));
+    if(itemIndex===0)sayTeacher('Je te l’explique une fois. Regarde bien le calcul, puis écris seulement la réponse. Si tu veux de l’aide, touche l’ampoule.');
     setTimeout(()=>enterWriting(false),TEACHER_MOTION_SECONDS*1000);
     return;
   }
@@ -849,7 +896,9 @@ function beginTeaching(){
   const seconds=Math.max(TEACHER_MOTION_SECONDS,DISPLAY_SECONDS[currentLesson.difficulty]||currentLesson.displaySeconds||3);
   let left=seconds;
   $('countdown').textContent=left+' s';
-  sayTeacher(pick(TEACHER.memorize));
+  if(itemIndex===0){
+    sayTeacher('Je te l’explique une fois. Je vais te montrer le mot quelques secondes. Ensuite il disparaît et tu l’écris avec ton doigt. Si tu veux un indice, touche l’ampoule.');
+  }
   timer=setInterval(()=>{
     left--;
     if(left>0)$('countdown').textContent=left+' s';
@@ -876,7 +925,8 @@ function enterWriting(hidePrompt){
   $('writeZone').classList.add('show');
   $('writeControls').classList.remove('hidden');
   setTeacherPose('idle');
-  if(exerciseType(item)!=='math')sayTeacher(pick(TEACHER.write));
+  if(itemIndex===0&&exerciseType(item)!=='math')sayTeacher('À toi maintenant. Écris tranquillement ce que tu as retenu.');
+  scheduleTeacherNudge(exerciseType(item));
   resizeCanvas();
 }
 
@@ -1217,6 +1267,7 @@ async function checkWriting(){
     sayTeacher('Écris d’abord ta réponse, puis je la corrige.');
     return;
   }
+  clearTeacherNudge();
   recognitionBusy=true;
   $('done').disabled=true;$('done').textContent='La maîtresse vérifie…';
   $('writeControls').classList.add('hidden');
@@ -1244,6 +1295,7 @@ async function checkWriting(){
 }
 
 function handleCorrect(){
+  clearTeacherNudge();
   recordAttempt(true);
   const earned=roundTries===0&&hints===0?3:(roundTries<=1?2:1);
   stars+=earned;
@@ -1263,6 +1315,7 @@ function handleCorrect(){
 }
 
 function handleWrong(result){
+  clearTeacherNudge();
   recordAttempt(false);
   roundTries++;
   $('writeZone').classList.remove('show');
@@ -1281,13 +1334,15 @@ function handleWrong(result){
 
 function retryCurrent(){
   if(exerciseType()==='alphabet'){
+    clearTeacherNudge();
     hideStamp();
     $('afterControls').classList.add('hidden');
     $('alphabetControls').classList.remove('hidden');
     resetAlphabetSelection();
     $('boardTitle').textContent='On réessaie';
-    $('boardHelp').textContent='Regarde la 1re lettre, puis la 2e.';
+    $('boardHelp').textContent='Regarde la première lettre, puis la lettre juste après.';
     setTeacherPose('idle');
+    scheduleTeacherNudge('alphabet');
     return;
   }
   hideStamp();
@@ -1305,18 +1360,19 @@ function retryCurrent(){
     $('boardPrompt').textContent='';
   }
   setTeacherPose('idle');
-  sayTeacher('À toi maintenant. Je suis sûre que tu vas y arriver.');
+  scheduleTeacherNudge(exerciseType());
   resizeCanvas();
 }
 
 function nextExercise(){
+  clearTeacherNudge();
   itemIndex++;
   if(itemIndex>=currentItems.length){finishLesson();return}
   prepareRound();
-  sayTeacher('Exercice suivant.');
 }
 
 function finishLesson(){
+  clearTeacherNudge();
   clearInterval(timer);musicStop();
   $('progressBar').style.width='100%';
   const session={
@@ -1487,7 +1543,7 @@ $('hintBtn').onclick=()=>{
 };
 $('guideToggle').onclick=()=>{state.settings.guide=!state.settings.guide;saveState();refreshToggles()};
 
-$('leaveGame').onclick=()=>{clearInterval(timer);musicStop();screen('home');renderLessons()};
+$('leaveGame').onclick=()=>{clearTeacherNudge();clearInterval(timer);musicStop();screen('home');renderLessons()};
 $('toLessons').onclick=()=>{screen('home');renderLessons()};
 $('playAgain').onclick=()=>startLesson(currentLesson);
 $('finishProgress').onclick=openProgress;
@@ -1515,6 +1571,7 @@ $('activityType').onchange=()=>{
 };
 window.addEventListener('resize',()=>{if($('writeZone').classList.contains('show'))resizeCanvas()});
 window.addEventListener('pagehide',()=>{
+  clearTeacherNudge();
   clearTimeout(unicornSurpriseTimer);
   musicStop();
   teacherVoiceToken++;
