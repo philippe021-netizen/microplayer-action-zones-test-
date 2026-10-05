@@ -32,10 +32,13 @@ assert.ok(!page.includes('teacher-photo'),'the old static teacher photo must be 
 assert.ok(!page.includes('teacher-motion-fallback'),'the old static/animated fallback must not come back');
 assert.ok(client.includes("classList.toggle('video-idle',mode==='idle')"),'idle video must expose a dedicated visual state');
 assert.ok(css.includes('#game #teacherActor.video-idle .teacher-motion-keyed'),'idle video must have its own color grading');
-assert.ok(css.includes('brightness(.84)'),'idle video must reduce overexposure');
-assert.ok(css.includes('saturate(.88)'),'idle video must reduce excessive saturation');
+assert.ok(css.includes('brightness(.90)'),'idle video must reduce overexposure without darkening the teacher');
+assert.ok(css.includes('saturate(.90)'),'idle video must reduce excessive saturation');
 assert.ok(client.split('md(c.rgb').length-1>=18,'background key must sample enough border/floor colors to remove the changing backdrop');
 assert.ok(client.includes("Number(key.outer)||0.30"),'background key must use the stricter wide removal threshold');
+assert.ok(client.includes('float warm='),'keyer must explicitly protect warm skin and hair tones');
+assert.ok(client.includes('float blue='),'keyer must explicitly protect blue jeans');
+assert.ok(client.includes('float whiteProtect='),'keyer must protect white shirt and shoes only in their expected zones');
 
 assert.ok(alphabet.includes('../ardoise-magique/index.html'),'alphabet game links to classroom');
 assert.ok(!/if\s*\(\s*letter\s*===?\s*['"]R['"]/.test(client),'engine must not branch on R');
