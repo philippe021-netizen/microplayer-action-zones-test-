@@ -136,7 +136,8 @@ module.exports=async function handler(req,res){
       score:result.score,
       missingWords:result.missingWords,
       match,
-      almost:result.score>=0.58
+      almost:result.score>=0.58,
+      scoringVersion:'poetry-eu-v5'
     });
   }catch(error){
     console.error('Poetry Speech-to-Text',error?.code||error?.message||error);

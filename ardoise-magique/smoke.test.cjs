@@ -100,7 +100,7 @@ for(const feature of ['harmonie_family_sync','runTransaction','INVALID_SYNC_CODE
 assert.ok(server.includes("app.all('/api/sync'"),'permanent server must expose family sync API');
 
 const poetryApi=fs.readFileSync(path.join(__dirname,'api/recognize-poetry.js'),'utf8');
-for(const feature of ['@google-cloud/speech','SpeechClient','autoDecodingConfig','fr-FR','chirp_3','eu-speech.googleapis.com','missingWords','sameSpokenWord','editDistance','importantWords','result.missingWords.length===0']){
+for(const feature of ['@google-cloud/speech','SpeechClient','autoDecodingConfig','fr-FR','chirp_3','eu-speech.googleapis.com','missingWords','sameSpokenWord','editDistance','importantWords','result.missingWords.length===0',"scoringVersion:'poetry-eu-v5'"]){
   assert.ok(poetryApi.includes(feature),'poetry speech API missing '+feature);
 }
 assert.ok(server.includes("app.all('/api/recognize-poetry'"),'server must expose poetry recognition API');
