@@ -59,7 +59,7 @@ function sameSpokenWord(expected,heard){
     if(editDistance(expected,heard)<=1)return true;
     const shorter=expected.length<=heard.length?expected:heard;
     const longer=expected.length>heard.length?expected:heard;
-    if(longer.startsWith(shorter)&&longer.length-shorter.length<=2)return true;
+    if(shorter.length>=4&&longer.startsWith(shorter)&&longer.length-shorter.length<=4)return true;
   }
   return false;
 }
