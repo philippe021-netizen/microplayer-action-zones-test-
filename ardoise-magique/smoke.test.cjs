@@ -14,7 +14,7 @@ const alphabet=fs.readFileSync(path.join(__dirname,'../harmonie-alphabet/index.h
 assert.deepEqual(lesson.words,['une rue','le roi','le repas','un arbre','mon frère','un fruit','une voiture','trois']);
 assert.equal(lesson.marches.length,3);
 assert.deepEqual(lesson.marches[1].words,['la reine','mon père','après','il roule','la route','quatre']);
-assert.deepEqual(lesson.marches[2].words,['rond / ronde','aujourd’hui','hier','derrière','un carré']);
+assert.deepEqual(lesson.marches[2].words,['rond','ronde','aujourd’hui','hier','derrière','un carré']);
 assert.equal(lesson.difficulty,'normal');
 assert.equal(lesson.displaySeconds,3);
 
