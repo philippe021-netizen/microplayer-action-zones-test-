@@ -367,8 +367,8 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
   transition:width .18s ease,height .18s ease,transform .18s ease!important;
 }
 #game #teacherActor.pose-point{
-  width:39%!important;
-  height:93%!important;
+  width:48%!important;
+  height:100%!important;
 }
 #game #teacherActor.pose-check{
   width:31%!important;
@@ -393,7 +393,7 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
 
 @media (max-width:760px){
   #game #teacherActor{width:34%!important;height:80%!important;left:-2%!important}
-  #game #teacherActor.pose-point{width:44%!important;height:90%!important}
+  #game #teacherActor.pose-point{width:54%!important;height:100%!important}
   #game .teacher-speech{width:128px!important;left:5px!important;top:6px!important}
   #game .classroom.teacher-pointing .board-prompt{left:15%!important}
   #game .write-zone.show{left:32%!important}

@@ -3,6 +3,7 @@ const ALPHABET_URL='../harmonie-alphabet/index.html';
 const STORAGE_KEY='harmonie-classe-v2';
 const LEGACY_KEY='harmonie-ardoise-v1';
 const DISPLAY_SECONDS={easy:6,normal:5,champion:4};
+const TEACHER_MOTION_SECONDS=10;
 const REVIEW_DAYS=[0,1,3,7,14,30];
 
 const $=id=>document.getElementById(id);
@@ -313,12 +314,12 @@ function beginTeaching(){
     $('boardPrompt').textContent=item.prompt;
     $('boardTitle').textContent='À toi de calculer';
     sayTeacher(pick(TEACHER.math));
-    setTimeout(()=>enterWriting(false),800);
+    setTimeout(()=>enterWriting(false),TEACHER_MOTION_SECONDS*1000);
     return;
   }
 
   $('boardPrompt').textContent=item.prompt;
-  const seconds=DISPLAY_SECONDS[currentLesson.difficulty]||currentLesson.displaySeconds||3;
+  const seconds=Math.max(TEACHER_MOTION_SECONDS,DISPLAY_SECONDS[currentLesson.difficulty]||currentLesson.displaySeconds||3);
   let left=seconds;
   $('countdown').textContent=left+' s';
   sayTeacher(pick(TEACHER.memorize));
