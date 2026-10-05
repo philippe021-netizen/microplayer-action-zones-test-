@@ -39,8 +39,8 @@ function extractPlainText(raw,mode){
 }
 
 function diffExpectedIndices(expected,recognized){
-  const a=[...withoutDiacritics(expected)];
-  const b=[...withoutDiacritics(recognized)];
+  const a=[...normalizeText(expected)];
+  const b=[...normalizeText(recognized)];
   const n=a.length,m=b.length;
   const dp=Array.from({length:n+1},()=>Array(m+1).fill(0));
   for(let i=0;i<=n;i++)dp[i][0]=i;
@@ -169,9 +169,7 @@ module.exports=async function handler(req,res){
     const recognized=extractPlainText(raw,mode);
     const wanted=mode==='math'?normalizeMath(expected):normalizeText(expected);
     const got=mode==='math'?normalizeMath(recognized):normalizeText(recognized);
-    const match=mode==='math'
-      ? got===wanted
-      : (got===wanted||withoutDiacritics(got)===withoutDiacritics(wanted));
+    const match=got===wanted;
 
     const mistakePositions=match||mode==='math'?[]:diffExpectedIndices(expected,recognized);
 
