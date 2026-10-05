@@ -834,11 +834,19 @@ function setTeacherPose(pose){
 
 function teacherFriendlyText(text){
   return String(text)
+    .replace(/\b1re\b/gi,'première')
+    .replace(/\b1er\b/gi,'premier')
+    .replace(/\b2e\b/gi,'deuxième')
+    .replace(/\b2ème\b/gi,'deuxième')
+    .replace(/\b3e\b/gi,'troisième')
+    .replace(/\b3ème\b/gi,'troisième')
     .replace(/\+/g,' plus ')
     .replace(/-/g,' moins ')
     .replace(/[×x*]/g,' fois ')
     .replace(/÷|\//g,' divisé par ')
-    .replace(/=/g,' égale ');
+    .replace(/=/g,' égale ')
+    .replace(/\s+/g,' ')
+    .trim();
 }
 
 function fallbackTeacherSpeech(text,token){
