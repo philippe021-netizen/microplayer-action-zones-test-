@@ -32,7 +32,8 @@ let unicornStep=0;
 let unicornTreasures=0;
 let unicornSurpriseTimer=null;
 let boardSize={w:0,h:0};
-let audio=null,musicTimer=null,musicStep=0;
+let audio=null;
+let backgroundMusic=null;
 let teacherMotionToken=0;
 let teacherFrameVideo=null;
 let teacherVoiceNode=null;
@@ -1106,63 +1107,32 @@ function chime(success=true){
   notes.forEach((f,i)=>setTimeout(()=>tone(f,.22,.04,success?'sine':'triangle'),i*100));
 }
 
-const CHILD_MELODY=[
-  {f:523.25,d:1.15},{f:659.25,d:1.15},{f:783.99,d:1.35},{f:659.25,d:1.0},
-  {f:587.33,d:1.15},{f:659.25,d:1.15},{f:880.00,d:1.45},{f:783.99,d:1.2},
-  {f:659.25,d:1.15},{f:587.33,d:1.05},{f:523.25,d:1.4},{f:0,d:.75},
-  {f:659.25,d:1.1},{f:783.99,d:1.15},{f:880.00,d:1.35},{f:783.99,d:1.05},
-  {f:659.25,d:1.2},{f:587.33,d:1.1},{f:523.25,d:1.55},{f:0,d:1.0}
-];
-
-function musicBoxNote(freq,duration=1.2){
-  const c=getAudio();
-  if(!c||!freq)return;
-  const now=c.currentTime;
-  const master=c.createGain();
-  const bell=c.createOscillator();
-  const shimmer=c.createOscillator();
-  const bellGain=c.createGain();
-  const shimmerGain=c.createGain();
-
-  bell.type='sine';
-  bell.frequency.setValueAtTime(freq,now);
-  shimmer.type='sine';
-  shimmer.frequency.setValueAtTime(freq*2,now);
-
-  bellGain.gain.setValueAtTime(.0001,now);
-  bellGain.gain.exponentialRampToValueAtTime(.012,now+.035);
-  bellGain.gain.exponentialRampToValueAtTime(.0001,now+Math.min(duration*.9,1.15));
-
-  shimmerGain.gain.setValueAtTime(.0001,now);
-  shimmerGain.gain.exponentialRampToValueAtTime(.0038,now+.02);
-  shimmerGain.gain.exponentialRampToValueAtTime(.0001,now+Math.min(duration*.55,.7));
-
-  master.gain.value=.78;
-  bell.connect(bellGain);shimmer.connect(shimmerGain);
-  bellGain.connect(master);shimmerGain.connect(master);
-  master.connect(c.destination);
-
-  bell.start(now);shimmer.start(now);
-  bell.stop(now+duration+0.08);shimmer.stop(now+duration+0.08);
+function getBackgroundMusic(){
+  if(backgroundMusic)return backgroundMusic;
+  try{
+    backgroundMusic=new Audio('./media/harmonie-musique-fond.m4a');
+    backgroundMusic.loop=true;
+    backgroundMusic.preload='auto';
+    backgroundMusic.volume=.32;
+    backgroundMusic.setAttribute('playsinline','');
+    backgroundMusic.setAttribute('webkit-playsinline','');
+  }catch{
+    backgroundMusic=null;
+  }
+  return backgroundMusic;
 }
 
 function musicStart(){
-  if(!state.settings.music||musicTimer)return;
-  const playNext=()=>{
-    if(!state.settings.music){
-      musicStop();
-      return;
-    }
-    const note=CHILD_MELODY[musicStep++%CHILD_MELODY.length];
-    if(note.f)musicBoxNote(note.f,note.d);
-    musicTimer=setTimeout(playNext,Math.round(note.d*1000));
-  };
-  musicTimer=setTimeout(playNext,180);
+  if(!state.settings.music)return;
+  const player=getBackgroundMusic();
+  if(!player||!player.paused)return;
+  const play=player.play();
+  if(play&&typeof play.catch==='function')play.catch(()=>{});
 }
 
 function musicStop(){
-  if(musicTimer)clearTimeout(musicTimer);
-  musicTimer=null;
+  if(!backgroundMusic)return;
+  try{backgroundMusic.pause()}catch{}
 }
 
 function resizeCanvas(){
