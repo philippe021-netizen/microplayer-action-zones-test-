@@ -1,7 +1,7 @@
 {
   "id": "r-01",
   "letter": "R",
-  "title": "Les mots en R",
+  "title": "Semaine 5 — Les mots en R",
   "words": [
     "une rue",
     "le roi",
@@ -12,10 +12,49 @@
     "une voiture",
     "trois"
   ],
+  "marches": [
+    {
+      "id": "marche-1",
+      "label": "Marche 1",
+      "words": [
+        "une rue",
+        "le roi",
+        "le repas",
+        "un arbre",
+        "mon frère",
+        "un fruit",
+        "une voiture",
+        "trois"
+      ]
+    },
+    {
+      "id": "marche-2",
+      "label": "Marche 2",
+      "words": [
+        "la reine",
+        "mon père",
+        "après",
+        "il roule",
+        "la route",
+        "quatre"
+      ]
+    },
+    {
+      "id": "marche-3",
+      "label": "Marche 3",
+      "words": [
+        "rond / ronde",
+        "aujourd’hui",
+        "hier",
+        "derrière",
+        "un carré"
+      ]
+    }
+  ],
   "difficulty": "normal",
   "displaySeconds": 3,
   "customPhrases": [],
   "rewards": [],
   "type": "writing",
-  "theme": "lettre R"
+  "theme": "son R"
 }
