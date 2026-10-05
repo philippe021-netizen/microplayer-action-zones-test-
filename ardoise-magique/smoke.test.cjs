@@ -31,16 +31,16 @@ assert.ok(!page.includes('teacher-motion-anim'),'the classroom must use real vid
 assert.ok(!page.includes('teacher-photo'),'the old static teacher photo must be removed from the classroom template');
 assert.ok(!page.includes('teacher-motion-fallback'),'the old static/animated fallback must not come back');
 assert.ok(client.includes("classList.toggle('video-idle',mode==='idle')"),'idle video must expose a dedicated visual state');
-assert.ok(css.includes('#game #teacherActor.video-idle .teacher-motion-keyed'),'idle video must have its own color grading');
-assert.ok(css.includes('brightness(.90)'),'idle video must reduce overexposure without darkening the teacher');
-assert.ok(css.includes('saturate(.90)'),'idle video must reduce excessive saturation');
-assert.ok(client.split('md(c.rgb').length-1>=18,'background key must sample enough border/floor colors to remove the changing backdrop');
-assert.ok(client.includes("Number(key.outer)||0.30"),'background key must use the stricter wide removal threshold');
-assert.ok(client.includes('float warm='),'keyer must explicitly protect warm skin and hair tones');
-assert.ok(client.includes('float blue=')&&client.includes('float blueProtect='),'keyer must spatially protect blue jeans without preserving a cyan background');
-assert.ok(client.includes('float whiteProtect='),'keyer must protect white shirt and shoes only in their expected zones');
-assert.ok(client.includes('vec2(0.50,0.63)'),'white shirt protection must use WebGL-flipped torso coordinates');
-assert.ok(client.includes('vec2(0.35,0.06)')&&client.includes('vec2(0.68,0.06)'),'shoe protection must cover the full WebGL-flipped shoe positions');
+assert.ok(client.includes('uniform vec3 u_key'),'keyer must use one fixed chroma color for A1 and A2');
+assert.ok(client.includes("gl.uniform3f(gl.getUniformLocation(program,'u_key')"),'fixed chroma color must be sent to the shader');
+assert.ok(client.includes("Number(key.inner)||0.035"),'fixed key must use a narrow inner tolerance');
+assert.ok(client.includes("Number(key.outer)||0.16"),'fixed key must use a controlled feather tolerance');
+assert.ok(!client.includes('float md('),'adaptive background sampling must be removed');
+assert.ok(!client.includes('float warm='),'skin/hair protection hack must be removed');
+assert.ok(!client.includes('blueProtect'),'jeans protection hack must be removed');
+assert.ok(!client.includes('whiteProtect'),'white garment protection hack must be removed');
+assert.ok(!css.includes('brightness(.90)'),'idle color grading hack must be removed');
+assert.ok(!css.includes('saturate(.90)'),'idle saturation hack must be removed');
 
 assert.ok(alphabet.includes('../ardoise-magique/index.html'),'alphabet game links to classroom');
 assert.ok(!/if\s*\(\s*letter\s*===?\s*['"]R['"]/.test(client),'engine must not branch on R');
