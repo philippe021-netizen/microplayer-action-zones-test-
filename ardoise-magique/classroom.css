@@ -600,3 +600,76 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
   }
   #game #teacherActor{bottom:62px!important}
 }
+
+/* === Ordre alphabétique dans la classe === */
+.alphabet-zone{
+  display:none;
+  position:absolute;
+  left:30%;
+  right:5%;
+  top:88px;
+  bottom:55px;
+  z-index:7;
+  align-content:center;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  padding:12px;
+}
+.alphabet-zone.show{display:grid}
+.alphabet-word{
+  position:relative;
+  min-height:76px;
+  border:2px solid #d8cfad;
+  border-radius:16px;
+  background:#fffdf0;
+  color:#243f38;
+  font-family:"Marelle","Chalkboard SE","Comic Sans MS",cursive;
+  font-size:clamp(24px,3.2vw,42px);
+  font-weight:850;
+  box-shadow:0 5px 12px #071e1830;
+  padding:10px 54px 10px 52px;
+  touch-action:manipulation;
+}
+.alphabet-word.chosen{
+  background:#fff1ad;
+  border-color:#e6b74d;
+  transform:translateY(-2px);
+}
+.alphabet-order{
+  position:absolute;
+  left:10px;
+  top:50%;
+  transform:translateY(-50%);
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#214f43;
+  color:#fff;
+  font-family:system-ui,sans-serif;
+  font-size:18px;
+  font-weight:950;
+}
+.alphabet-order:empty{background:#d7d2b9}
+.alphabet-prefix{
+  position:absolute;
+  right:9px;
+  top:9px;
+  border-radius:999px;
+  background:#e9e3ff;
+  color:#5748a5;
+  padding:4px 7px;
+  font-family:system-ui,sans-serif;
+  font-size:12px;
+  font-weight:950;
+  letter-spacing:.05em;
+}
+.alphabet-zone.wrong-shake{animation:alphabetShake .35s ease}
+@keyframes alphabetShake{25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
+@media(max-width:760px){
+  .alphabet-zone{left:34%;right:3%;top:74px;bottom:45px;gap:8px;padding:6px}
+  .alphabet-word{min-height:60px;font-size:clamp(18px,4.6vw,28px);padding:8px 42px 8px 42px}
+  .alphabet-order{width:28px;height:28px;font-size:15px;left:7px}
+  .alphabet-prefix{font-size:10px;right:6px;top:6px}
+}
