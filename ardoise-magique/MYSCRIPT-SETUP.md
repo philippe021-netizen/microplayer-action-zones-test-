@@ -1,49 +1,42 @@
-# Harmonie — activation du correcteur MyScript
+# Harmonie — Google Vision handwriting OCR
 
-Le correcteur automatique d'écriture est déjà câblé dans `ardoise-magique/api/recognize-handwriting.js`.
+Le correcteur d'écriture utilise désormais Google Cloud Vision.
 
-## Fonctionnement
+## Flux
 
 1. Harmonie écrit avec le doigt ou l'Apple Pencil.
-2. Les traits sont envoyés au serveur Vercel.
-3. Le serveur appelle MyScript iink REST `/api/v4.0/iink/recognize/`.
-4. La transcription reconnue reste côté serveur et n'est jamais affichée à l'enfant.
-5. Le serveur renvoie uniquement :
+2. Le navigateur recadre uniquement la zone réellement écrite.
+3. Une image PNG noir sur blanc est générée localement.
+4. L'image est envoyée à l'API serveur Vercel.
+5. Le serveur appelle Google Vision avec `DOCUMENT_TEXT_DETECTION` et l'indication de langue française.
+6. La transcription reste côté serveur.
+7. Le navigateur reçoit uniquement :
    - `match: true/false`
-   - les positions des fautes éventuelles.
-6. L'interface affiche Bravo ou la correction au tableau.
+   - `mistakePositions`
 
-## Variables Vercel obligatoires
+## Secret Vercel
 
-Créer deux variables **Sensitive** dans le projet Vercel :
+Variable requise :
 
-- `MYSCRIPT_APPLICATION_KEY`
-- `MYSCRIPT_HMAC_KEY`
+- `GOOGLE_VISION_API_KEY`
 
-Cibles recommandées :
-- Preview
-- Production
+La clé doit rester de type Sensitive et ne jamais apparaître dans le navigateur ou GitHub.
 
-Ne jamais placer ces valeurs dans `classroom.js`, `index.html`, localStorage ou un fichier GitHub.
+## Projet Google Cloud
 
-## Vérification sûre
+Projet :
+- `harmonie-ardoise-philippe`
 
-`GET /api/recognize-handwriting`
+API activée :
+- `vision.googleapis.com`
 
-retourne seulement :
-
-```json
-{"ok":true,"provider":"myscript","configured":true,"language":"fr_FR"}
-```
-
-Aucune clé n'est renvoyée.
+La clé API est restreinte à Cloud Vision uniquement.
 
 ## Règles de correction
 
-- français `fr_FR`
+- français
 - casse ignorée
 - espaces multiples normalisés
 - apostrophe typographique normalisée
 - accents obligatoires : `frere` n'est pas accepté pour `frère`
-- lexique de la leçon envoyé à MyScript
-- timestamps Apple Pencil normalisés avant reconnaissance
+- la transcription OCR n'est jamais affichée à Harmonie
