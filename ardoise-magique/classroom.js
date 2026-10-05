@@ -1747,7 +1747,7 @@ function renderPoetrySteps(){
   all.type='button';
   all.className='poetry-step final'+(poetryPart===0?' active':'')+(poetryMastery(0)>=3?' done':'');
   all.textContent=poetryMastery(0)>=3?'✓ Poésie entière':'⭐ Toute la poésie';
-  all.onclick=()=>{poetryPart=0;poetryMask=poetryMastery(0)>=1?1:0;renderPoetry()};
+  all.onclick=()=>{poetryPart=0;poetryMask=2;renderPoetry()};
   host.appendChild(all);
 }
 
@@ -1756,7 +1756,7 @@ function poetryMaskedHtml(text,level){
   let wordIndex=0;
   return tokens.map(token=>{
     if(/^\s+$/.test(token))return token;
-    const hide=level===2||(level===1&&(wordIndex++%2===1));
+    const hide=level===1&&(wordIndex++%2===1);
     if(!hide)return safe(token);
     const clean=token.replace(/[^A-Za-zÀ-ÿŒœÆæ]/g,'');
     const first=clean.charAt(0);
@@ -1769,11 +1769,16 @@ function renderPoetry(){
   const whole=poetryPart===0;
   $('poetryLabel').textContent=whole?'Récitation complète':'Passage '+poetryPart+' sur 4';
   const text=whole?POEM_AUTUMN.parts.join('\n'):POEM_AUTUMN.parts[poetryPart-1];
-  $('poetryText').innerHTML=text.split('\n').map(line=>poetryMaskedHtml(line,poetryMask)).join('<br>');
-  $('poetryHide').textContent=poetryMask===0?'🙈 Cacher des mots':poetryMask===1?'🙈 Tout cacher':'👀 Revoir le texte';
-  $('poetryTip').textContent=whole
-    ? 'Quand tu te sens prête, récite toute la poésie sans te presser.'
-    : 'Écoute le passage, puis récite-le à ton tour.';
+  const card=$('poetryText').closest('.poetry-card');
+  const memoryMode=poetryMask===2;
+  card?.classList.toggle('memory-mode',memoryMode);
+  $('poetryText').innerHTML=memoryMode
+    ? '<div class="poetry-memory-blank" aria-label="Récitation par cœur"><span aria-hidden="true">🎤</span></div>'
+    : text.split('\n').map(line=>poetryMaskedHtml(line,poetryMask)).join('<br>');
+  $('poetryHide').textContent=poetryMask===0?'🙈 Cacher des mots':poetryMask===1?'🧠 Par cœur':'👀 Revoir le texte';
+  $('poetryTip').textContent=memoryMode
+    ? ''
+    : (whole?'Quand tu te sens prête, récite toute la poésie sans te presser.':'Écoute le passage, puis récite-le à ton tour.');
   $('poetryResult').innerHTML='';
 }
 
