@@ -23,9 +23,14 @@ for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechS
 for(const feature of ['pose-point','pose-check','pose-cheer','stampSlam','chalk-correction','teacher-motion-keyed','teacher-motion-source']){
   assert.ok(css.includes(feature),'css missing '+feature);
 }
-for(const feature of ['MYSCRIPT_APPLICATION_KEY','MYSCRIPT_HMAC_KEY','customLexicon','fr_FR','createHmac','contentType','Math','mistakePositions']){
+for(const feature of ['GOOGLE_VISION_API_KEY','DOCUMENT_TEXT_DETECTION','fullTextAnnotation','textAnnotations','mistakePositions']){
   assert.ok(recognizer.includes(feature),'recognizer missing '+feature);
 }
+for(const feature of ['makeRecognitionImage','toDataURL','image/png']){
+  assert.ok(client.includes(feature),'vision client missing '+feature);
+}
+assert.ok(!recognizer.includes('MYSCRIPT_APPLICATION_KEY'),'MyScript credentials must no longer be required');
+assert.ok(!client.includes('MYSCRIPT_NOT_CONFIGURED'),'MyScript UI error path must be removed');
 assert.ok(!page.includes('selfSuccess'),'manual child validation must stay removed');
 assert.ok(!page.includes('teacher-motion-anim'),'the classroom must use real video, not animated WebP');
 assert.ok(!page.includes('teacher-photo'),'the old static teacher photo must be removed from the classroom template');
