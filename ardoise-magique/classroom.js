@@ -147,13 +147,16 @@ function teacherMotionVideos(){
   const actor=$('teacherActor');
   return {
     idle:actor?.querySelector('.teacher-motion-idle')||null,
-    point:actor?.querySelector('.teacher-motion-point')||null
+    point:actor?.querySelector('.teacher-motion-point')||null,
+    bravo:actor?.querySelector('.teacher-motion-bravo')||null
   };
 }
 
 function teacherMotionVideo(mode=teacherVideoMode){
   const videos=teacherMotionVideos();
-  return mode==='point'?videos.point:videos.idle;
+  if(mode==='point')return videos.point;
+  if(mode==='bravo')return videos.bravo;
+  return videos.idle;
 }
 
 function teacherMotionCanvas(){
@@ -166,9 +169,9 @@ let teacherKeyer=null;
 let teacherVideoMode='idle';
 
 function teacherVideoSource(mode){
-  return mode==='point'
-    ? String(window.HARMONIE_TEACHER_POINT_VIDEO||'')
-    : String(window.HARMONIE_TEACHER_IDLE_VIDEO||'');
+  if(mode==='point')return String(window.HARMONIE_TEACHER_POINT_VIDEO||'');
+  if(mode==='bravo')return String(window.HARMONIE_TEACHER_BRAVO_VIDEO||'');
+  return String(window.HARMONIE_TEACHER_IDLE_VIDEO||'');
 }
 
 function stopTeacherFrameLoop(video=teacherFrameVideo){
@@ -306,19 +309,20 @@ function startTeacherVideo(mode){
   const actor=$('teacherActor');
   const canvas=teacherMotionCanvas();
   const videos=teacherMotionVideos();
-  const video=mode==='point'?videos.point:videos.idle;
-  const other=mode==='point'?videos.idle:videos.point;
+  const video=mode==='point'?videos.point:(mode==='bravo'?videos.bravo:videos.idle);
+  const others=[videos.idle,videos.point,videos.bravo].filter(v=>v&&v!==video);
   if(!actor||!video||!canvas)return;
 
   const token=++teacherMotionToken;
   teacherVideoMode=mode;
   actor.classList.toggle('video-idle',mode==='idle');
   actor.classList.toggle('video-point',mode==='point');
+  actor.classList.toggle('video-bravo',mode==='bravo');
   actor.classList.remove('teacher-video-missing');
   actor.classList.add('motion-ready','motion-active');
 
   stopTeacherFrameLoop();
-  try{other?.pause()}catch{}
+  for(const other of others){try{other.pause()}catch{}}
 
   video.muted=true;
   video.playsInline=true;
@@ -329,11 +333,11 @@ function startTeacherVideo(mode){
 
   video.onended=()=>{
     if(token!==teacherMotionToken)return;
-    if(mode==='point')startTeacherVideo('idle');
+    if(mode==='point'||mode==='bravo')startTeacherVideo('idle');
   };
   video.onerror=()=>{
     if(token!==teacherMotionToken)return;
-    if(mode==='point'){
+    if(mode==='point'||mode==='bravo'){
       startTeacherVideo('idle');
       return;
     }
@@ -346,7 +350,7 @@ function startTeacherVideo(mode){
     const play=video.play();
     if(play&&typeof play.then==='function'){
       play.then(()=>renderTeacherFrame(token,video)).catch(()=>{
-        if(mode==='point')startTeacherVideo('idle');
+        if(mode==='point'||mode==='bravo')startTeacherVideo('idle');
         else hideTeacherVideo();
       });
     }else{
@@ -366,6 +370,7 @@ function setupTeacherMotion(){
   const videos=teacherMotionVideos();
   const idleSrc=String(window.HARMONIE_TEACHER_IDLE_VIDEO||'');
   const pointSrc=String(window.HARMONIE_TEACHER_POINT_VIDEO||'');
+  const bravoSrc=String(window.HARMONIE_TEACHER_BRAVO_VIDEO||'');
 
   if(videos.idle){
     videos.idle.src=idleSrc;
@@ -387,6 +392,16 @@ function setupTeacherMotion(){
     videos.point.setAttribute('webkit-playsinline','');
     try{videos.point.load()}catch{}
   }
+  if(videos.bravo){
+    videos.bravo.src=bravoSrc;
+    videos.bravo.loop=false;
+    videos.bravo.muted=true;
+    videos.bravo.playsInline=true;
+    videos.bravo.preload='auto';
+    videos.bravo.setAttribute('playsinline','');
+    videos.bravo.setAttribute('webkit-playsinline','');
+    try{videos.bravo.load()}catch{}
+  }
 
   startTeacherVideo('idle');
 }
@@ -399,6 +414,10 @@ function startTeacherIdleMotion(){
   startTeacherVideo('idle');
 }
 
+function startTeacherBravoMotion(){
+  startTeacherVideo('bravo');
+}
+
 function stopTeacherMotion(){
   teacherMotionToken++;
   const actor=$('teacherActor');
@@ -407,6 +426,7 @@ function stopTeacherMotion(){
   stopTeacherFrameLoop();
   try{videos.idle?.pause()}catch{}
   try{videos.point?.pause()}catch{}
+  try{videos.bravo?.pause()}catch{}
   if(canvas)canvas.hidden=true;
   actor?.classList.remove('motion-ready','motion-active','motion-loaded');
 }
@@ -587,7 +607,11 @@ function setTeacherPose(pose){
   }
 
   if(pose==='check')actor.classList.add('pose-check');
-  if(pose==='cheer')actor.classList.add('pose-cheer');
+  if(pose==='cheer'){
+    actor.classList.add('pose-cheer');
+    startTeacherBravoMotion();
+    return;
+  }
   startTeacherIdleMotion();
 }
 
