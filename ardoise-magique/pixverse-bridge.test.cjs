@@ -82,7 +82,7 @@ async function invoke(req,env={}){
     const ready=await invoke({method:'POST',headers:{authorization:'Bearer secret-token'},body:{action:'status',videoId:'123'}},{PIXVERSE_API_KEY:'pixverse-private-key',HARMONIE_BRIDGE_TOKEN:'secret-token'});
     assert.equal(ready.statusCode,200);
     assert.equal(ready.body.status,1);
-    assert.equal(ready.body.url,'https://media.pixverse.ai/test.mp4');
+    assert.equal(ready.body.url,undefined,'PixVerse media URLs stay on the server');
     assert.equal(calls.length,3);
   }finally{
     global.fetch=originalFetch;

@@ -1,6 +1,7 @@
 'use strict';
 
 const crypto = require('node:crypto');
+const { Readable } = require('node:stream');
 const pixverseService = require('../lib/pixverseService');
 
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
@@ -69,11 +70,27 @@ module.exports = async function handler(req, res) {
   if (input.action === 'status') {
     try {
       const result = await pixverseService.getVideoStatus(String(input.videoId || ''));
-      if (result.status === 7) return json(res, 200, { ok: true, status: 7 });
-      if (result.status === 8 || result.status === 6) return json(res, 200, { ok: true, status: result.status });
-      return json(res, 200, { ok: true, ...result });
+      return json(res, 200, { ok: true, status: result.status, outputWidth: result.outputWidth, outputHeight: result.outputHeight });
     } catch (error) {
       logTechnicalError('status', error);
+      return json(res, error?.code === 'INVALID_VIDEO_ID' ? 400 : 502, { ok: false, code: publicErrorCode(error) });
+    }
+  }
+
+  if (input.action === 'download') {
+    try {
+      const result = await pixverseService.getVideoStatus(String(input.videoId || ''));
+      if (result.status !== 1 || !result.url) return json(res, 409, { ok: false, code: 'VIDEO_NOT_READY' });
+      const video = await pixverseService.downloadResult(result.url);
+      res.setHeader('Cache-Control', 'private, no-store');
+      const contentType = video.headers.get('content-type') || '';
+      res.setHeader('Content-Type', contentType.startsWith('video/') ? contentType : 'video/mp4');
+      res.setHeader('Content-Disposition', 'inline; filename="harmonie-animation.mp4"');
+      const length = video.headers.get('content-length');
+      if (length) res.setHeader('Content-Length', length);
+      return Readable.fromWeb(video.body).pipe(res);
+    } catch (error) {
+      logTechnicalError('download', error);
       return json(res, error?.code === 'INVALID_VIDEO_ID' ? 400 : 502, { ok: false, code: publicErrorCode(error) });
     }
   }

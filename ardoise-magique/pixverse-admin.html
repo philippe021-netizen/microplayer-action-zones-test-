@@ -109,15 +109,17 @@
 
   tokenInput.addEventListener('input', () => { generateButton.disabled = !validImage || !tokenInput.value.trim(); });
 
-  async function callBridge(payload) {
+  async function callBridge(payload, responseType = 'json') {
     const response = await fetch('/api/harmonie-pixverse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tokenInput.value.trim()}` },
       body: JSON.stringify(payload)
     });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.code || 'REQUEST_FAILED');
-    return data;
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.code || 'REQUEST_FAILED');
+    }
+    return responseType === 'blob' ? response.blob() : response.json();
   }
 
   const messages = {
@@ -146,11 +148,13 @@
         const result = await callBridge({ action: 'status', videoId: created.videoId });
         if (result.status === 1 && result.url) {
           const video = document.querySelector('#resultVideo');
-          video.src = result.url;
+          const mp4 = await callBridge({ action: 'download', videoId: created.videoId }, 'blob');
+          const localVideoUrl = URL.createObjectURL(mp4);
+          video.src = localVideoUrl;
           const watchButton = document.querySelector('#watchVideo');
           watchButton.hidden = false;
           watchButton.onclick = () => video.play().catch(() => {});
-          document.querySelector('#downloadLink').href = result.url;
+          document.querySelector('#downloadLink').href = localVideoUrl;
           document.querySelector('#resultPanel').hidden = false;
           status.classList.remove('generating');
           status.textContent = 'C’est prêt ! Appuie sur « Regarder ». ';
