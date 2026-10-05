@@ -111,3 +111,6 @@ assert.ok(client.includes("setIOSAudioSession('playback')"),'iPad audio session 
 assert.ok(client.includes("poetryRecorder.start();"),'Safari recording should produce one complete audio blob');
 assert.ok(client.includes("poetryPeak<.006"),'silent iPad microphone recordings must be detected before transcription');
 assert.ok(page.includes('poetryMicLevel'),'poetry recorder must show a live microphone level meter');
+
+const poetryRecognizerSafari=fs.readFileSync(path.join(__dirname,'api/recognize-poetry.js'),'utf8');
+assert.ok(poetryRecognizerSafari.includes("(?:;[^,;=]+=[^,;]*)*;base64"),'poetry recognizer must accept Safari audio MIME codec parameters');
