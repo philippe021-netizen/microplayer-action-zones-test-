@@ -67,7 +67,10 @@ function compare(expected,spoken){
     }
   }
   const matched=dp[a.length][b.length];
-  const score=a.length?matched/a.length:0;
+  const contentScore=a.length?matched/a.length:0;
+  const fullMatched=fullExpected.filter(word=>fullSpoken.includes(word)).length;
+  const fullScore=fullExpected.length?fullMatched/fullExpected.length:0;
+  const score=Math.max(contentScore,contentScore*.86+fullScore*.14);
   const missing=[];
   let i=a.length,j=b.length;
   while(i>0){
@@ -125,8 +128,8 @@ module.exports=async function handler(req,res){
       transcript,
       score:result.score,
       missingWords:result.missingWords,
-      match:result.score>=0.82,
-      almost:result.score>=0.62
+      match:result.score>=0.80,
+      almost:result.score>=0.58
     });
   }catch(error){
     console.error('Poetry Speech-to-Text',error?.code||error?.message||error);
