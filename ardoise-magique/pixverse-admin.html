@@ -23,7 +23,7 @@
     .image-frame img{width:100%;height:100%;object-fit:contain}
     button{border:0;border-radius:11px;padding:13px 20px;background:#146c4a;color:white;font-weight:700;cursor:pointer}
     button:disabled{opacity:.55;cursor:wait}
-    .status{min-height:1.6em;font-weight:600}
+    .status{min-height:1.6em;font-weight:600}.status.generating{color:#146c4a}.status.generating::after{content:' ✨';display:inline-block;animation:twinkle 1s ease-in-out infinite alternate}@keyframes twinkle{to{transform:rotate(18deg) scale(1.18);opacity:.55}}
     .hint{font-size:.92rem}
     video{width:100%;max-height:70vh;background:#00ff00;border-radius:12px}
     [hidden]{display:none!important}
@@ -63,7 +63,7 @@
 
   <section class="card" id="resultPanel" hidden>
     <h2>Résultat PixVerse</h2>
-    <video id="resultVideo" controls playsinline></video>
+    <button id="watchVideo" type="button" hidden>Regarder</button><video id="resultVideo" controls playsinline></video>
     <p><a id="downloadLink" download="institutrice-harmonie-10s.mp4">Télécharger la vidéo MP4</a></p>
   </section>
 </main>
@@ -131,13 +131,15 @@
 
   generateButton.addEventListener('click', async () => {
     if (!validImage || !imageDataUrl || !tokenInput.value.trim()) return;
-    if (!window.confirm('Lancer une génération PixVerse de 10 secondes ? Des crédits API seront consommés.')) return;
+    if (!window.confirm('Lancer cette génération Image-to-Video V6 de 10 secondes en 1080p ? Coût estimé : environ 180 crédits PixVerse (18 crédits/seconde, sans audio).')) return;
     generateButton.disabled = true;
-    status.textContent = 'Envoi de l’image puis lancement de la génération…';
+    status.classList.add('generating');
+    status.textContent = 'La magie est en préparation…';
     document.querySelector('#resultPanel').hidden = true;
+    document.querySelector('#watchVideo').hidden = true;
     try {
       const created = await callBridge({ action: 'generate', imageDataUrl, quality: document.querySelector('#quality').value, prompt: document.querySelector('#prompt').value });
-      status.textContent = `Vidéo ${created.videoId} en cours de génération…`;
+      status.textContent = 'La magie est en préparation…';
       let attempts = 0;
       while (attempts++ < 90) {
         await new Promise(resolve => setTimeout(resolve, 5000));
@@ -145,18 +147,31 @@
         if (result.status === 1 && result.url) {
           const video = document.querySelector('#resultVideo');
           video.src = result.url;
+          const watchButton = document.querySelector('#watchVideo');
+          watchButton.hidden = false;
+          watchButton.onclick = () => video.play().catch(() => {});
           document.querySelector('#downloadLink').href = result.url;
           document.querySelector('#resultPanel').hidden = false;
-          status.textContent = `Prête — ${result.outputWidth || '?'} × ${result.outputHeight || '?'} px.`;
+          status.classList.remove('generating');
+          status.textContent = 'C’est prêt ! Appuie sur « Regarder ». ';
           return;
         }
         if ([7,8].includes(result.status)) throw new Error('PIXVERSE_GENERATION_ERROR');
-        status.textContent = `PixVerse génère la vidéo… (${attempts * 5} s)`;
+        status.textContent = 'La magie est en préparation…';
       }
-      status.textContent = `Le suivi automatique s’est arrêté. L’identifiant de la tâche est ${created.videoId}; vérifiez son état avant de relancer.`;
+      status.textContent = 'La vidéo prend plus de temps que prévu. Attends un peu avant de relancer.';
     } catch (error) {
-      status.textContent = messages[error.message] || 'Erreur pendant la génération. Vérifiez le jeton et le tableau de bord PixVerse.';
+      const gentle = {
+        PIXVERSE_NO_CREDITS: 'Il manque peut-être des crédits pour cette magie. Demande à un adulte de vérifier.',
+        PIXVERSE_MODERATION_REFUSED: 'Cette image ne peut pas être animée. Choisis-en une autre avec un adulte.',
+        PIXVERSE_GENERATION_FAILED: 'Oups, la magie n’a pas marché. On réessaie !',
+        PIXVERSE_TIMEOUT: 'La magie prend trop de temps. Attends un peu avant de réessayer.',
+        INVALID_IMAGE: 'Cette image ne convient pas. Choisis une autre image.',
+        UNAUTHORIZED: 'La porte magique est fermée. Demande à un adulte de vérifier l’accès.'
+      };
+      status.textContent = gentle[error.message] || messages[error.message] || 'Oups, la magie n’a pas marché. On réessaie !';
     } finally {
+      status.classList.remove('generating');
       generateButton.disabled = !validImage || !tokenInput.value.trim();
     }
   });

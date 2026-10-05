@@ -1,12 +1,9 @@
-const crypto = require('node:crypto');
+'use strict';
 
-const API_ROOT = 'https://app-api.pixverse.ai/openapi/v2';
+const crypto = require('node:crypto');
+const pixverseService = require('../lib/pixverseService');
+
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
-const MIME_EXTENSIONS = {
-  'image/png': 'png',
-  'image/jpeg': 'jpg',
-  'image/webp': 'webp'
-};
 
 function json(res, status, body) {
   res.setHeader('Cache-Control', 'no-store');
@@ -28,34 +25,25 @@ function parseImageDataUrl(value) {
   if (typeof value !== 'string') return null;
   const match = value.match(/^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/]+={0,2})$/);
   if (!match) return null;
-
-  const mimeType = match[1];
-  const base64 = match[2];
-  const bytes = Buffer.from(base64, 'base64');
-  if (!bytes.length || bytes.length > MAX_IMAGE_BYTES || bytes.toString('base64') !== base64) return null;
-  return { mimeType, bytes, extension: MIME_EXTENSIONS[mimeType] };
+  const bytes = Buffer.from(match[2], 'base64');
+  if (!bytes.length || bytes.length > MAX_IMAGE_BYTES || bytes.toString('base64') !== match[2]) return null;
+  return { mimeType: match[1], bytes };
 }
 
-async function pixverseRequest(path, apiKey, method = 'GET', body) {
-  const response = await fetch(`${API_ROOT}${path}`, {
-    method,
-    headers: {
-      'API-KEY': apiKey,
-      'Ai-trace-id': crypto.randomUUID(),
-      ...(body ? { 'Content-Type': 'application/json' } : {})
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-    signal: AbortSignal.timeout(45000)
+function logTechnicalError(stage, error) {
+  console.error('Harmonie PixVerse ' + stage, {
+    code: error?.code || 'UNEXPECTED_ERROR',
+    details: error?.details || {},
+    name: error?.name || 'Error'
   });
+}
 
-  let payload;
-  try {
-    payload = await response.json();
-  } catch {
-    throw new Error('PIXVERSE_BAD_RESPONSE');
-  }
-  if (!response.ok || payload?.ErrCode !== 0) throw new Error('PIXVERSE_UPSTREAM_ERROR');
-  return payload.Resp || {};
+function publicErrorCode(error) {
+  const code = error?.code;
+  if (['PIXVERSE_NO_CREDITS', 'PIXVERSE_TIMEOUT', 'PIXVERSE_NETWORK_ERROR', 'PIXVERSE_MODERATION_REFUSED', 'PIXVERSE_GENERATION_FAILED', 'PIXVERSE_DOWNLOAD_ERROR'].includes(code)) return code;
+  if (code === 'INVALID_IMAGE') return 'INVALID_IMAGE';
+  if (code === 'INVALID_VIDEO_ID') return 'INVALID_VIDEO_ID';
+  return 'PIXVERSE_UNAVAILABLE';
 }
 
 module.exports = async function handler(req, res) {
@@ -65,12 +53,11 @@ module.exports = async function handler(req, res) {
   }
 
   const bridgeToken = process.env.HARMONIE_BRIDGE_TOKEN;
-  const apiKey = process.env.PIXVERSE_API_KEY;
   if (!bridgeToken) return json(res, 503, { ok: false, code: 'BRIDGE_NOT_CONFIGURED' });
   if (!constantTimeMatch(req.headers?.authorization?.replace(/^Bearer\s+/i, ''), bridgeToken)) {
     return json(res, 401, { ok: false, code: 'UNAUTHORIZED' });
   }
-  if (!apiKey) return json(res, 503, { ok: false, code: 'PIXVERSE_NOT_CONFIGURED' });
+  if (!process.env.PIXVERSE_API_KEY) return json(res, 503, { ok: false, code: 'PIXVERSE_NOT_CONFIGURED' });
 
   let input;
   try {
@@ -80,61 +67,32 @@ module.exports = async function handler(req, res) {
   }
 
   if (input.action === 'status') {
-    const videoId = String(input.videoId || '');
-    if (!/^\d{1,24}$/.test(videoId)) return json(res, 400, { ok: false, code: 'INVALID_VIDEO_ID' });
     try {
-      const result = await pixverseRequest(`/video/result/${videoId}`, apiKey);
-      return json(res, 200, {
-        ok: true,
-        status: Number(result.status),
-        url: Number(result.status) === 1 && typeof result.url === 'string' ? result.url : null,
-        outputWidth: Number(result.outputWidth) || null,
-        outputHeight: Number(result.outputHeight) || null
-      });
-    } catch {
-      return json(res, 502, { ok: false, code: 'PIXVERSE_STATUS_ERROR' });
+      const result = await pixverseService.getVideoStatus(String(input.videoId || ''));
+      if (result.status === 7) return json(res, 200, { ok: true, status: 7 });
+      if (result.status === 8 || result.status === 6) return json(res, 200, { ok: true, status: result.status });
+      return json(res, 200, { ok: true, ...result });
+    } catch (error) {
+      logTechnicalError('status', error);
+      return json(res, error?.code === 'INVALID_VIDEO_ID' ? 400 : 502, { ok: false, code: publicErrorCode(error) });
     }
   }
 
   if (input.action !== 'generate') return json(res, 400, { ok: false, code: 'INVALID_ACTION' });
   const image = parseImageDataUrl(input.imageDataUrl);
   if (!image) return json(res, 400, { ok: false, code: 'INVALID_IMAGE' });
-  const prompt = typeof input.prompt === 'string' ? input.prompt.trim().slice(0, 4000) : '';
+  const prompt = typeof input.prompt === 'string' ? input.prompt.trim().slice(0, 1800) : '';
   if (prompt.length < 30) return json(res, 400, { ok: false, code: 'INVALID_PROMPT' });
   const quality = input.quality === '720p' ? '720p' : '1080p';
 
   try {
-    const form = new FormData();
-    form.append('image', new Blob([image.bytes], { type: image.mimeType }), `institutrice.${image.extension}`);
-    const upload = await fetch(`${API_ROOT}/image/upload`, {
-      method: 'POST',
-      headers: { 'API-KEY': apiKey, 'Ai-trace-id': crypto.randomUUID() },
-      body: form,
-      signal: AbortSignal.timeout(45000)
-    });
-    let uploaded;
-    try { uploaded = await upload.json(); } catch { throw new Error('PIXVERSE_BAD_RESPONSE'); }
-    const imageId = uploaded?.Resp?.img_id;
-    if (!upload.ok || uploaded?.ErrCode !== 0 || !Number.isFinite(Number(imageId))) {
-      throw new Error('PIXVERSE_UPSTREAM_ERROR');
-    }
-
-    const result = await pixverseRequest('/video/img/generate', apiKey, 'POST', {
-      img_id: Number(imageId),
-      model: 'v6',
-      duration: 10,
-      quality,
-      motion_mode: 'normal',
-      prompt,
-      negative_prompt: 'cropped head, cropped hair, cropped feet, cropped arms, cropped ruler, out of frame, camera movement, zoom, cut, extra person, text, watermark, blurry, deformed hands, duplicate limbs',
-      sound_effect_switch: false
-    });
-    if (!Number.isFinite(Number(result.video_id))) throw new Error('PIXVERSE_BAD_RESPONSE');
-    return json(res, 200, { ok: true, videoId: String(result.video_id), duration: 10, quality });
+    const imgId = await pixverseService.uploadImage(image);
+    const videoId = await pixverseService.generateVideo({ imgId, prompt, quality, duration: 10 });
+    return json(res, 200, { ok: true, videoId, duration: 10, quality, aspectRatio: '9:16', estimatedCredits: quality === '1080p' ? 180 : 120 });
   } catch (error) {
-    if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
-      return json(res, 504, { ok: false, code: 'PIXVERSE_TIMEOUT' });
-    }
-    return json(res, 502, { ok: false, code: 'PIXVERSE_GENERATION_ERROR' });
+    logTechnicalError('generate', error);
+    const code = publicErrorCode(error);
+    const status = code === 'INVALID_IMAGE' ? 400 : code === 'PIXVERSE_NO_CREDITS' ? 402 : code === 'PIXVERSE_TIMEOUT' ? 504 : 502;
+    return json(res, status, { ok: false, code });
   }
 };

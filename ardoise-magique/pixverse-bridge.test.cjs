@@ -59,6 +59,7 @@ async function invoke(req,env={}){
       const payload=JSON.parse(options.body);
       assert.equal(payload.duration,10);
       assert.equal(payload.quality,'1080p');
+      assert.equal(payload.aspect_ratio,'9:16');
       assert.equal(payload.img_id,77);
       return new Response(JSON.stringify({ErrCode:0,Resp:{video_id:123}}),{status:200});
     }
@@ -75,6 +76,8 @@ async function invoke(req,env={}){
     assert.equal(calls[0].options.headers['API-KEY'],'pixverse-private-key');
     assert.ok(calls[0].options.body instanceof FormData);
     assert.ok(calls.every(call=>call.options.headers['Ai-trace-id']));
+    const traceIds=calls.map(call=>call.options.headers['Ai-trace-id']);
+    assert.equal(new Set(traceIds).size,traceIds.length,'every PixVerse request must get a unique trace ID');
 
     const ready=await invoke({method:'POST',headers:{authorization:'Bearer secret-token'},body:{action:'status',videoId:'123'}},{PIXVERSE_API_KEY:'pixverse-private-key',HARMONIE_BRIDGE_TOKEN:'secret-token'});
     assert.equal(ready.statusCode,200);
@@ -85,5 +88,5 @@ async function invoke(req,env={}){
     global.fetch=originalFetch;
   }
 
-  console.log('PixVerse bridge auth checks passed.');
+  console.log('PixVerse bridge auth, V6 request, status and unique trace-ID checks passed.');
 })().catch(error=>{console.error(error);process.exitCode=1});
