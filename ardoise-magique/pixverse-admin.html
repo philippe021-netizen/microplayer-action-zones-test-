@@ -61,6 +61,15 @@
     <p id="status" class="status" role="status" aria-live="polite"></p>
   </section>
 
+  <section class="card" id="resolutionCheck">
+    <h2>Contrôler une vidéo déjà générée</h2>
+    <p class="hint">Cette vérification lit les dimensions renvoyées par PixVerse. Elle ne lance aucune génération et ne consomme pas de crédits.</p>
+    <label for="existingVideoId">Identifiant de la vidéo PixVerse</label>
+    <input id="existingVideoId" inputmode="numeric" autocomplete="off" placeholder="Coller l’identifiant de la vidéo">
+    <button id="checkResolution" type="button">Vérifier la résolution</button>
+    <p id="resolutionStatus" class="status" role="status" aria-live="polite"></p>
+  </section>
+
   <section class="card" id="resultPanel" hidden>
     <h2>Résultat PixVerse</h2>
     <button id="watchVideo" type="button" hidden>Regarder</button><video id="resultVideo" controls playsinline></video>
@@ -121,6 +130,25 @@
     }
     return responseType === 'blob' ? response.blob() : response.json();
   }
+
+  document.querySelector('#checkResolution').addEventListener('click', async () => {
+    const resultText = document.querySelector('#resolutionStatus');
+    const videoId = document.querySelector('#existingVideoId').value.trim();
+    if (!videoId) {
+      resultText.textContent = 'Colle d’abord l’identifiant de la vidéo.';
+      return;
+    }
+    resultText.textContent = 'Vérification en cours…';
+    try {
+      const result = await callBridge({ action: 'status', videoId });
+      const dimensions = result.outputWidth && result.outputHeight
+        ? `${result.outputWidth} × ${result.outputHeight} px`
+        : 'PixVerse n’a pas renvoyé les dimensions pour cette vidéo.';
+      resultText.textContent = `Résolution signalée par PixVerse : ${dimensions} (statut ${result.status}). Aucun crédit consommé.`;
+    } catch {
+      resultText.textContent = 'Vérification impossible. Vérifie l’identifiant et le jeton Harmonie.';
+    }
+  });
 
   const messages = {
     UNAUTHORIZED: 'Jeton Harmonie incorrect.',
