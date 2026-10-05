@@ -1,5 +1,3 @@
-const crypto=require('node:crypto');
-
 function normalizeText(value){
   return String(value||'')
     .normalize('NFC')
@@ -10,32 +8,13 @@ function normalizeText(value){
     .trim();
 }
 
-function withoutDiacritics(value){
-  return normalizeText(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-}
-
 function normalizeMath(value){
   return String(value||'')
-    .replace(/\\left|\\right|\\mathrm|\\text/g,'')
     .replace(/[{}$\s]/g,'')
-    .replace(/\\times/g,'×')
-    .replace(/\\div/g,'÷')
+    .replace(/[xX*]/g,'×')
+    .replace(/[/:]/g,'÷')
+    .replace(/[−–—]/g,'-')
     .trim();
-}
-
-function extractPlainText(raw,mode){
-  const text=String(raw||'').trim();
-  if(!text)return '';
-  try{
-    const obj=JSON.parse(text);
-    const candidates=[
-      obj.label,obj.text,obj.value,obj.result,
-      obj?.words?.map?.(x=>x.label||x.text||'').join(' '),
-      obj?.expressions?.map?.(x=>x.label||x.text||'').join(' ')
-    ].filter(x=>typeof x==='string'&&x.trim());
-    if(candidates.length)return candidates[0].trim();
-  }catch{}
-  return mode==='math'?normalizeMath(text):text;
 }
 
 function diffExpectedIndices(expected,recognized){
@@ -66,16 +45,33 @@ function diffExpectedIndices(expected,recognized){
   return [...bad].filter(x=>x>=0&&x<n).sort((x,y)=>x-y);
 }
 
+function cleanBase64(value){
+  return String(value||'').replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/,'').replace(/\s+/g,'');
+}
+
+function extractVisionText(payload){
+  const response=payload?.responses?.[0]||{};
+  if(response.error){
+    const err=new Error(response.error.message||'Google Vision error');
+    err.code='VISION_UPSTREAM_ERROR';
+    throw err;
+  }
+  return String(
+    response?.fullTextAnnotation?.text
+    ||response?.textAnnotations?.[0]?.description
+    ||''
+  ).trim();
+}
+
 module.exports=async function handler(req,res){
-  const applicationKey=process.env.MYSCRIPT_APPLICATION_KEY;
-  const hmacKey=process.env.MYSCRIPT_HMAC_KEY;
+  const apiKey=process.env.GOOGLE_VISION_API_KEY;
 
   if(req.method==='GET'){
     return res.status(200).json({
       ok:true,
-      provider:'myscript',
-      configured:Boolean(applicationKey&&hmacKey),
-      language:'fr_FR'
+      provider:'google-vision',
+      configured:Boolean(apiKey),
+      feature:'DOCUMENT_TEXT_DETECTION'
     });
   }
 
@@ -83,94 +79,63 @@ module.exports=async function handler(req,res){
     res.setHeader('Allow','GET, POST');
     return res.status(405).json({ok:false,code:'METHOD_NOT_ALLOWED',message:'GET ou POST uniquement.'});
   }
-  if(!applicationKey||!hmacKey){
-    return res.status(503).json({ok:false,code:'MYSCRIPT_NOT_CONFIGURED',message:'Clés MyScript non configurées.'});
+
+  if(!apiKey){
+    return res.status(503).json({
+      ok:false,
+      code:'GOOGLE_VISION_NOT_CONFIGURED',
+      message:'Google Vision n’est pas encore configuré.'
+    });
   }
 
   try{
     const input=typeof req.body==='string'?JSON.parse(req.body):(req.body||{});
     const expected=String(input.expected||'').trim();
     const mode=input.mode==='math'?'math':'text';
-    const strokes=Array.isArray(input.strokes)?input.strokes:[];
-    const lexicon=Array.isArray(input.lexicon)?input.lexicon.map(String).filter(Boolean).slice(0,100):[];
+    const image=cleanBase64(input.image);
 
-    if(!expected||!strokes.length){
+    if(!expected||!image){
       return res.status(400).json({ok:false,code:'EMPTY_INK',message:'Aucune écriture à reconnaître.'});
     }
 
-    const cleanStrokes=strokes.map((stroke,index)=>{
-      const x=Array.isArray(stroke.x)?stroke.x.map(Number):[];
-      const y=Array.isArray(stroke.y)?stroke.y.map(Number):[];
-      const t=Array.isArray(stroke.t)?stroke.t.map(Number):[];
-      const valid=x.length>1&&x.length===y.length&&x.every(Number.isFinite)&&y.every(Number.isFinite);
-      if(!valid)return null;
-      const out={id:String(index+1),x,y};
-      if(t.length===x.length&&t.every(Number.isFinite))out.t=t;
-      return out;
-    }).filter(Boolean);
-
-    if(!cleanStrokes.length){
-      return res.status(400).json({ok:false,code:'EMPTY_INK',message:'Aucun trait exploitable.'});
-    }
-
-    // Safari/iPad fournit des temps relatifs à la page. MyScript attend surtout
-    // une chronologie propre : on repart du premier point et on garantit une
-    // progression strictement croissante à l'intérieur de chaque trait.
-    const timed=cleanStrokes.flatMap(st=>Array.isArray(st.t)?st.t:[]).filter(Number.isFinite);
-    if(timed.length){
-      const baseT=Math.min(...timed);
-      for(const st of cleanStrokes){
-        if(!Array.isArray(st.t))continue;
-        let previous=-1;
-        st.t=st.t.map(value=>{
-          const relative=Math.max(0,Math.round(value-baseT));
-          const normalized=Math.max(relative,previous+1);
-          previous=normalized;
-          return normalized;
-        });
-      }
-    }
-
-    const configuration={lang:'fr_FR'};
-    if(mode==='text'){
-      const words=[...new Set(lexicon.flatMap(v=>normalizeText(v).split(/\s+/)).filter(Boolean))].slice(0,200);
-      configuration.text={configuration:{customLexicon:words,addLKText:true}};
+    if(image.length>5_500_000){
+      return res.status(413).json({ok:false,code:'IMAGE_TOO_LARGE',message:'L’écriture envoyée est trop grande.'});
     }
 
     const payload={
-      scaleX:25.4/96,
-      scaleY:25.4/96,
-      contentType:mode==='math'?'Math':'Text',
-      configuration,
-      strokes:cleanStrokes
+      requests:[{
+        image:{content:image},
+        features:[{type:'DOCUMENT_TEXT_DETECTION'}],
+        imageContext:{languageHints:['fr']}
+      }]
     };
 
-    const body=JSON.stringify(payload);
-    const hmac=crypto.createHmac('sha512',applicationKey+hmacKey).update(body,'utf8').digest('hex');
-    const accept=mode==='math'?'application/x-latex,application/json':'text/plain,application/json';
+    const upstream=await fetch(
+      'https://vision.googleapis.com/v1/images:annotate?key='+encodeURIComponent(apiKey),
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json; charset=utf-8'},
+        body:JSON.stringify(payload)
+      }
+    );
 
-    const upstream=await fetch('https://cloud.myscript.com/api/v4.0/iink/recognize/',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Accept':accept,
-        'applicationKey':applicationKey,
-        'hmac':hmac
-      },
-      body
-    });
-
-    const raw=await upstream.text();
+    const data=await upstream.json().catch(()=>({}));
     if(!upstream.ok){
-      console.error('MyScript recognition error',upstream.status,raw.slice(0,600));
-      return res.status(502).json({ok:false,code:'MYSCRIPT_ERROR',message:'MyScript n’a pas pu lire l’écriture.'});
+      console.error('Google Vision recognition error',upstream.status,JSON.stringify(data).slice(0,600));
+      return res.status(502).json({ok:false,code:'GOOGLE_VISION_ERROR',message:'Google Vision n’a pas pu lire l’écriture.'});
     }
 
-    const recognized=extractPlainText(raw,mode);
+    let recognized='';
+    try{
+      recognized=extractVisionText(data);
+    }catch(error){
+      console.error('Google Vision response error',error.message);
+      return res.status(502).json({ok:false,code:'GOOGLE_VISION_ERROR',message:'Google Vision n’a pas pu lire l’écriture.'});
+    }
+
     const wanted=mode==='math'?normalizeMath(expected):normalizeText(expected);
     const got=mode==='math'?normalizeMath(recognized):normalizeText(recognized);
-    const match=got===wanted;
-
+    const match=Boolean(got)&&got===wanted;
     const mistakePositions=match||mode==='math'?[]:diffExpectedIndices(expected,recognized);
 
     return res.status(200).json({
