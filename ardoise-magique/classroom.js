@@ -139,44 +139,219 @@ function mountTeachers(){
   if(actor&&room&&actor.parentElement!==room)room.appendChild(actor);
 }
 
-function teacherMotionImg(){
-  return $('teacherActor')?.querySelector('.teacher-motion-anim')||null;
+function teacherMotionVideo(){
+  return $('teacherActor')?.querySelector('.teacher-motion-source')||null;
+}
+
+function teacherMotionCanvas(){
+  return $('teacherActor')?.querySelector('.teacher-motion-keyed')||null;
+}
+
+function teacherMotionFallback(){
+  return $('teacherActor')?.querySelector('.teacher-motion-fallback')||null;
+}
+
+let teacherFrameHandle=0;
+let teacherFrameMode='';
+let teacherKeyer=null;
+
+function stopTeacherFrameLoop(video=teacherMotionVideo()){
+  if(teacherFrameMode==='video'&&teacherFrameHandle&&video?.cancelVideoFrameCallback){
+    try{video.cancelVideoFrameCallback(teacherFrameHandle)}catch{}
+  }else if(teacherFrameHandle){
+    cancelAnimationFrame(teacherFrameHandle);
+  }
+  teacherFrameHandle=0;
+  teacherFrameMode='';
+}
+
+function compileTeacherShader(gl,type,source){
+  const shader=gl.createShader(type);
+  gl.shaderSource(shader,source);
+  gl.compileShader(shader);
+  if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){
+    const message=gl.getShaderInfoLog(shader)||'shader';
+    gl.deleteShader(shader);
+    throw new Error(message);
+  }
+  return shader;
+}
+
+function initTeacherKeyer(){
+  const canvas=teacherMotionCanvas();
+  if(!canvas)return null;
+  const gl=canvas.getContext('webgl',{alpha:true,antialias:false,premultipliedAlpha:false,preserveDrawingBuffer:false})
+    ||canvas.getContext('experimental-webgl',{alpha:true,antialias:false,premultipliedAlpha:false,preserveDrawingBuffer:false});
+  if(!gl)return null;
+  try{
+    const vertex=compileTeacherShader(gl,gl.VERTEX_SHADER,
+      'attribute vec2 a_position;attribute vec2 a_texCoord;varying vec2 v_texCoord;void main(){gl_Position=vec4(a_position,0.0,1.0);v_texCoord=a_texCoord;}');
+    const fragment=compileTeacherShader(gl,gl.FRAGMENT_SHADER,
+      'precision mediump float;uniform sampler2D u_image;uniform float u_threshold;uniform float u_softness;uniform float u_spill;varying vec2 v_texCoord;void main(){vec4 c=texture2D(u_image,v_texCoord);float maxrb=max(c.r,c.b);float chroma=c.g-maxrb;float matte=smoothstep(u_threshold,u_threshold+u_softness,chroma)*smoothstep(0.20,0.58,c.g);float alpha=1.0-matte;float spill=smoothstep(0.01,u_threshold+u_softness,chroma)*u_spill;float neutral=(c.r+c.b)*0.5;c.g=mix(c.g,min(c.g,neutral*1.12+0.03),spill);gl_FragColor=vec4(c.rgb,alpha);}');
+    const program=gl.createProgram();
+    gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);
+    if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program)||'program');
+    gl.useProgram(program);
+
+    const buffer=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([
+      -1,-1,0,0, 1,-1,1,0, -1,1,0,1, 1,1,1,1
+    ]),gl.STATIC_DRAW);
+    const pos=gl.getAttribLocation(program,'a_position');
+    const texCoord=gl.getAttribLocation(program,'a_texCoord');
+    gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,16,0);
+    gl.enableVertexAttribArray(texCoord);gl.vertexAttribPointer(texCoord,2,gl.FLOAT,false,16,8);
+
+    const texture=gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+    gl.uniform1i(gl.getUniformLocation(program,'u_image'),0);
+    const key=window.HARMONIE_CHROMA_KEY||{};
+    gl.uniform1f(gl.getUniformLocation(program,'u_threshold'),Number(key.threshold)||0.08);
+    gl.uniform1f(gl.getUniformLocation(program,'u_softness'),Number(key.softness)||0.20);
+    gl.uniform1f(gl.getUniformLocation(program,'u_spill'),Number(key.spill)||0.72);
+    gl.clearColor(0,0,0,0);
+    teacherKeyer={gl,texture,canvas,lastW:0,lastH:0};
+    return teacherKeyer;
+  }catch{
+    return null;
+  }
+}
+
+function sizeTeacherCanvas(video,keyer){
+  const sourceW=video.videoWidth||1080;
+  const sourceH=video.videoHeight||1920;
+  const maxH=1920;
+  const scale=Math.min(1,maxH/sourceH);
+  const width=Math.max(2,Math.round(sourceW*scale));
+  const height=Math.max(2,Math.round(sourceH*scale));
+  if(keyer.lastW===width&&keyer.lastH===height)return;
+  keyer.canvas.width=width;
+  keyer.canvas.height=height;
+  keyer.lastW=width;keyer.lastH=height;
+  keyer.gl.viewport(0,0,width,height);
+}
+
+function showTeacherFallback(token){
+  if(token!==teacherMotionToken)return;
+  const actor=$('teacherActor');
+  const canvas=teacherMotionCanvas();
+  const fallback=teacherMotionFallback();
+  if(canvas)canvas.hidden=true;
+  if(!actor||!fallback||!window.HARMONIE_TEACHER_FALLBACK){
+    actor?.classList.remove('motion-ready','motion-active','motion-loaded');
+    return;
+  }
+  fallback.onload=()=>{
+    if(token!==teacherMotionToken)return;
+    fallback.hidden=false;
+    actor.classList.add('motion-loaded','motion-fallback');
+  };
+  fallback.onerror=()=>{
+    if(token!==teacherMotionToken)return;
+    actor.classList.remove('motion-ready','motion-active','motion-loaded','motion-fallback');
+  };
+  fallback.src=window.HARMONIE_TEACHER_FALLBACK;
+}
+
+function renderTeacherFrame(token){
+  if(token!==teacherMotionToken)return;
+  const video=teacherMotionVideo();
+  const canvas=teacherMotionCanvas();
+  const actor=$('teacherActor');
+  if(!video||!canvas||!actor)return;
+  const keyer=teacherKeyer||initTeacherKeyer();
+  if(!keyer){showTeacherFallback(token);return}
+
+  if(video.readyState>=2){
+    try{
+      sizeTeacherCanvas(video,keyer);
+      const gl=keyer.gl;
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.bindTexture(gl.TEXTURE_2D,keyer.texture);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,video);
+      gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+      canvas.hidden=false;
+      actor.classList.add('motion-loaded');
+    }catch{
+      showTeacherFallback(token);
+      return;
+    }
+  }
+
+  if(video.paused||video.ended||token!==teacherMotionToken)return;
+  if(video.requestVideoFrameCallback){
+    teacherFrameMode='video';
+    teacherFrameHandle=video.requestVideoFrameCallback(()=>renderTeacherFrame(token));
+  }else{
+    teacherFrameMode='raf';
+    teacherFrameHandle=requestAnimationFrame(()=>renderTeacherFrame(token));
+  }
 }
 
 function setupTeacherMotion(){
   const actor=$('teacherActor');
-  const anim=teacherMotionImg();
-  if(!actor||!anim)return;
-  actor.classList.remove('motion-ready','motion-active','motion-loaded');
-  anim.removeAttribute('src');
+  const video=teacherMotionVideo();
+  const canvas=teacherMotionCanvas();
+  const fallback=teacherMotionFallback();
+  if(!actor||!video||!canvas)return;
+  actor.classList.remove('motion-ready','motion-active','motion-loaded','motion-fallback');
+  canvas.hidden=true;
+  if(fallback)fallback.hidden=true;
+  video.muted=true;
+  video.playsInline=true;
+  video.preload='auto';
+  video.setAttribute('playsinline','');
+  video.setAttribute('webkit-playsinline','');
+  if(window.HARMONIE_TEACHER_VIDEO&&video.getAttribute('src')!==window.HARMONIE_TEACHER_VIDEO){
+    video.src=window.HARMONIE_TEACHER_VIDEO;
+  }
+  try{video.load()}catch{}
 }
 
 function restartTeacherAnimation(){
   const actor=$('teacherActor');
-  const old=teacherMotionImg();
-  if(!actor||!old||!window.HARMONIE_TEACHER_POINT)return;
+  const video=teacherMotionVideo();
+  const canvas=teacherMotionCanvas();
+  const fallback=teacherMotionFallback();
+  if(!actor||!video||!canvas||!window.HARMONIE_TEACHER_VIDEO)return;
 
   const token=++teacherMotionToken;
+  stopTeacherFrameLoop(video);
   actor.classList.add('motion-ready','motion-active');
-  actor.classList.remove('motion-loaded');
+  actor.classList.remove('motion-loaded','motion-fallback');
+  canvas.hidden=true;
+  if(fallback)fallback.hidden=true;
+  video.muted=true;
+  video.playsInline=true;
+  try{video.pause();video.currentTime=0}catch{}
 
-  const fresh=old.cloneNode(false);
-  fresh.className='teacher-motion-anim';
-  fresh.alt='';
-  fresh.setAttribute('aria-hidden','true');
-
-  fresh.onload=()=>{
+  const start=()=>{
     if(token!==teacherMotionToken)return;
-    actor.classList.add('motion-loaded');
-  };
-  fresh.onerror=()=>{
-    if(token!==teacherMotionToken)return;
-    actor.classList.remove('motion-loaded','motion-ready','motion-active');
+    const play=video.play();
+    if(play&&typeof play.then==='function'){
+      play.then(()=>renderTeacherFrame(token)).catch(()=>showTeacherFallback(token));
+    }else{
+      renderTeacherFrame(token);
+    }
   };
 
-  old.replaceWith(fresh);
-  // Recréer le nœud IMG force Safari à recommencer le WebP animé au début.
-  fresh.src=window.HARMONIE_TEACHER_POINT;
+  if(video.readyState>=2)start();
+  else{
+    const onReady=()=>{video.removeEventListener('error',onError);start()};
+    const onError=()=>{video.removeEventListener('loadeddata',onReady);showTeacherFallback(token)};
+    video.addEventListener('loadeddata',onReady,{once:true});
+    video.addEventListener('error',onError,{once:true});
+    if(video.getAttribute('src')!==window.HARMONIE_TEACHER_VIDEO){
+      video.src=window.HARMONIE_TEACHER_VIDEO;
+      try{video.load()}catch{}
+    }
+  }
 }
 
 function startTeacherPointMotion(){
@@ -186,9 +361,14 @@ function startTeacherPointMotion(){
 function stopTeacherMotion(){
   teacherMotionToken++;
   const actor=$('teacherActor');
-  const anim=teacherMotionImg();
-  actor?.classList.remove('motion-ready','motion-active','motion-loaded');
-  if(anim)anim.removeAttribute('src');
+  const video=teacherMotionVideo();
+  const canvas=teacherMotionCanvas();
+  const fallback=teacherMotionFallback();
+  stopTeacherFrameLoop(video);
+  try{video?.pause();if(video)video.currentTime=0}catch{}
+  if(canvas)canvas.hidden=true;
+  if(fallback)fallback.hidden=true;
+  actor?.classList.remove('motion-ready','motion-active','motion-loaded','motion-fallback');
 }
 
 function screen(id){
