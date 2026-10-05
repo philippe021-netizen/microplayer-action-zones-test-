@@ -146,7 +146,7 @@
       while (attempts++ < 90) {
         await new Promise(resolve => setTimeout(resolve, 5000));
         const result = await callBridge({ action: 'status', videoId: created.videoId });
-        if (result.status === 1 && result.url) {
+        if (result.status === 1) {
           const video = document.querySelector('#resultVideo');
           const mp4 = await callBridge({ action: 'download', videoId: created.videoId }, 'blob');
           const localVideoUrl = URL.createObjectURL(mp4);
