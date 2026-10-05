@@ -2,6 +2,7 @@ const DEFAULT_URLS=['./lessons/r-01.json','./lessons/alphabet-2letters.json'];
 const ALPHABET_URL='../harmonie-alphabet/index.html';
 const STORAGE_KEY='harmonie-classe-v2';
 const LEGACY_KEY='harmonie-ardoise-v1';
+const SYNC_STORAGE_KEY='harmonie-sync-code-v1';
 const DISPLAY_SECONDS={easy:6,normal:5,champion:4};
 const TEACHER_MOTION_SECONDS=10;
 const TEACHER_NUDGE_DELAY=30000;
@@ -42,6 +43,9 @@ let teacherFrameVideo=null;
 let teacherVoiceNode=null;
 let teacherVoiceToken=0;
 const teacherVoiceCache=new Map();
+let syncCode='';
+let syncTimer=null;
+let syncBusy=false;
 
 let state={
   settings:{music:true,voice:true,sounds:true,guide:true},
@@ -109,8 +113,173 @@ function loadState(){
   }catch{}
 }
 
-function saveState(){
+function saveState(options={}){
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  if(!options.skipSync)scheduleSyncPush();
+}
+
+function normalizeSyncCode(value){
+  return String(value||'').toUpperCase().replace(/[^A-Z2-9]/g,'').slice(0,10);
+}
+
+function formatSyncCode(value){
+  const code=normalizeSyncCode(value);
+  return code.length>5?code.slice(0,5)+'-'+code.slice(5):code;
+}
+
+function makeSyncCode(){
+  const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const bytes=new Uint8Array(10);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes,b=>alphabet[b%alphabet.length]).join('');
+}
+
+function syncSnapshot(){
+  return {
+    stats:state.stats||{},
+    sessions:Array.isArray(state.sessions)?state.sessions.slice(0,120):[],
+    customLessons:Array.isArray(state.customLessons)?state.customLessons.slice(0,100):[]
+  };
+}
+
+function mergeStats(local={},remote={}){
+  const out={...local};
+  for(const [key,r] of Object.entries(remote||{})){
+    const l=out[key]||{};
+    const lt=Date.parse(l.last||'')||0;
+    const rt=Date.parse(r?.last||'')||0;
+    const latest=rt>=lt?r:l;
+    out[key]={
+      ...latest,
+      attempts:Math.max(Number(l.attempts||0),Number(r?.attempts||0)),
+      correct:Math.max(Number(l.correct||0),Number(r?.correct||0)),
+      errors:Math.max(Number(l.errors||0),Number(r?.errors||0)),
+      hints:Math.max(Number(l.hints||0),Number(r?.hints||0)),
+      mastery:Math.max(Number(l.mastery||0),Number(r?.mastery||0)),
+      due:Math.min(Number(l.due||Infinity),Number(r?.due||Infinity))
+    };
+    if(!Number.isFinite(out[key].due))out[key].due=Date.now();
+  }
+  return out;
+}
+
+function mergeSessions(local=[],remote=[]){
+  const map=new Map();
+  for(const session of [...remote,...local]){
+    if(!session||!session.date)continue;
+    const key=[session.date,session.lessonId,session.stars,session.total].join('|');
+    if(!map.has(key))map.set(key,session);
+  }
+  return [...map.values()].sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,120);
+}
+
+function mergeLessons(local=[],remote=[]){
+  const map=new Map();
+  for(const lesson of [...remote,...local]){
+    if(lesson?.id)map.set(lesson.id,lesson);
+  }
+  return [...map.values()].slice(0,100);
+}
+
+function applySyncedState(remote){
+  if(!remote||typeof remote!=='object')return;
+  state.stats=mergeStats(state.stats,remote.stats);
+  state.sessions=mergeSessions(state.sessions,remote.sessions);
+  state.customLessons=mergeLessons(state.customLessons,remote.customLessons);
+  saveState({skipSync:true});
+}
+
+async function syncRequest(action,payload){
+  if(!syncCode)throw new Error('NO_SYNC_CODE');
+  const response=await fetch('./api/sync',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action,code:syncCode,state:payload||undefined})
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||!data.ok)throw new Error(data.code||'SYNC_ERROR');
+  return data;
+}
+
+async function syncPull(){
+  if(!syncCode||syncBusy)return false;
+  syncBusy=true;
+  try{
+    const data=await syncRequest('pull');
+    if(data.exists&&data.state)applySyncedState(data.state);
+    refreshSyncUi('Synchronisé');
+    return !!data.exists;
+  }catch{
+    refreshSyncUi('Synchronisation momentanément indisponible');
+    return false;
+  }finally{
+    syncBusy=false;
+  }
+}
+
+async function syncPush(){
+  if(!syncCode||syncBusy)return;
+  syncBusy=true;
+  try{
+    const data=await syncRequest('push',syncSnapshot());
+    if(data.state)applySyncedState(data.state);
+    refreshSyncUi('Synchronisé');
+  }catch{
+    refreshSyncUi('Sauvegardé sur cet appareil — synchro à réessayer');
+  }finally{
+    syncBusy=false;
+  }
+}
+
+function scheduleSyncPush(){
+  if(!syncCode)return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(syncPush,900);
+}
+
+function refreshSyncUi(message=''){
+  const status=$('syncStatus');
+  const display=$('syncCodeDisplay');
+  const now=$('syncNow');
+  if(!status||!display||!now)return;
+  if(syncCode){
+    status.textContent=message||'Synchronisation activée sur cet appareil.';
+    display.textContent='Code famille : '+formatSyncCode(syncCode);
+    display.classList.remove('hidden');
+    now.classList.remove('hidden');
+  }else{
+    status.textContent=message||'Cet appareil n’est pas encore synchronisé.';
+    display.classList.add('hidden');
+    now.classList.add('hidden');
+  }
+}
+
+async function createFamilySync(){
+  if(!syncCode){
+    syncCode=makeSyncCode();
+    localStorage.setItem(SYNC_STORAGE_KEY,syncCode);
+  }
+  refreshSyncUi('Création du code…');
+  await syncPush();
+  $('syncCodeInput').value=formatSyncCode(syncCode);
+}
+
+async function linkFamilySync(){
+  const code=normalizeSyncCode($('syncCodeInput').value);
+  if(code.length!==10){
+    refreshSyncUi('Le code famille doit contenir 10 caractères.');
+    return;
+  }
+  syncCode=code;
+  localStorage.setItem(SYNC_STORAGE_KEY,syncCode);
+  refreshSyncUi('Connexion au profil d’Harmonie…');
+  const exists=await syncPull();
+  if(!exists)await syncPush();
+  lessons=[
+    ...lessons.filter(l=>!String(l.id).startsWith('custom-')),
+    ...state.customLessons.map(normalizeLesson)
+  ];
+  renderLessons();
 }
 
 function normalizeLesson(raw){
@@ -188,6 +357,8 @@ function itemsForMarche(lesson,marcheIndex){
 
 async function loadLessons(){
   loadState();
+  syncCode=normalizeSyncCode(localStorage.getItem(SYNC_STORAGE_KEY)||'');
+  if(syncCode)await syncPull();
   const loaded=[];
   for(const url of DEFAULT_URLS){
     try{
@@ -1593,6 +1764,8 @@ function parentOpen(){
   if(code===null)return;
   if(code!=='2741'){alert('Code incorrect.');return}
   screen('parent');
+  refreshSyncUi();
+  if($('syncCodeInput'))$('syncCodeInput').value=syncCode?formatSyncCode(syncCode):'';
 }
 
 $('boardCanvas').addEventListener('pointerdown',e=>{
@@ -1661,6 +1834,9 @@ let gateTimer=null;
 $('parentGate').addEventListener('pointerdown',()=>gateTimer=setTimeout(parentOpen,900));
 for(const ev of ['pointerup','pointercancel','pointerleave'])$('parentGate').addEventListener(ev,()=>clearTimeout(gateTimer));
 $('parentDone').onclick=()=>{screen('home');renderLessons()};
+$('createSyncCode').onclick=createFamilySync;
+$('linkSyncCode').onclick=linkFamilySync;
+$('syncNow').onclick=async()=>{refreshSyncUi('Synchronisation…');await syncPush()};
 $('lessonForm').onsubmit=saveCustomLesson;
 $('activityType').onchange=()=>{
   const math=$('activityType').value==='math';
