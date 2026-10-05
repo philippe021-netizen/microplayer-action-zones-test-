@@ -39,6 +39,8 @@ assert.ok(client.includes("Number(key.outer)||0.30"),'background key must use th
 assert.ok(client.includes('float warm='),'keyer must explicitly protect warm skin and hair tones');
 assert.ok(client.includes('float blue='),'keyer must explicitly protect blue jeans');
 assert.ok(client.includes('float whiteProtect='),'keyer must protect white shirt and shoes only in their expected zones');
+assert.ok(client.includes('vec2(0.50,0.63)'),'white shirt protection must use WebGL-flipped torso coordinates');
+assert.ok(client.includes('vec2(0.35,0.06)')&&client.includes('vec2(0.65,0.06)'),'shoe protection must use WebGL-flipped floor coordinates');
 
 assert.ok(alphabet.includes('../ardoise-magique/index.html'),'alphabet game links to classroom');
 assert.ok(!/if\s*\(\s*letter\s*===?\s*['"]R['"]/.test(client),'engine must not branch on R');
