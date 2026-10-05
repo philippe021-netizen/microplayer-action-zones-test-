@@ -12,13 +12,16 @@ const lesson=JSON.parse(fs.readFileSync(path.join(__dirname,'lessons/r-01.json')
 const alphabet=fs.readFileSync(path.join(__dirname,'../harmonie-alphabet/index.html'),'utf8');
 
 assert.deepEqual(lesson.words,['une rue','le roi','le repas','un arbre','mon frère','un fruit','une voiture','trois']);
+assert.equal(lesson.marches.length,3);
+assert.deepEqual(lesson.marches[1].words,['la reine','mon père','après','il roule','la route','quatre']);
+assert.deepEqual(lesson.marches[2].words,['rond / ronde','aujourd’hui','hier','derrière','un carré']);
 assert.equal(lesson.difficulty,'normal');
 assert.equal(lesson.displaySeconds,3);
 
 for(const feature of ['La classe d’Harmonie','teacherTemplate','teacher-motion-source','teacher-motion-idle','teacher-motion-point','teacher-motion-bravo','teacher-motion-keyed','boardCanvas','chalkCorrection','stamp','progressScreen','J’ai fini !']){
   assert.ok(page.includes(feature),'page missing '+feature);
 }
-for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','teacher-speech','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','HARMONIE_TEACHER_BRAVO_VIDEO','teacherMotionVideos','startTeacherIdleMotion','startTeacherBravoMotion',"startTeacherVideo('bravo')"]){
+for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','teacher-speech','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','HARMONIE_TEACHER_BRAVO_VIDEO','teacherMotionVideos','startTeacherIdleMotion','startTeacherBravoMotion',"startTeacherVideo('bravo')",'itemsForMarche','marche-actions','selectedMarche']){
   assert.ok(client.includes(feature),'client missing '+feature);
 }
 for(const feature of ['pose-point','pose-check','pose-cheer','stampSlam','chalk-correction','teacher-motion-keyed','teacher-motion-source']){
