@@ -7,6 +7,7 @@ const page=fs.readFileSync(path.join(__dirname,'index.html'),'utf8');
 const client=fs.readFileSync(path.join(__dirname,'classroom.js'),'utf8');
 const css=fs.readFileSync(path.join(__dirname,'classroom.css'),'utf8');
 const recognizer=fs.readFileSync(path.join(__dirname,'api/recognize-handwriting.js'),'utf8');
+const teacherSpeech=fs.readFileSync(path.join(__dirname,'api/teacher-speech.js'),'utf8');
 const lesson=JSON.parse(fs.readFileSync(path.join(__dirname,'lessons/r-01.json'),'utf8'));
 const alphabet=fs.readFileSync(path.join(__dirname,'../harmonie-alphabet/index.html'),'utf8');
 
@@ -14,10 +15,10 @@ assert.deepEqual(lesson.words,['une rue','le roi','le repas','un arbre','mon fr�
 assert.equal(lesson.difficulty,'normal');
 assert.equal(lesson.displaySeconds,3);
 
-for(const feature of ['La classe d’Harmonie','teacherTemplate','teacher-motion-source','teacher-motion-keyed','boardCanvas','chalkCorrection','stamp','progressScreen','J’ai fini !']){
+for(const feature of ['La classe d’Harmonie','teacherTemplate','teacher-motion-source','teacher-motion-idle','teacher-motion-point','teacher-motion-keyed','boardCanvas','chalkCorrection','stamp','progressScreen','J’ai fini !']){
   assert.ok(page.includes(feature),'page missing '+feature);
 }
-for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','startTeacherIdleMotion']){
+for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','teacher-speech','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','teacherMotionVideos','startTeacherIdleMotion']){
   assert.ok(client.includes(feature),'client missing '+feature);
 }
 for(const feature of ['pose-point','pose-check','pose-cheer','stampSlam','chalk-correction','teacher-motion-keyed','teacher-motion-source']){
@@ -31,6 +32,11 @@ for(const feature of ['makeRecognitionImage','toDataURL','image/png']){
 }
 assert.ok(!recognizer.includes('MYSCRIPT_APPLICATION_KEY'),'MyScript credentials must no longer be required');
 assert.ok(!client.includes('MYSCRIPT_NOT_CONFIGURED'),'MyScript UI error path must be removed');
+for(const feature of ['GOOGLE_TTS_API_KEY','fr-FR-Chirp3-HD-Leda','text:synthesize','audioContent']){
+  assert.ok(teacherSpeech.includes(feature),'teacher speech API missing '+feature);
+}
+assert.ok(client.includes('teacherVoiceCache'),'natural teacher audio should be cached in the browser');
+assert.ok(client.includes('decodeAudioData'),'teacher voice should play through unlocked WebAudio on iPad');
 assert.ok(!page.includes('selfSuccess'),'manual child validation must stay removed');
 assert.ok(!page.includes('teacher-motion-anim'),'the classroom must use real video, not animated WebP');
 assert.ok(!page.includes('teacher-photo'),'the old static teacher photo must be removed from the classroom template');
