@@ -1,6 +1,6 @@
 'use strict';
 const { Readable } = require('node:stream');
-const SOURCE = 'https://d2ol7oe51mr4n9.cloudfront.net/user_3CNZlGstqB82H8rW1cNlNbHQ2QU/4724d574-d457-4e86-99a2-0d0568f5d065.mp4';
+const SOURCE = 'https://d2ol7oe51mr4n9.cloudfront.net/user_3CNZlGstqB82H8rW1cNlNbHQ2QU/3b0d4951-d7a5-4ee9-b3e8-2f0541e1498d.mp4';
 
 module.exports = async function handler(req, res) {
   if (!['GET','HEAD'].includes(req.method)) {
