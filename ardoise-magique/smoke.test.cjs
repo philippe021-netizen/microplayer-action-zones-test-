@@ -24,10 +24,10 @@ assert.equal(alphabetLesson.items.length,10);
 assert.ok(alphabetLesson.items.slice(0,7).every(x=>x.showPrefix!==false));
 assert.ok(alphabetLesson.items.slice(7).every(x=>x.showPrefix===false));
 
-for(const feature of ['La classe d’Harmonie','syncStatus','syncCodeDisplay','createSyncCode','linkSyncCode','syncNow','unicornQuest','unicornMascot','unicornSurprise','unicornSurpriseIcon','teacherTemplate','teacher-motion-source','teacher-motion-idle','teacher-motion-point','teacher-motion-bravo','teacher-motion-keyed','boardCanvas','alphabetZone','alphabetControls','alphabetCheck','chalkCorrection','stamp','progressScreen','J’ai fini !']){
+for(const feature of ['La classe d’Harmonie','openPoetry','poetryScreen','poetryText','poetryRecord','poetryStop','syncStatus','syncCodeDisplay','createSyncCode','linkSyncCode','syncNow','unicornQuest','unicornMascot','unicornSurprise','unicornSurpriseIcon','teacherTemplate','teacher-motion-source','teacher-motion-idle','teacher-motion-point','teacher-motion-bravo','teacher-motion-keyed','boardCanvas','alphabetZone','alphabetControls','alphabetCheck','chalkCorrection','stamp','progressScreen','J’ai fini !']){
   assert.ok(page.includes(feature),'page missing '+feature);
 }
-for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','teacher-speech','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','HARMONIE_TEACHER_BRAVO_VIDEO','teacherMotionVideos','startTeacherIdleMotion','startTeacherBravoMotion',"startTeacherVideo('bravo')",'itemsForMarche','marche-actions','selectedMarche','beginAlphabetExercise','alphabetExpected','checkAlphabetOrder','alphabetSelection','renderUnicornQuest','advanceUnicorn','showUnicornSurprise','UNICORN_SURPRISES','TEACHER_NUDGE_DELAY','scheduleTeacherNudge','clearTeacherNudge','teacherNudge','alphabetNudge','AUTO_NEXT_DELAY','AUTO_RETRY_DELAY','autoAdvanceAfterSuccess','autoRetryAfterCorrection','clearAutoFlow','getBackgroundMusic','musicDuck','musicUnduck','fadeMusicTo','MUSIC_VOLUME_DUCK','SYNC_STORAGE_KEY','syncPull','syncPush','createFamilySync','linkFamilySync']){
+for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','teacher-speech','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','HARMONIE_TEACHER_BRAVO_VIDEO','teacherMotionVideos','startTeacherIdleMotion','startTeacherBravoMotion',"startTeacherVideo('bravo')",'itemsForMarche','marche-actions','selectedMarche','beginAlphabetExercise','alphabetExpected','checkAlphabetOrder','alphabetSelection','renderUnicornQuest','advanceUnicorn','showUnicornSurprise','UNICORN_SURPRISES','TEACHER_NUDGE_DELAY','scheduleTeacherNudge','clearTeacherNudge','teacherNudge','alphabetNudge','AUTO_NEXT_DELAY','AUTO_RETRY_DELAY','autoAdvanceAfterSuccess','autoRetryAfterCorrection','clearAutoFlow','getBackgroundMusic','musicDuck','musicUnduck','fadeMusicTo','MUSIC_VOLUME_DUCK','SYNC_STORAGE_KEY','syncPull','syncPush','createFamilySync','linkFamilySync','POEM_AUTUMN','openPoetry','startPoetryRecording','finishPoetryRecording','recordPoetryAttempt']){
   assert.ok(client.includes(feature),'client missing '+feature);
 }
 for(const feature of ['pose-point','pose-check','pose-cheer','stampSlam','chalk-correction','teacher-motion-keyed','teacher-motion-source','alphabet-zone','alphabet-word','alphabet-prefix','unicorn-quest','unicorn-stairs','unicorn-mascot','unicorn-surprise']){
@@ -98,3 +98,11 @@ for(const feature of ['harmonie_family_sync','runTransaction','INVALID_SYNC_CODE
   assert.ok(syncApi.includes(feature),'sync API missing '+feature);
 }
 assert.ok(server.includes("app.all('/api/sync'"),'permanent server must expose family sync API');
+
+const poetryApi=fs.readFileSync(path.join(__dirname,'api/recognize-poetry.js'),'utf8');
+for(const feature of ['@google-cloud/speech','SpeechClient','autoDecodingConfig','fr-FR','missingWords','score>=0.82']){
+  assert.ok(poetryApi.includes(feature),'poetry speech API missing '+feature);
+}
+assert.ok(server.includes("app.all('/api/recognize-poetry'"),'server must expose poetry recognition API');
+assert.ok(page.includes('🎤 Poésie'),'home must expose poetry activity');
+assert.ok(client.includes("fadeMusicTo(.008,420)"),'music must duck almost silently during child recital');
