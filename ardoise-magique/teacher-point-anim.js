@@ -1,5 +1,6 @@
 window.HARMONIE_TEACHER_IDLE_VIDEO="/api/harmonie-idle-video";
 window.HARMONIE_TEACHER_POINT_VIDEO="/api/harmonie-point-video";
+window.HARMONIE_TEACHER_BRAVO_VIDEO="./media/bravo-harmonie-2.8s.mp4";
 window.HARMONIE_CHROMA_KEY={
   key:[0.0,0.6941176471,0.0],
   inner:0.035,
