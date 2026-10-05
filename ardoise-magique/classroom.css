@@ -905,3 +905,28 @@ header{display:flex;align-items:center;gap:10px;flex:none;background:#ffffffde;b
   font-weight:800;
   font-size:14px;
 }
+
+/* === Poésie : vrai mode par cœur sans aucune lettre === */
+.poetry-card.memory-mode{
+  min-height:260px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.poetry-card.memory-mode .poetry-label,
+.poetry-card.memory-mode .poetry-tip{
+  visibility:hidden;
+}
+.poetry-memory-blank{
+  min-height:150px;
+  display:grid;
+  place-items:center;
+  font-family:system-ui,sans-serif;
+}
+.poetry-memory-blank span{
+  font-size:76px;
+  line-height:1;
+  filter:drop-shadow(0 8px 14px #6c4a2b2b);
+  animation:poetryMicFloat 1.6s ease-in-out infinite alternate;
+}
+@keyframes poetryMicFloat{to{transform:translateY(-7px) scale(1.04)}}
