@@ -21,12 +21,21 @@ async function run(){
     delete process.env.MYSCRIPT_APPLICATION_KEY;
     delete process.env.MYSCRIPT_HMAC_KEY;
     let res=response();
+    await handler({method:'GET'},res);
+    assert.equal(res.statusCode,200);
+    assert.deepEqual(res.payload,{ok:true,provider:'myscript',configured:false,language:'fr_FR'});
+
+    res=response();
     await handler({method:'POST',body:{expected:'une rue',strokes:[{x:[1,2],y:[1,2],t:[1,2]}]}},res);
     assert.equal(res.statusCode,503);
     assert.equal(res.payload.code,'MYSCRIPT_NOT_CONFIGURED');
 
     process.env.MYSCRIPT_APPLICATION_KEY='app-test';
     process.env.MYSCRIPT_HMAC_KEY='hmac-test';
+
+    res=response();
+    await handler({method:'GET'},res);
+    assert.equal(res.payload.configured,true);
 
     let captured=null;
     global.fetch=async(url,options)=>{
