@@ -218,10 +218,10 @@ function initTeacherKeyer(){
     const keyColor=Array.isArray(key.key)&&key.key.length===3?key.key:[0.0,0.6941176471,0.0];
     gl.uniform3f(gl.getUniformLocation(program,'u_key'),Number(keyColor[0])||0,Number(keyColor[1])||0.6941176471,Number(keyColor[2])||0);
     gl.uniform1f(gl.getUniformLocation(program,'u_inner'),Number(key.inner)||0.035);
-    gl.uniform1f(gl.getUniformLocation(program,'u_outer'),Number(key.outer)||0.18);
-    gl.uniform1f(gl.getUniformLocation(program,'u_greenLow'),Number(key.greenLow)||0.04);
-    gl.uniform1f(gl.getUniformLocation(program,'u_greenHigh'),Number(key.greenHigh)||0.24);
-    gl.uniform1f(gl.getUniformLocation(program,'u_spill'),Number(key.spill)||0.95);
+    gl.uniform1f(gl.getUniformLocation(program,'u_outer'),Number(key.outer)||0.20);
+    gl.uniform1f(gl.getUniformLocation(program,'u_greenLow'),Number(key.greenLow)||0.015);
+    gl.uniform1f(gl.getUniformLocation(program,'u_greenHigh'),Number(key.greenHigh)||0.14);
+    gl.uniform1f(gl.getUniformLocation(program,'u_spill'),Number(key.spill)||0.98);
     gl.clearColor(0,0,0,0);
     teacherKeyer={gl,texture,canvas,lastW:0,lastH:0};
     return teacherKeyer;
