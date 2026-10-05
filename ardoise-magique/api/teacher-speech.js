@@ -1,3 +1,23 @@
+function escapeSsml(value){
+  return String(value||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&apos;');
+}
+
+function stableSsml(text){
+  const clean=String(text||'')
+    .replace(/\s+/g,' ')
+    .replace(/\s*([,;:!?])\s*/g,'$1 ')
+    .replace(/\s*\.\s*/g,'. ')
+    .trim();
+  const parts=clean.split(/(?<=[.!?])\s+/).filter(Boolean);
+  const body=parts.map(sentence=>'<s>'+escapeSsml(sentence)+'</s>').join('<break time="140ms"/>');
+  return '<speak><prosody rate="94%" volume="+1dB">'+body+'</prosody></speak>';
+}
+
 module.exports=async function handler(req,res){
   const apiKey=process.env.GOOGLE_TTS_API_KEY;
 
@@ -35,7 +55,7 @@ module.exports=async function handler(req,res){
         method:'POST',
         headers:{'Content-Type':'application/json; charset=utf-8'},
         body:JSON.stringify({
-          input:{text},
+          input:{ssml:stableSsml(text)},
           voice:{
             languageCode:'fr-FR',
             name:'fr-FR-Chirp3-HD-Leda'
