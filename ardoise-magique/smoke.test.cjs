@@ -37,7 +37,7 @@ assert.ok(css.includes('saturate(.90)'),'idle video must reduce excessive satura
 assert.ok(client.split('md(c.rgb').length-1>=18,'background key must sample enough border/floor colors to remove the changing backdrop');
 assert.ok(client.includes("Number(key.outer)||0.30"),'background key must use the stricter wide removal threshold');
 assert.ok(client.includes('float warm='),'keyer must explicitly protect warm skin and hair tones');
-assert.ok(client.includes('float blue='),'keyer must explicitly protect blue jeans');
+assert.ok(client.includes('float blue=')&&client.includes('float blueProtect='),'keyer must spatially protect blue jeans without preserving a cyan background');
 assert.ok(client.includes('float whiteProtect='),'keyer must protect white shirt and shoes only in their expected zones');
 assert.ok(client.includes('vec2(0.50,0.63)'),'white shirt protection must use WebGL-flipped torso coordinates');
 assert.ok(client.includes('vec2(0.35,0.06)')&&client.includes('vec2(0.68,0.06)'),'shoe protection must cover the full WebGL-flipped shoe positions');
