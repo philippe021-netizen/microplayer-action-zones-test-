@@ -190,7 +190,7 @@ function initTeacherKeyer(){
     const vertex=compileTeacherShader(gl,gl.VERTEX_SHADER,
       'attribute vec2 a_position;attribute vec2 a_texCoord;varying vec2 v_texCoord;void main(){gl_Position=vec4(a_position,0.0,1.0);v_texCoord=a_texCoord;}');
     const fragment=compileTeacherShader(gl,gl.FRAGMENT_SHADER,
-      'precision mediump float;uniform sampler2D u_image;uniform vec3 u_key;uniform float u_inner;uniform float u_outer;uniform float u_spill;varying vec2 v_texCoord;void main(){vec4 c=texture2D(u_image,v_texCoord);float d=distance(c.rgb,u_key);float alpha=smoothstep(u_inner,u_outer,d);float dominance=max(0.0,c.g-max(c.r,c.b));float edge=(1.0-alpha)*u_spill;float neutral=(c.r+c.b)*0.5;c.g=mix(c.g,min(c.g,neutral*1.04+0.02),edge*smoothstep(0.02,0.22,dominance));gl_FragColor=vec4(c.rgb,alpha);}');
+      'precision mediump float;uniform sampler2D u_image;uniform vec3 u_key;uniform float u_inner;uniform float u_outer;uniform float u_greenLow;uniform float u_greenHigh;uniform float u_spill;varying vec2 v_texCoord;void main(){vec4 c=texture2D(u_image,v_texCoord);float d=distance(c.rgb,u_key);float exactAlpha=smoothstep(u_inner,u_outer,d);float dominance=max(0.0,c.g-max(c.r,c.b));float greenAlpha=1.0-smoothstep(u_greenLow,u_greenHigh,dominance);float alpha=min(exactAlpha,greenAlpha);float neutral=(c.r+c.b)*0.5;float spillAmt=smoothstep(0.01,u_greenHigh,dominance)*u_spill;float edgeAmt=spillAmt*(1.0-alpha*0.65);c.g=mix(c.g,min(c.g,neutral*1.04+0.02),edgeAmt);gl_FragColor=vec4(c.rgb,alpha);}');
     const program=gl.createProgram();
     gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);
     if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program)||'program');
@@ -217,9 +217,11 @@ function initTeacherKeyer(){
     const key=window.HARMONIE_CHROMA_KEY||{};
     const keyColor=Array.isArray(key.key)&&key.key.length===3?key.key:[0.0,0.6941176471,0.0];
     gl.uniform3f(gl.getUniformLocation(program,'u_key'),Number(keyColor[0])||0,Number(keyColor[1])||0.6941176471,Number(keyColor[2])||0);
-    gl.uniform1f(gl.getUniformLocation(program,'u_inner'),Number(key.inner)||0.035);
-    gl.uniform1f(gl.getUniformLocation(program,'u_outer'),Number(key.outer)||0.16);
-    gl.uniform1f(gl.getUniformLocation(program,'u_spill'),Number(key.spill)||0.82);
+    gl.uniform1f(gl.getUniformLocation(program,'u_inner'),Number(key.inner)||0.03);
+    gl.uniform1f(gl.getUniformLocation(program,'u_outer'),Number(key.outer)||0.18);
+    gl.uniform1f(gl.getUniformLocation(program,'u_greenLow'),Number(key.greenLow)||0.04);
+    gl.uniform1f(gl.getUniformLocation(program,'u_greenHigh'),Number(key.greenHigh)||0.24);
+    gl.uniform1f(gl.getUniformLocation(program,'u_spill'),Number(key.spill)||0.95);
     gl.clearColor(0,0,0,0);
     teacherKeyer={gl,texture,canvas,lastW:0,lastH:0};
     return teacherKeyer;
