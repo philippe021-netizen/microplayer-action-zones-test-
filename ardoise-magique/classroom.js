@@ -1860,7 +1860,8 @@ async function finishPoetryRecording(){
 
     recordPoetryAttempt(result);
     if(result.match){
-      $('poetryResult').innerHTML='<div class="poetry-good">🌟 Bravo Harmonie ! Ta récitation est très bien.</div>';
+      const reminder=(result.missingWords||[]).length?' <span class="small">Petit rappel : '+safe(result.missingWords.join(', '))+'.</span>':'';
+      $('poetryResult').innerHTML='<div class="poetry-good">🌟 Bravo Harmonie ! Ta récitation est très bien.'+reminder+'</div>';
       setTeacherPose('cheer');
       startTeacherBravoMotion();
       chime(true);
