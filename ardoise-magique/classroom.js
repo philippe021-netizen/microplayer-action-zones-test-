@@ -9,6 +9,17 @@ const TEACHER_NUDGE_DELAY=30000;
 const AUTO_NEXT_DELAY=3200;
 const AUTO_RETRY_DELAY=3200;
 const REVIEW_DAYS=[0,1,3,7,14,30];
+const POEM_AUTUMN={
+  id:'poem-feuilles-automne',
+  title:'Feuilles d’automne',
+  author:'Isabelle Jaccard',
+  parts:[
+    'J’ai regardé les feuilles rouges, elles tombaient.',
+    'J’ai regardé les feuilles jaunes, elles volaient.',
+    'J’ai regardé les feuilles brunes que le vent poussait.',
+    'Rouges, jaunes, brunes, chacune dansait.'
+  ]
+};
 
 const $=id=>document.getElementById(id);
 const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -46,6 +57,13 @@ const teacherVoiceCache=new Map();
 let syncCode='';
 let syncTimer=null;
 let syncBusy=false;
+let poetryPart=1;
+let poetryMask=0;
+let poetryRecorder=null;
+let poetryStream=null;
+let poetryChunks=[];
+let poetryAutoStop=null;
+let poetryBusy=false;
 
 let state={
   settings:{music:true,voice:true,sounds:true,guide:true},
@@ -1695,6 +1713,206 @@ function openProgress(){
   screen('progressScreen');
 }
 
+
+function poetryExpected(part=poetryPart){
+  return part===0?POEM_AUTUMN.parts.join(' '):POEM_AUTUMN.parts[part-1];
+}
+
+function poetryStatKey(part=poetryPart){
+  return POEM_AUTUMN.id+'|'+(part===0?'whole':'part-'+part);
+}
+
+function poetryMastery(part=poetryPart){
+  return Number(state.stats[poetryStatKey(part)]?.mastery||0);
+}
+
+function renderPoetrySteps(){
+  const host=$('poetrySteps');
+  if(!host)return;
+  host.innerHTML='';
+  for(let i=1;i<=4;i++){
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='poetry-step'+(poetryPart===i?' active':'')+(poetryMastery(i)>=3?' done':'');
+    b.textContent=poetryMastery(i)>=3?'✓ '+i:String(i);
+    b.onclick=()=>{poetryPart=i;poetryMask=0;renderPoetry()};
+    host.appendChild(b);
+  }
+  const all=document.createElement('button');
+  all.type='button';
+  all.className='poetry-step final'+(poetryPart===0?' active':'')+(poetryMastery(0)>=3?' done':'');
+  all.textContent=poetryMastery(0)>=3?'✓ Poésie entière':'⭐ Toute la poésie';
+  all.onclick=()=>{poetryPart=0;poetryMask=poetryMastery(0)>=1?1:0;renderPoetry()};
+  host.appendChild(all);
+}
+
+function poetryMaskedHtml(text,level){
+  const tokens=String(text).split(/(\s+)/);
+  let wordIndex=0;
+  return tokens.map(token=>{
+    if(/^\s+$/.test(token))return token;
+    const hide=level===2||(level===1&&(wordIndex++%2===1));
+    if(!hide)return safe(token);
+    const clean=token.replace(/[^A-Za-zÀ-ÿŒœÆæ]/g,'');
+    const first=clean.charAt(0);
+    return '<span class="poetry-blank">'+safe(first)+'…</span>';
+  }).join('');
+}
+
+function renderPoetry(){
+  renderPoetrySteps();
+  const whole=poetryPart===0;
+  $('poetryLabel').textContent=whole?'Récitation complète':'Passage '+poetryPart+' sur 4';
+  const text=whole?POEM_AUTUMN.parts.join('\n'):POEM_AUTUMN.parts[poetryPart-1];
+  $('poetryText').innerHTML=text.split('\n').map(line=>poetryMaskedHtml(line,poetryMask)).join('<br>');
+  $('poetryHide').textContent=poetryMask===0?'🙈 Cacher des mots':poetryMask===1?'🙈 Tout cacher':'👀 Revoir le texte';
+  $('poetryTip').textContent=whole
+    ? 'Quand tu te sens prête, récite toute la poésie sans te presser.'
+    : 'Écoute le passage, puis récite-le à ton tour.';
+  $('poetryResult').innerHTML='';
+}
+
+function openPoetry(){
+  poetryPart=1;
+  poetryMask=0;
+  renderPoetry();
+  screen('poetryScreen');
+  musicStart();
+  sayTeacher('On va apprendre ta poésie par petits morceaux. Écoute un passage, puis touche le micro et récite-le à ton tour.');
+}
+
+function poetryListen(){
+  const text=poetryExpected();
+  sayTeacher(text);
+}
+
+function cyclePoetryMask(){
+  poetryMask=(poetryMask+1)%3;
+  renderPoetry();
+}
+
+function preferredPoetryMime(){
+  if(typeof MediaRecorder==='undefined')return '';
+  const choices=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus'];
+  return choices.find(type=>MediaRecorder.isTypeSupported?.(type))||'';
+}
+
+async function startPoetryRecording(){
+  if(poetryBusy||poetryRecorder?.state==='recording')return;
+  if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined'){
+    $('poetryResult').innerHTML='<b>Le micro n’est pas disponible sur ce navigateur.</b>';
+    return;
+  }
+  try{
+    poetryStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+    const mime=preferredPoetryMime();
+    poetryChunks=[];
+    poetryRecorder=mime?new MediaRecorder(poetryStream,{mimeType:mime}):new MediaRecorder(poetryStream);
+    poetryRecorder.ondataavailable=e=>{if(e.data?.size)poetryChunks.push(e.data)};
+    poetryRecorder.onstop=finishPoetryRecording;
+    poetryRecorder.start(250);
+    fadeMusicTo(.008,420);
+    $('poetryRecording').classList.remove('hidden');
+    $('poetryRecord').disabled=true;
+    $('poetryListen').disabled=true;
+    $('poetryResult').innerHTML='';
+    clearTimeout(poetryAutoStop);
+    poetryAutoStop=setTimeout(stopPoetryRecording,poetryPart===0?55000:25000);
+  }catch{
+    $('poetryResult').innerHTML='<b>Autorise le micro pour pouvoir réciter.</b>';
+    musicUnduck();
+  }
+}
+
+function stopPoetryRecording(){
+  clearTimeout(poetryAutoStop);
+  if(poetryRecorder?.state==='recording')poetryRecorder.stop();
+}
+
+function blobToDataUrl(blob){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(String(r.result||''));
+    r.onerror=reject;
+    r.readAsDataURL(blob);
+  });
+}
+
+async function finishPoetryRecording(){
+  poetryStream?.getTracks?.().forEach(t=>t.stop());
+  poetryStream=null;
+  $('poetryRecording').classList.add('hidden');
+  musicUnduck();
+  poetryBusy=true;
+  $('poetryResult').innerHTML='<b>La maîtresse écoute ta récitation…</b>';
+
+  try{
+    const type=poetryRecorder?.mimeType||poetryChunks[0]?.type||'audio/webm';
+    const blob=new Blob(poetryChunks,{type});
+    const audioDataUrl=await blobToDataUrl(blob);
+    const response=await fetch('./api/recognize-poetry',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({part:poetryPart,audioDataUrl})
+    });
+    const result=await response.json();
+    if(!response.ok||!result.ok)throw new Error(result.code||'speech');
+
+    recordPoetryAttempt(result);
+    if(result.match){
+      $('poetryResult').innerHTML='<div class="poetry-good">🌟 Bravo Harmonie ! Ta récitation est très bien.</div>';
+      setTeacherPose('cheer');
+      startTeacherBravoMotion();
+      chime(true);
+      advanceUnicorn();
+      sayTeacher(poetryPart===0?'Bravo Harmonie ! Tu as récité toute la poésie.':'Bravo ! Ce passage est bien retenu.');
+      if(poetryPart!==0){
+        setTimeout(()=>{
+          poetryPart=poetryPart<4?poetryPart+1:0;
+          poetryMask=0;
+          renderPoetry();
+        },3000);
+      }
+    }else if(result.almost){
+      const missing=(result.missingWords||[]).join(', ');
+      $('poetryResult').innerHTML='<div class="poetry-almost">💛 Presque !'+(missing?' Pense à : <b>'+safe(missing)+'</b>.':'')+'</div>';
+      sayTeacher('C’était presque ça. Regarde le petit indice et réessaie tranquillement.');
+    }else{
+      $('poetryResult').innerHTML='<div class="poetry-retry">🌱 On recommence doucement. Écoute encore une fois, puis réessaie.</div>';
+      sayTeacher('Ce n’est pas grave. Écoute encore le passage, puis on réessaie.');
+    }
+  }catch{
+    $('poetryResult').innerHTML='<div class="poetry-retry">Je n’ai pas réussi à entendre correctement. Réessaie près de l’iPad.</div>';
+    sayTeacher('Je n’ai pas bien entendu. Approche-toi un peu du micro et réessaie.');
+  }finally{
+    poetryBusy=false;
+    poetryRecorder=null;
+    poetryChunks=[];
+    $('poetryRecord').disabled=false;
+    $('poetryListen').disabled=false;
+  }
+}
+
+function recordPoetryAttempt(result){
+  const key=poetryStatKey();
+  const old=state.stats[key]||{attempts:0,correct:0,errors:0,hints:0,streak:0,mastery:0};
+  const good=!!result.match;
+  const mastery=Math.max(0,Math.min(5,Number(old.mastery||0)+(good?1:0)));
+  state.stats[key]={
+    ...old,
+    attempts:Number(old.attempts||0)+1,
+    correct:Number(old.correct||0)+(good?1:0),
+    errors:Number(old.errors||0)+(good?0:1),
+    streak:good?Number(old.streak||0)+1:0,
+    mastery,
+    last:new Date().toISOString(),
+    due:Date.now()+(good?REVIEW_DAYS[Math.min(mastery,REVIEW_DAYS.length-1)]*86400000:0)
+  };
+  saveState();
+  renderPoetrySteps();
+}
+
+
 function parseCustomItems(type,text){
   const lines=text.split(/\n/).map(s=>s.trim()).filter(Boolean);
   if(type==='writing'){
@@ -1819,6 +2037,12 @@ $('toLessons').onclick=()=>{screen('home');renderLessons()};
 $('playAgain').onclick=()=>startLesson(currentLesson);
 $('finishProgress').onclick=openProgress;
 $('openProgress').onclick=openProgress;
+$('openPoetry').onclick=openPoetry;
+$('poetryBack').onclick=()=>{stopPoetryRecording();musicStop();screen('home')};
+$('poetryListen').onclick=poetryListen;
+$('poetryHide').onclick=cyclePoetryMask;
+$('poetryRecord').onclick=startPoetryRecording;
+$('poetryStop').onclick=stopPoetryRecording;
 $('progressBack').onclick=()=>{screen('home');renderLessons()};
 $('backAlphabet').onclick=()=>{
   const lesson=lessons.find(l=>l.type==='alphabet');
