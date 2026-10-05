@@ -5,6 +5,8 @@ const LEGACY_KEY='harmonie-ardoise-v1';
 const DISPLAY_SECONDS={easy:6,normal:5,champion:4};
 const TEACHER_MOTION_SECONDS=10;
 const TEACHER_NUDGE_DELAY=30000;
+const AUTO_NEXT_DELAY=3200;
+const AUTO_RETRY_DELAY=3200;
 const REVIEW_DAYS=[0,1,3,7,14,30];
 
 const $=id=>document.getElementById(id);
@@ -22,6 +24,7 @@ let recognitionBusy=false;
 let timer=null;
 let teacherNudgeTimer=null;
 let teacherNudgeIndex=0;
+let autoFlowTimer=null;
 let strokes=[];
 let activeStroke=null;
 let alphabetSelection=[];
@@ -600,6 +603,7 @@ function startLesson(lesson,overrideItems){
   itemIndex=0;stars=0;
   teacherNudgeIndex=0;
   clearTeacherNudge();
+  clearAutoFlow();
   unicornStep=0;
   unicornTreasures=0;
   clearTimeout(unicornSurpriseTimer);
@@ -617,6 +621,27 @@ function exerciseType(item=currentItem()){return item?._sourceType||item?.type||
 function clearTeacherNudge(){
   if(teacherNudgeTimer)clearTimeout(teacherNudgeTimer);
   teacherNudgeTimer=null;
+}
+
+function clearAutoFlow(){
+  if(autoFlowTimer)clearTimeout(autoFlowTimer);
+  autoFlowTimer=null;
+}
+
+function autoAdvanceAfterSuccess(){
+  clearAutoFlow();
+  autoFlowTimer=setTimeout(()=>{
+    autoFlowTimer=null;
+    nextExercise(true);
+  },AUTO_NEXT_DELAY);
+}
+
+function autoRetryAfterCorrection(){
+  clearAutoFlow();
+  autoFlowTimer=setTimeout(()=>{
+    autoFlowTimer=null;
+    retryCurrent();
+  },AUTO_RETRY_DELAY);
 }
 
 function teacherNudge(kind){
@@ -827,9 +852,10 @@ function checkAlphabetOrder(){
     chime(true);
     advanceUnicorn();
     sayTeacher(pick(TEACHER.success));
-    $('afterControls').classList.remove('hidden');
+    $('afterControls').classList.add('hidden');
     $('retry').classList.add('hidden');
-    $('nextWord').classList.remove('hidden');
+    $('nextWord').classList.add('hidden');
+    autoAdvanceAfterSuccess();
     return;
   }
 
@@ -848,6 +874,7 @@ function checkAlphabetOrder(){
 
 function prepareRound(){
   clearTeacherNudge();
+  clearAutoFlow();
   clearInterval(timer);
   strokes=[];activeStroke=null;alphabetSelection=[];hints=0;roundTries=0;recognitionBusy=false;
   $('done').disabled=false;$('done').textContent='J’ai fini !';
@@ -1309,9 +1336,10 @@ function handleCorrect(){
   chime(true);
   advanceUnicorn();
   sayTeacher(pick(currentLesson.customPhrases?.length?currentLesson.customPhrases:TEACHER.success));
-  $('afterControls').classList.remove('hidden');
+  $('afterControls').classList.add('hidden');
   $('retry').classList.add('hidden');
-  $('nextWord').classList.remove('hidden');
+  $('nextWord').classList.add('hidden');
+  autoAdvanceAfterSuccess();
 }
 
 function handleWrong(result){
@@ -1327,12 +1355,14 @@ function handleWrong(result){
   setTimeout(()=>chalkRewrite(currentItem().expected,result.mistakePositions),420);
   $('feedback').textContent='Regarde bien la correction au tableau.';
   sayTeacher(pick(TEACHER.retry));
-  $('afterControls').classList.remove('hidden');
-  $('retry').classList.remove('hidden');
+  $('afterControls').classList.add('hidden');
+  $('retry').classList.add('hidden');
   $('nextWord').classList.add('hidden');
+  autoRetryAfterCorrection();
 }
 
 function retryCurrent(){
+  clearAutoFlow();
   if(exerciseType()==='alphabet'){
     clearTeacherNudge();
     hideStamp();
@@ -1364,15 +1394,18 @@ function retryCurrent(){
   resizeCanvas();
 }
 
-function nextExercise(){
+function nextExercise(autoStart=false){
   clearTeacherNudge();
+  clearAutoFlow();
   itemIndex++;
   if(itemIndex>=currentItems.length){finishLesson();return}
   prepareRound();
+  if(autoStart)setTimeout(beginTeaching,260);
 }
 
 function finishLesson(){
   clearTeacherNudge();
+  clearAutoFlow();
   clearInterval(timer);musicStop();
   $('progressBar').style.width='100%';
   const session={
@@ -1543,7 +1576,7 @@ $('hintBtn').onclick=()=>{
 };
 $('guideToggle').onclick=()=>{state.settings.guide=!state.settings.guide;saveState();refreshToggles()};
 
-$('leaveGame').onclick=()=>{clearTeacherNudge();clearInterval(timer);musicStop();screen('home');renderLessons()};
+$('leaveGame').onclick=()=>{clearTeacherNudge();clearAutoFlow();clearInterval(timer);musicStop();screen('home');renderLessons()};
 $('toLessons').onclick=()=>{screen('home');renderLessons()};
 $('playAgain').onclick=()=>startLesson(currentLesson);
 $('finishProgress').onclick=openProgress;
@@ -1572,6 +1605,7 @@ $('activityType').onchange=()=>{
 window.addEventListener('resize',()=>{if($('writeZone').classList.contains('show'))resizeCanvas()});
 window.addEventListener('pagehide',()=>{
   clearTeacherNudge();
+  clearAutoFlow();
   clearTimeout(unicornSurpriseTimer);
   musicStop();
   teacherVoiceToken++;
