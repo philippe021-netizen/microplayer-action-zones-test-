@@ -45,6 +45,13 @@
     <span class="pill" id="roundNo">Exercice 1/8</span>
     <div class="progressbar"><i id="progressBar"></i></div>
     <span class="pill" id="starCount">⭐ 0</span>
+    <div class="unicorn-quest" id="unicornQuest" aria-label="Les marches magiques de la licorne">
+      <div class="unicorn-stairs" aria-hidden="true">
+        <i data-step="1"></i><i data-step="2"></i><i data-step="3"></i><i data-step="4"></i><i data-step="5"></i>
+        <span class="unicorn-mascot" id="unicornMascot">🦄</span>
+        <span class="unicorn-gift">🎁</span>
+      </div>
+    </div>
   </div>
 
   <div class="classroom">
@@ -73,6 +80,14 @@
     </section>
   </div>
 
+  <div class="unicorn-surprise" id="unicornSurprise" aria-live="polite" aria-hidden="true">
+    <div class="unicorn-surprise-card">
+      <div class="unicorn-surprise-icon" id="unicornSurpriseIcon">🌈</div>
+      <strong id="unicornSurpriseTitle">Surprise !</strong>
+      <span id="unicornSurpriseText">La licorne a atteint le sommet !</span>
+      <div class="unicorn-sparkles">✨ ⭐ ✨ 💫 ✨</div>
+    </div>
+  </div>
   <div class="feedback" id="feedback"></div>
   <div class="controls-row" id="roundControls">
     <button class="mainbtn" id="startRound">Je suis prête ✨</button>
