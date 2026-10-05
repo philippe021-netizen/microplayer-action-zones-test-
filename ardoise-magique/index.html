@@ -171,7 +171,19 @@
         <button type="button" id="parentDone" class="softbtn">Retour</button>
       </div>
     </form>
-    <p class="small">Les résultats sont mémorisés sur cet appareil pour construire les futures révisions.</p>
+    <div class="sync-card">
+      <h3>☁️ Synchronisation Harmonie</h3>
+      <p class="small">Pour retrouver les mêmes progrès chez papa et chez maman. Le code reste privé entre les parents.</p>
+      <div class="sync-status" id="syncStatus">Cet appareil n’est pas encore synchronisé.</div>
+      <div class="sync-code-display hidden" id="syncCodeDisplay"></div>
+      <div class="sync-actions">
+        <button type="button" class="softbtn" id="createSyncCode">Créer le code famille</button>
+        <input id="syncCodeInput" maxlength="14" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Code famille">
+        <button type="button" class="softbtn" id="linkSyncCode">Relier cet appareil</button>
+        <button type="button" class="softbtn hidden" id="syncNow">Synchroniser maintenant</button>
+      </div>
+    </div>
+    <p class="small">Les progrès sont conservés sur cet appareil et, si la synchronisation est activée, partagés entre les appareils reliés.</p>
     <div id="parentMessage" class="feedback"></div>
   </div>
 </section>
