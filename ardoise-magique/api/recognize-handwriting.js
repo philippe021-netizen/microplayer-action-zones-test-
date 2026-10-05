@@ -104,6 +104,24 @@ module.exports=async function handler(req,res){
       return res.status(400).json({ok:false,code:'EMPTY_INK',message:'Aucun trait exploitable.'});
     }
 
+    // Safari/iPad fournit des temps relatifs à la page. MyScript attend surtout
+    // une chronologie propre : on repart du premier point et on garantit une
+    // progression strictement croissante à l'intérieur de chaque trait.
+    const timed=cleanStrokes.flatMap(st=>Array.isArray(st.t)?st.t:[]).filter(Number.isFinite);
+    if(timed.length){
+      const baseT=Math.min(...timed);
+      for(const st of cleanStrokes){
+        if(!Array.isArray(st.t))continue;
+        let previous=-1;
+        st.t=st.t.map(value=>{
+          const relative=Math.max(0,Math.round(value-baseT));
+          const normalized=Math.max(relative,previous+1);
+          previous=normalized;
+          return normalized;
+        });
+      }
+    }
+
     const configuration={lang:'fr_FR'};
     if(mode==='text'){
       const words=[...new Set(lexicon.flatMap(v=>normalizeText(v).split(/\s+/)).filter(Boolean))].slice(0,200);
