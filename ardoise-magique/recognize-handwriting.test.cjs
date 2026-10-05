@@ -83,7 +83,8 @@ async function run(){
       expected:'mon frère',mode:'text',lexicon:['mon frère'],
       strokes:[{x:[1,2,3],y:[1,2,3],t:[100,101,102]}]
     }},res);
-    assert.equal(res.payload.match,true,'accent-only differences should be accepted');
+    assert.equal(res.payload.match,false,'accent spelling errors must not be accepted');
+    assert.ok(res.payload.mistakePositions.length>0,'accent spelling errors must be highlighted');
 
     global.fetch=async()=>({ok:true,status:200,text:async()=> 'une roue'});
     res=response();
