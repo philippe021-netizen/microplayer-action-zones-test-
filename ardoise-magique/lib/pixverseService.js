@@ -71,11 +71,10 @@ async function generateVideo({ imgId, prompt, quality = '1080p', duration = 10 }
       model: 'v6',
       duration,
       quality,
-      aspect_ratio: '9:16',
       motion_mode: 'normal',
       prompt,
       negative_prompt: 'cropped head, cropped hair, cropped feet, cropped arms, cropped ruler, out of frame, camera movement, zoom, cut, extra person, text, watermark, blurry, deformed hands, duplicate limbs',
-      sound_effect_switch: false
+      generate_audio_switch: false
     }
   });
   const videoId = Number(result.video_id);

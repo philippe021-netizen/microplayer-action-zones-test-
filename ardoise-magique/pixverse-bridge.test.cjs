@@ -59,7 +59,8 @@ async function invoke(req,env={}){
       const payload=JSON.parse(options.body);
       assert.equal(payload.duration,10);
       assert.equal(payload.quality,'1080p');
-      assert.equal(payload.aspect_ratio,'9:16');
+      assert.equal('aspect_ratio' in payload,false,'image-to-video derives the framing from the portrait source image');
+      assert.equal(payload.generate_audio_switch,false);
       assert.equal(payload.img_id,77);
       return new Response(JSON.stringify({ErrCode:0,Resp:{video_id:123}}),{status:200});
     }
