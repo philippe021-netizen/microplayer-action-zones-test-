@@ -147,13 +147,16 @@ function teacherMotionCanvas(){
   return $('teacherActor')?.querySelector('.teacher-motion-keyed')||null;
 }
 
-function teacherMotionFallback(){
-  return $('teacherActor')?.querySelector('.teacher-motion-fallback')||null;
-}
-
 let teacherFrameHandle=0;
 let teacherFrameMode='';
 let teacherKeyer=null;
+let teacherVideoMode='idle';
+
+function teacherVideoSource(mode){
+  return mode==='point'
+    ? String(window.HARMONIE_TEACHER_POINT_VIDEO||'')
+    : String(window.HARMONIE_TEACHER_IDLE_VIDEO||'');
+}
 
 function stopTeacherFrameLoop(video=teacherMotionVideo()){
   if(teacherFrameMode==='video'&&teacherFrameHandle&&video?.cancelVideoFrameCallback){
@@ -187,7 +190,7 @@ function initTeacherKeyer(){
     const vertex=compileTeacherShader(gl,gl.VERTEX_SHADER,
       'attribute vec2 a_position;attribute vec2 a_texCoord;varying vec2 v_texCoord;void main(){gl_Position=vec4(a_position,0.0,1.0);v_texCoord=a_texCoord;}');
     const fragment=compileTeacherShader(gl,gl.FRAGMENT_SHADER,
-      'precision mediump float;uniform sampler2D u_image;uniform float u_threshold;uniform float u_softness;uniform float u_spill;varying vec2 v_texCoord;void main(){vec4 c=texture2D(u_image,v_texCoord);float maxrb=max(c.r,c.b);float chroma=c.g-maxrb;float matte=smoothstep(u_threshold,u_threshold+u_softness,chroma)*smoothstep(0.20,0.58,c.g);float alpha=1.0-matte;float spill=smoothstep(0.01,u_threshold+u_softness,chroma)*u_spill;float neutral=(c.r+c.b)*0.5;c.g=mix(c.g,min(c.g,neutral*1.12+0.03),spill);gl_FragColor=vec4(c.rgb,alpha);}');
+      'precision mediump float;uniform sampler2D u_image;uniform float u_threshold;uniform float u_softness;uniform float u_spill;varying vec2 v_texCoord;void main(){vec4 c=texture2D(u_image,v_texCoord);float maxrb=max(c.r,c.b);float minrgb=min(c.r,min(c.g,c.b));float sat=max(max(c.r,c.g),c.b)-minrgb;float dominance=c.g-maxrb;float green= smoothstep(u_threshold,u_threshold+u_softness,dominance)*smoothstep(0.22,0.40,c.g)*smoothstep(0.025,0.12,sat);float alpha=clamp(1.0-green*1.35,0.0,1.0);if(dominance>(u_threshold+u_softness*0.38)&&c.g>0.30)alpha=0.0;alpha=smoothstep(0.035,0.42,alpha);float spill=smoothstep(0.005,u_threshold+u_softness,dominance)*u_spill;float neutral=(c.r+c.b)*0.5;c.g=mix(c.g,min(c.g,neutral*1.04+0.018),spill);gl_FragColor=vec4(c.rgb,alpha);}');
     const program=gl.createProgram();
     gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);
     if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program)||'program');
@@ -212,9 +215,9 @@ function initTeacherKeyer(){
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
     gl.uniform1i(gl.getUniformLocation(program,'u_image'),0);
     const key=window.HARMONIE_CHROMA_KEY||{};
-    gl.uniform1f(gl.getUniformLocation(program,'u_threshold'),Number(key.threshold)||0.08);
-    gl.uniform1f(gl.getUniformLocation(program,'u_softness'),Number(key.softness)||0.20);
-    gl.uniform1f(gl.getUniformLocation(program,'u_spill'),Number(key.spill)||0.72);
+    gl.uniform1f(gl.getUniformLocation(program,'u_threshold'),Number(key.threshold)||0.015);
+    gl.uniform1f(gl.getUniformLocation(program,'u_softness'),Number(key.softness)||0.11);
+    gl.uniform1f(gl.getUniformLocation(program,'u_spill'),Number(key.spill)||0.95);
     gl.clearColor(0,0,0,0);
     teacherKeyer={gl,texture,canvas,lastW:0,lastH:0};
     return teacherKeyer;
@@ -224,9 +227,9 @@ function initTeacherKeyer(){
 }
 
 function sizeTeacherCanvas(video,keyer){
-  const sourceW=video.videoWidth||1080;
-  const sourceH=video.videoHeight||1920;
-  const maxH=1920;
+  const sourceW=video.videoWidth||720;
+  const sourceH=video.videoHeight||1280;
+  const maxH=1280;
   const scale=Math.min(1,maxH/sourceH);
   const width=Math.max(2,Math.round(sourceW*scale));
   const height=Math.max(2,Math.round(sourceH*scale));
@@ -237,26 +240,12 @@ function sizeTeacherCanvas(video,keyer){
   keyer.gl.viewport(0,0,width,height);
 }
 
-function showTeacherFallback(token){
-  if(token!==teacherMotionToken)return;
+function hideTeacherVideo(){
   const actor=$('teacherActor');
   const canvas=teacherMotionCanvas();
-  const fallback=teacherMotionFallback();
   if(canvas)canvas.hidden=true;
-  if(!actor||!fallback||!window.HARMONIE_TEACHER_FALLBACK){
-    actor?.classList.remove('motion-ready','motion-active','motion-loaded');
-    return;
-  }
-  fallback.onload=()=>{
-    if(token!==teacherMotionToken)return;
-    fallback.hidden=false;
-    actor.classList.add('motion-loaded','motion-fallback');
-  };
-  fallback.onerror=()=>{
-    if(token!==teacherMotionToken)return;
-    actor.classList.remove('motion-ready','motion-active','motion-loaded','motion-fallback');
-  };
-  fallback.src=window.HARMONIE_TEACHER_FALLBACK;
+  actor?.classList.remove('motion-ready','motion-active','motion-loaded');
+  actor?.classList.add('teacher-video-missing');
 }
 
 function renderTeacherFrame(token){
@@ -266,7 +255,7 @@ function renderTeacherFrame(token){
   const actor=$('teacherActor');
   if(!video||!canvas||!actor)return;
   const keyer=teacherKeyer||initTeacherKeyer();
-  if(!keyer){showTeacherFallback(token);return}
+  if(!keyer){hideTeacherVideo();return}
 
   if(video.readyState>=2){
     try{
@@ -277,9 +266,10 @@ function renderTeacherFrame(token){
       gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,video);
       gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
       canvas.hidden=false;
+      actor.classList.remove('teacher-video-missing');
       actor.classList.add('motion-loaded');
     }catch{
-      showTeacherFallback(token);
+      hideTeacherVideo();
       return;
     }
   }
@@ -294,68 +284,82 @@ function renderTeacherFrame(token){
   }
 }
 
-function setupTeacherMotion(){
+function startTeacherVideo(mode){
   const actor=$('teacherActor');
   const video=teacherMotionVideo();
   const canvas=teacherMotionCanvas();
-  const fallback=teacherMotionFallback();
   if(!actor||!video||!canvas)return;
-  actor.classList.remove('motion-ready','motion-active','motion-loaded','motion-fallback');
+
+  const src=teacherVideoSource(mode);
+  const token=++teacherMotionToken;
+  teacherVideoMode=mode;
+  stopTeacherFrameLoop(video);
+  try{video.pause()}catch{}
   canvas.hidden=true;
-  if(fallback)fallback.hidden=true;
+  actor.classList.remove('motion-loaded','teacher-video-missing');
+  actor.classList.add('motion-ready','motion-active');
+
+  if(!src){
+    hideTeacherVideo();
+    return;
+  }
+
   video.muted=true;
   video.playsInline=true;
+  video.autoplay=true;
+  video.loop=mode==='idle';
   video.preload='auto';
   video.setAttribute('playsinline','');
   video.setAttribute('webkit-playsinline','');
-  if(window.HARMONIE_TEACHER_VIDEO&&video.getAttribute('src')!==window.HARMONIE_TEACHER_VIDEO){
-    video.src=window.HARMONIE_TEACHER_VIDEO;
-  }
-  try{video.load()}catch{}
-}
-
-function restartTeacherAnimation(){
-  const actor=$('teacherActor');
-  const video=teacherMotionVideo();
-  const canvas=teacherMotionCanvas();
-  const fallback=teacherMotionFallback();
-  if(!actor||!video||!canvas||!window.HARMONIE_TEACHER_VIDEO)return;
-
-  const token=++teacherMotionToken;
-  stopTeacherFrameLoop(video);
-  actor.classList.add('motion-ready','motion-active');
-  actor.classList.remove('motion-loaded','motion-fallback');
-  canvas.hidden=true;
-  if(fallback)fallback.hidden=true;
-  video.muted=true;
-  video.playsInline=true;
-  try{video.pause();video.currentTime=0}catch{}
+  video.onended=()=>{
+    if(token!==teacherMotionToken)return;
+    if(mode==='point')startTeacherVideo('idle');
+  };
+  video.onerror=()=>{
+    if(token!==teacherMotionToken)return;
+    hideTeacherVideo();
+  };
 
   const start=()=>{
     if(token!==teacherMotionToken)return;
+    try{video.currentTime=0}catch{}
     const play=video.play();
     if(play&&typeof play.then==='function'){
-      play.then(()=>renderTeacherFrame(token)).catch(()=>showTeacherFallback(token));
+      play.then(()=>renderTeacherFrame(token)).catch(()=>hideTeacherVideo());
     }else{
       renderTeacherFrame(token);
     }
   };
 
-  if(video.readyState>=2)start();
-  else{
-    const onReady=()=>{video.removeEventListener('error',onError);start()};
-    const onError=()=>{video.removeEventListener('loadeddata',onReady);showTeacherFallback(token)};
-    video.addEventListener('loadeddata',onReady,{once:true});
-    video.addEventListener('error',onError,{once:true});
-    if(video.getAttribute('src')!==window.HARMONIE_TEACHER_VIDEO){
-      video.src=window.HARMONIE_TEACHER_VIDEO;
-      try{video.load()}catch{}
-    }
+  const changed=video.getAttribute('src')!==src;
+  if(changed){
+    video.src=src;
+    video.onloadeddata=start;
+    try{video.load()}catch{}
+  }else if(video.readyState>=2){
+    start();
+  }else{
+    video.onloadeddata=start;
+    try{video.load()}catch{}
   }
 }
 
+function setupTeacherMotion(){
+  const video=teacherMotionVideo();
+  if(!video)return;
+  video.muted=true;
+  video.playsInline=true;
+  video.setAttribute('playsinline','');
+  video.setAttribute('webkit-playsinline','');
+  startTeacherVideo('idle');
+}
+
 function startTeacherPointMotion(){
-  restartTeacherAnimation();
+  startTeacherVideo('point');
+}
+
+function startTeacherIdleMotion(){
+  startTeacherVideo('idle');
 }
 
 function stopTeacherMotion(){
@@ -363,12 +367,10 @@ function stopTeacherMotion(){
   const actor=$('teacherActor');
   const video=teacherMotionVideo();
   const canvas=teacherMotionCanvas();
-  const fallback=teacherMotionFallback();
   stopTeacherFrameLoop(video);
-  try{video?.pause();if(video)video.currentTime=0}catch{}
+  try{video?.pause()}catch{}
   if(canvas)canvas.hidden=true;
-  if(fallback)fallback.hidden=true;
-  actor?.classList.remove('motion-ready','motion-active','motion-loaded','motion-fallback');
+  actor?.classList.remove('motion-ready','motion-active','motion-loaded');
 }
 
 function screen(id){
@@ -543,11 +545,12 @@ function setTeacherPose(pose){
   if(pose==='point'){
     actor.classList.add('pose-point');
     startTeacherPointMotion();
-  }else{
-    stopTeacherMotion();
-    if(pose==='check')actor.classList.add('pose-check');
-    if(pose==='cheer')actor.classList.add('pose-cheer');
+    return;
   }
+
+  if(pose==='check')actor.classList.add('pose-check');
+  if(pose==='cheer')actor.classList.add('pose-cheer');
+  startTeacherIdleMotion();
 }
 
 function teacherFriendlyText(text){
