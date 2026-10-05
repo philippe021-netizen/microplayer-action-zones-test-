@@ -60,6 +60,8 @@
         <div class="board-prompt" id="boardPrompt"></div>
         <div class="board-help" id="boardHelp"></div>
 
+        <div class="alphabet-zone" id="alphabetZone"></div>
+
         <div class="write-zone" id="writeZone">
           <div class="guide-line" id="guideLine"></div>
           <canvas id="boardCanvas" aria-label="Tableau pour écrire avec le doigt ou l’Apple Pencil"></canvas>
@@ -81,6 +83,10 @@
     <button class="chalkbtn" id="hintBtn">💡 Indice</button>
     <button class="chalkbtn" id="guideToggle">≡ Lignes</button>
     <button class="mainbtn green" id="done">J’ai fini !</button>
+  </div>
+  <div class="controls-row hidden" id="alphabetControls">
+    <button class="chalkbtn" id="alphabetReset">↶ Recommencer</button>
+    <button class="mainbtn green" id="alphabetCheck">Je vérifie ✨</button>
   </div>
   <div class="controls-row hidden" id="afterControls">
     <button class="mainbtn red hidden" id="retry">On réessaie</button>
