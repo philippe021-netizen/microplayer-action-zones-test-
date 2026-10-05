@@ -29,6 +29,12 @@ function normalize(text){
 
 function words(text){return normalize(text).split(' ').filter(Boolean)}
 
+const SOFT_WORDS=new Set(['j','je','ai','a','le','la','les','de','des','du','que','qu','il','elle','elles','un','une','et']);
+
+function importantWords(text){
+  return words(text).filter(word=>!SOFT_WORDS.has(word));
+}
+
 function editDistance(a,b){
   const prev=Array.from({length:b.length+1},(_,i)=>i);
   for(let i=1;i<=a.length;i++){
@@ -53,16 +59,14 @@ function sameSpokenWord(expected,heard){
     if(editDistance(expected,heard)<=1)return true;
     const shorter=expected.length<=heard.length?expected:heard;
     const longer=expected.length>heard.length?expected:heard;
-    if(longer.startsWith(shorter)&&longer.length-shorter.length<=3)return true;
-    let prefix=0;
-    while(prefix<expected.length&&prefix<heard.length&&expected[prefix]===heard[prefix])prefix++;
-    if(prefix>=4&&editDistance(expected,heard)<=3)return true;
+    if(longer.startsWith(shorter)&&longer.length-shorter.length<=2)return true;
   }
   return false;
 }
 
 function compare(expected,spoken){
-  const a=words(expected),b=words(spoken);
+  const a=importantWords(expected);
+  const b=importantWords(spoken);
   const dp=Array.from({length:a.length+1},()=>Array(b.length+1).fill(0));
   for(let i=1;i<=a.length;i++){
     for(let j=1;j<=b.length;j++){
@@ -70,10 +74,7 @@ function compare(expected,spoken){
     }
   }
   const matched=dp[a.length][b.length];
-  const contentScore=a.length?matched/a.length:0;
-  const fullMatched=fullExpected.filter(word=>fullSpoken.includes(word)).length;
-  const fullScore=fullExpected.length?fullMatched/fullExpected.length:0;
-  const score=Math.max(contentScore,contentScore*.86+fullScore*.14);
+  const score=a.length?matched/a.length:0;
   const missing=[];
   let i=a.length,j=b.length;
   while(i>0){
