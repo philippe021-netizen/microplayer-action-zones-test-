@@ -26,7 +26,7 @@ assert.ok(alphabetLesson.items.slice(7).every(x=>x.showPrefix===false));
 for(const feature of ['La classe d’Harmonie','unicornQuest','unicornMascot','unicornSurprise','unicornSurpriseIcon','teacherTemplate','teacher-motion-source','teacher-motion-idle','teacher-motion-point','teacher-motion-bravo','teacher-motion-keyed','boardCanvas','alphabetZone','alphabetControls','alphabetCheck','chalkCorrection','stamp','progressScreen','J’ai fini !']){
   assert.ok(page.includes(feature),'page missing '+feature);
 }
-for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','teacher-speech','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','HARMONIE_TEACHER_BRAVO_VIDEO','teacherMotionVideos','startTeacherIdleMotion','startTeacherBravoMotion',"startTeacherVideo('bravo')",'itemsForMarche','marche-actions','selectedMarche','beginAlphabetExercise','alphabetExpected','checkAlphabetOrder','alphabetSelection','renderUnicornQuest','advanceUnicorn','showUnicornSurprise','UNICORN_SURPRISES','TEACHER_NUDGE_DELAY','scheduleTeacherNudge','clearTeacherNudge','teacherNudge','alphabetNudge','AUTO_NEXT_DELAY','AUTO_RETRY_DELAY','autoAdvanceAfterSuccess','autoRetryAfterCorrection','clearAutoFlow','getBackgroundMusic']){
+for(const feature of ['pointerdown','getCoalescedEvents','localStorage','speechSynthesis','teacher-speech','recognize-handwriting','startReview','recordAttempt','parseCustomItems','mistakePositions','requestVideoFrameCallback','texImage2D','HARMONIE_TEACHER_IDLE_VIDEO','HARMONIE_TEACHER_POINT_VIDEO','HARMONIE_TEACHER_BRAVO_VIDEO','teacherMotionVideos','startTeacherIdleMotion','startTeacherBravoMotion',"startTeacherVideo('bravo')",'itemsForMarche','marche-actions','selectedMarche','beginAlphabetExercise','alphabetExpected','checkAlphabetOrder','alphabetSelection','renderUnicornQuest','advanceUnicorn','showUnicornSurprise','UNICORN_SURPRISES','TEACHER_NUDGE_DELAY','scheduleTeacherNudge','clearTeacherNudge','teacherNudge','alphabetNudge','AUTO_NEXT_DELAY','AUTO_RETRY_DELAY','autoAdvanceAfterSuccess','autoRetryAfterCorrection','clearAutoFlow','getBackgroundMusic','musicDuck','musicUnduck','fadeMusicTo','MUSIC_VOLUME_DUCK']){
   assert.ok(client.includes(feature),'client missing '+feature);
 }
 for(const feature of ['pose-point','pose-check','pose-cheer','stampSlam','chalk-correction','teacher-motion-keyed','teacher-motion-source','alphabet-zone','alphabet-word','alphabet-prefix','unicorn-quest','unicorn-stairs','unicorn-mascot','unicorn-surprise']){
@@ -59,9 +59,14 @@ assert.ok(client.includes('nextExercise(true)'),'automatic success flow must sta
 assert.ok(client.includes('const AUTO_RETRY_DELAY=3200'),'wrong writing answers must return to retry automatically after correction');
 assert.ok(client.includes('autoRetryAfterCorrection();'),'wrong writing flow must avoid an extra retry click');
 assert.ok(client.includes("new Audio('./media/harmonie-musique-fond.m4a')"),'background must use the user-provided music file');
-assert.ok(client.includes("backgroundMusic.volume=.32"),'background music must stay below the teacher voice');
+assert.ok(client.includes("backgroundMusic.volume=MUSIC_VOLUME_NORMAL"),'background music should start at the normal game volume');
+assert.ok(client.includes("const MUSIC_VOLUME_DUCK=.055"),'music should duck very low under the teacher voice');
+assert.ok(client.includes("musicDuck();"),'teacher speech should lower music instead of stopping it');
+assert.ok(client.includes("musicUnduck();"),'music should fade back up after speech');
+assert.ok(client.includes("requestAnimationFrame(step)"),'music volume transitions should use smooth fades');
 assert.ok(!client.includes('CHILD_MELODY'),'synthetic background melody must be removed');
 assert.ok(!client.includes('musicBoxNote'),'synthetic music-box generator must be removed');
+assert.ok(!/const token=\+\+teacherVoiceToken;\s*musicStop\(\)/.test(client),'teacher speech must never pause the background music');
 assert.ok(!page.includes('selfSuccess'),'manual child validation must stay removed');
 assert.ok(!page.includes('teacher-motion-anim'),'the classroom must use real video, not animated WebP');
 assert.ok(!page.includes('teacher-photo'),'the old static teacher photo must be removed from the classroom template');
