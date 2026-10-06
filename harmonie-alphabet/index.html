@@ -46,7 +46,7 @@ button.main{width:100%;border:0;border-radius:16px;padding:14px 18px;font-size:2
   <div class="startbox">
     <div class="u">🦄🌈</div>
     <h2>Le défi licorne d’Harmonie</h2>
-    <p>10 missions pour préparer l’évaluation de mardi. On regarde la 1re lettre, puis la 2e. À chaque bonne réponse, la licorne s’envole !</p>
+    <p>De nouvelles missions d’ordre alphabétique. On regarde la 1re lettre, puis la 2e. Une série réussie est retirée pour ne pas refaire toujours les mêmes mots.</p>
     <button id="startBtn" class="startbtn">Commencer avec la musique 🎵</button>
     <a href="../ardoise-magique/index.html" style="display:block;margin-top:12px;padding:12px;border-radius:14px;background:#f0edfb;color:#554b86;font-weight:850;text-decoration:none">📝 Découvrir L’Ardoise magique</a>
   </div>
@@ -54,7 +54,7 @@ button.main{width:100%;border:0;border-radius:16px;padding:14px 18px;font-size:2
 
 <header>
  <div class="hero">🦄</div>
- <div><h1>Le défi licorne d’Harmonie</h1><p class="sub">Objectif mardi — 1re et 2e lettre</p></div>
+ <div><h1>Le défi licorne d’Harmonie</h1><p class="sub">Nouveaux mots — 1re et 2e lettre</p></div>
  <div class="controls">
    <button class="mini" id="musicBtn" title="Musique">🎵</button>
    <button class="mini" id="soundBtn" title="Sons">🔊</button>
@@ -81,23 +81,43 @@ button.main{width:100%;border:0;border-radius:16px;padding:14px 18px;font-size:2
  <h2 id="finalTitle"></h2>
  <p id="finalText"></p>
  <div id="gift" class="gift"></div><br>
- <button id="restart">Rejouer 🔁</button>
+ <button id="restart">Nouvelles missions ➜</button><br><button id="resetProgress" style="margin-top:10px;border:0;background:#eee9fb;color:#554b86;border-radius:14px;padding:11px 18px;font-size:16px;font-weight:800;cursor:pointer">Recommencer toutes les séries</button>
 </section>
 </main>
 
 <script>
-const rounds=[
- {words:["arbre","bateau","chat"],note:"Mission 1 : commence par regarder la première lettre.",badge:true},
- {words:["dame","lapin","moto"],note:"Mission 2 : les premières lettres suffisent.",badge:true},
- {words:["avion","fleur","poule","soleil"],note:"Mission 3 : classe d’abord avec la première lettre.",badge:true},
- {words:["ballon","bébé","bille"],note:"Mission 4 : même première lettre B. Regarde la deuxième : BA, BÉ, BI.",badge:true},
- {words:["cadeau","cerise","citron"],note:"Mission 5 : même première lettre C. Compare la deuxième.",badge:true},
- {words:["dame","dessin","domino"],note:"Mission 6 : DA, DE, DO. Tu n’as besoin que des deux premières lettres.",badge:true},
- {words:["farine","fenêtre","fille","forêt"],note:"Mission 7 : FA, FE, FI, FO. Très bon entraînement pour mardi.",badge:true},
- {words:["arbre","avion","melon","minute"],note:"Mini-évaluation : plus d’indice coloré. Première puis deuxième lettre.",badge:false},
- {words:["panda","peluche","pirate","poule"],note:"Mini-évaluation : même première lettre P. À toi de comparer la deuxième.",badge:false},
- {words:["salade","seau","singe","soleil"],note:"Mission finale : comme mardi. Première lettre, puis deuxième.",badge:false}
+const allRounds=[
+ {id:"n01",words:["abeille","camion","tortue"],note:"Mission 1 : regarde d’abord la première lettre.",badge:true},
+ {id:"n02",words:["dragon","hérisson","koala"],note:"Mission 2 : les premières lettres suffisent.",badge:true},
+ {id:"n03",words:["escargot","girafe","nuage","zèbre"],note:"Mission 3 : classe les mots avec leur première lettre.",badge:true},
+ {id:"n04",words:["banane","berceau","biscuit","bonnet"],note:"Même première lettre B : compare BA, BE, BI, BO.",badge:true},
+ {id:"n05",words:["cabane","ceinture","cigale","cochon"],note:"Même première lettre C : compare CA, CE, CI, CO.",badge:true},
+ {id:"n06",words:["famille","feutre","figure","fossé"],note:"Même première lettre F : compare FA, FE, FI, FO.",badge:true},
+ {id:"n07",words:["gâteau","genou","gomme"],note:"Même première lettre G : compare GA, GE, GO.",badge:true},
+ {id:"n08",words:["lampe","leçon","livre","loup"],note:"Même première lettre L : compare LA, LE, LI, LO.",badge:false},
+ {id:"n09",words:["magie","médaille","miroir","moulin"],note:"Mini-évaluation : MA, ME, MI, MO.",badge:false},
+ {id:"n10",words:["navire","neige","niche","noix"],note:"Mini-évaluation : NA, NE, NI, NO.",badge:false},
+ {id:"n11",words:["papillon","peinture","piscine","pomme"],note:"Même première lettre P : compare PA, PE, PI, PO.",badge:true},
+ {id:"n12",words:["radio","renard","rideau","robot"],note:"Même première lettre R : compare RA, RE, RI, RO.",badge:true},
+ {id:"n13",words:["sapin","secret","sirène","souris"],note:"Même première lettre S : compare SA, SE, SI, SO.",badge:true},
+ {id:"n14",words:["tapis","tennis","tigre","tomate"],note:"Même première lettre T : compare TA, TE, TI, TO.",badge:true},
+ {id:"n15",words:["vase","veste","violon","volcan"],note:"Même première lettre V : compare VA, VE, VI, VO.",badge:true},
+ {id:"n16",words:["brocoli","crayon","dauphin","éléphant"],note:"Classe ces quatre nouveaux mots par leur première lettre.",badge:false},
+ {id:"n17",words:["baleine","bec","bibliothèque","bol"],note:"Même première lettre B : BA, BE, BI, BO.",badge:false},
+ {id:"n18",words:["canard","cerf","ciseaux","corde"],note:"Même première lettre C : CA, CE, CI, CO.",badge:false},
+ {id:"n19",words:["fraise","hamster","mouton","requin"],note:"Classe ces quatre mots comme dans une petite évaluation.",badge:false},
+ {id:"n20",words:["valise","vêtement","village","voiture"],note:"Mission finale : VA, VE, VI, VO.",badge:false}
 ];
+
+const STORAGE_KEY="harmonie-alphabet-completed-v2";
+function loadCompleted(){
+ try{return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]"))}
+ catch(e){return new Set()}
+}
+function saveCompleted(){localStorage.setItem(STORAGE_KEY,JSON.stringify([...completed]))}
+function buildRounds(){return allRounds.filter(r=>!completed.has(r.id)).slice(0,10)}
+let completed=loadCompleted();
+let rounds=buildRounds();
 
 let idx=0,score=0,firstTry=true,locked=false;
 let soundOn=true,voiceOn=true,musicOn=true,audioCtx=null,musicTimer=null,musicStep=0;
@@ -192,14 +212,14 @@ function speak(text){
 }
 
 function updateStars(){
- document.getElementById("stars").textContent="⭐".repeat(score)+"☆".repeat(10-score);
+ document.getElementById("stars").textContent="⭐".repeat(score)+"☆".repeat(Math.max(0,rounds.length-score));
  document.getElementById("score").textContent="⭐ "+score;
 }
 function render(){
  locked=false;firstTry=true;
  const r=rounds[idx];
- document.getElementById("round").textContent="Mission "+(idx+1)+" / 10";
- document.getElementById("bar").style.width=((idx+1)*10)+"%";
+ document.getElementById("round").textContent="Mission "+(idx+1)+" / "+rounds.length;
+ document.getElementById("bar").style.width=(((idx+1)/Math.max(1,rounds.length))*100)+"%";
  document.querySelector(".tip").textContent=r.note;
  document.getElementById("message").textContent="À toi de jouer, Harmonie 🦄";
  document.getElementById("check").style.display="block";
@@ -247,7 +267,7 @@ function checkAnswer(){
  const ok=chosen.every((w,i)=>w===correct[i]);
  if(ok){
    locked=true;
-   if(firstTry){score++;updateStars()}
+   if(firstTry){score++;updateStars()} completed.add(rounds[idx].id); saveCompleted();
    document.getElementById("message").textContent=firstTry?"Bravo ! +1 étoile 🌟":"Oui ! Tu as corrigé, mission réussie 💪";
    document.getElementById("check").style.display="none";
    document.getElementById("next").style.display="block";
@@ -263,35 +283,53 @@ function checkAnswer(){
  }
 }
 function nextRound(){
- if(idx<9){idx++;render();speak("Mission suivante !")}else finish();
+ if(idx<rounds.length-1){idx++;render();speak("Mission suivante !")}else finish();
 }
 function finish(){
  stopMusic();
  document.getElementById("game").style.display="none";
  document.getElementById("final").style.display="block";
- const win=score>=7;
- document.getElementById("finalEmoji").textContent=win?"🦄🏆🎁":"🦄💛";
- document.getElementById("finalTitle").textContent=win?"Harmonie est prête pour mardi !":"Bien joué Harmonie !";
- document.getElementById("finalText").innerHTML="Ton score est de <b>"+score+" / 10</b>.<br>"+(win?"Tu as réussi le défi de la licorne !":"Tu as appris plein de choses. Une deuxième partie et tu peux encore gagner des étoiles !");
- document.getElementById("gift").textContent=win?"🎁 Défi de mardi réussi — cadeau du dimanche débloqué !":"🌟 Encore un petit entraînement et tu seras prête pour mardi !";
+ const remaining=allRounds.filter(r=>!completed.has(r.id)).length;
+ const win=score>=Math.ceil(rounds.length*.7);
+ document.getElementById("finalEmoji").textContent=remaining===0?"🦄🏆🌈":(win?"🦄🏆✨":"🦄💛");
+ document.getElementById("finalTitle").textContent=remaining===0?"Toutes les séries sont terminées !":"Bien joué Harmonie !";
+ document.getElementById("finalText").innerHTML="Ton score est de <b>"+score+" / "+rounds.length+"</b>.<br>"+(remaining===0?"Tu as terminé tous les nouveaux mots.":"Il reste <b>"+remaining+"</b> série"+(remaining>1?"s":"")+" jamais faite"+(remaining>1?"s":"")+".");
+ document.getElementById("gift").textContent=remaining===0?"🌈 Tous les mots ont été travaillés !":"✨ Les séries réussies ont été retirées du prochain jeu.";
+ document.getElementById("restart").style.display=remaining===0?"none":"inline-block";
  applause();confetti(true);
- if(win) setTimeout(()=>speak("Bravo Harmonie ! Tu as gagné ! Le cadeau du dimanche est débloqué !"),350);
- else setTimeout(()=>speak("Bravo Harmonie ! Tu peux être fière de toi. On rejoue ?"),350);
+ setTimeout(()=>speak(remaining===0?"Bravo Harmonie ! Tu as terminé toutes les séries !":"Bravo Harmonie ! Les mots réussis ne reviendront plus la prochaine fois."),350);
 }
 function restart(){
+ completed=loadCompleted();
+ rounds=buildRounds();
  idx=0;score=0;
+ if(!rounds.length){finish();return}
+ document.getElementById("restart").style.display="inline-block";
  document.getElementById("final").style.display="none";
  document.getElementById("game").style.display="block";
  if(musicOn)startMusic();
- render();speak("Et c'est reparti !");
+ render();speak("Voici de nouveaux mots !");
+}
+function resetProgress(){
+ if(!confirm("Recommencer toutes les séries depuis le début ?"))return;
+ localStorage.removeItem(STORAGE_KEY);
+ completed=new Set();
+ rounds=buildRounds();
+ idx=0;score=0;
+ document.getElementById("restart").style.display="inline-block";
+ document.getElementById("final").style.display="none";
+ document.getElementById("game").style.display="block";
+ if(musicOn)startMusic();
+ render();speak("Tout est remis à zéro. On recommence !");
 }
 document.getElementById("check").onclick=checkAnswer;
 document.getElementById("next").onclick=nextRound;
 document.getElementById("restart").onclick=restart;
+document.getElementById("resetProgress").onclick=resetProgress;
 document.getElementById("startBtn").onclick=()=>{
  document.getElementById("overlay").style.display="none";
  getCtx();startMusic();render();
- speak("Coucou Harmonie ! Moi, c'est Lili la licorne. On prépare ton évaluation de mardi. D'abord la première lettre. Si elle est pareille, on regarde la deuxième. Pas besoin d'aller plus loin. À chaque bonne réponse, je m'envole !");
+ if(!rounds.length){document.getElementById("game").style.display="none";document.getElementById("final").style.display="block";finish();return} speak("Coucou Harmonie ! Voici de nouveaux mots. D’abord la première lettre. Si elle est pareille, regarde la deuxième. Les séries réussies disparaîtront pour laisser la place aux suivantes !");
 };
 document.getElementById("musicBtn").onclick=()=>{
  musicOn=!musicOn;document.getElementById("musicBtn").textContent=musicOn?"🎵":"🔇";
