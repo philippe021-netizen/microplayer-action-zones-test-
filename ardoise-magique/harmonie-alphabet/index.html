@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f7eaff">
+<title>Le défi licorne d'Harmonie</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#2f3156}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(180deg,#ffeefa,#eef8ff 54%,#fff8d9);display:flex;align-items:center;justify-content:center;padding:14px}
+.app{width:min(860px,100%);background:#fffffff2;border:2px solid #fff;border-radius:30px;box-shadow:0 18px 55px #6f57942b;padding:20px;position:relative;overflow:hidden}
+header{display:flex;gap:12px;align-items:center;position:relative;z-index:3}
+.hero{font-size:60px;animation:bob 2s ease-in-out infinite;filter:drop-shadow(0 5px 5px #8d76ba44)}
+@keyframes bob{50%{transform:translateY(-7px) rotate(5deg)}}
+h1{font-size:clamp(26px,5vw,43px);margin:0}.sub{margin:3px 0;color:#77779b}
+.controls{margin-left:auto;display:flex;gap:7px}.mini{border:0;background:#f2edff;border-radius:14px;padding:9px 11px;font-size:18px;cursor:pointer}
+.top{display:flex;gap:10px;align-items:center;margin:18px 0}.pill{background:#f4f1ff;border-radius:999px;padding:9px 13px;font-weight:850;white-space:nowrap}
+.progress{height:14px;background:#ecebf7;border-radius:99px;overflow:hidden;flex:1}.bar{height:100%;width:10%;background:linear-gradient(90deg,#ff9bd2,#9a86ff,#76d8f5);transition:.35s}
+.card{background:#fbfaff;border:2px solid #ece7f8;border-radius:24px;padding:20px;position:relative;z-index:2}
+.instruction{text-align:center;font-size:21px;font-weight:850;margin:0 0 6px}.tip{text-align:center;color:#707493;margin:0 0 15px;font-weight:650}
+.words{display:grid;gap:11px}.word{display:grid;grid-template-columns:1fr 105px;gap:12px;align-items:center;background:#fff;border:2px solid #e9e5f3;border-radius:18px;padding:12px 16px;font-size:27px;font-weight:850}
+.badge{font-size:13px;color:#805cae;background:#f3eaff;border-radius:999px;padding:4px 8px;margin-left:8px;vertical-align:middle}
+select{width:100%;font-size:25px;font-weight:850;padding:8px;border-radius:12px;border:2px solid #c7bce1;background:#fff;text-align:center}
+button.main{width:100%;border:0;border-radius:16px;padding:14px 18px;font-size:20px;font-weight:850;cursor:pointer;margin-top:14px}
+#check{background:#7562da;color:#fff}#next{background:#43ba81;color:#fff;display:none}
+.message{min-height:68px;text-align:center;font-size:21px;font-weight:850;padding-top:14px}.stars{text-align:center;font-size:27px;letter-spacing:3px;min-height:37px}
+.small{text-align:center;color:#777d99;font-size:14px;margin-top:12px}
+.final{text-align:center;display:none;padding:22px 8px;position:relative;z-index:2}.final .big{font-size:82px}.final h2{font-size:36px;margin:7px}.final p{font-size:21px;line-height:1.45}.gift{display:inline-block;margin:12px;padding:14px 18px;border-radius:18px;background:#fff0a8;font-size:24px;font-weight:900}
+#restart{border:0;background:#7562da;color:white;border-radius:16px;padding:14px 22px;font-size:20px;font-weight:850;cursor:pointer}
+.flyer{position:absolute;z-index:20;left:-120px;top:58%;font-size:76px;opacity:0;pointer-events:none}.fly{animation:fly 1.85s cubic-bezier(.2,.7,.4,1) forwards}
+@keyframes fly{0%{left:-120px;top:62%;opacity:1;transform:rotate(-8deg) scale(.85)}35%{top:19%;transform:rotate(10deg) scale(1.18)}70%{top:43%;transform:rotate(-5deg) scale(1.05)}100%{left:112%;top:12%;opacity:1;transform:rotate(12deg) scale(.9)}}
+.confetti{position:absolute;inset:0;z-index:30;pointer-events:none;overflow:hidden}.confetti i{position:absolute;top:-25px;font-style:normal;animation:fall 1.8s linear forwards}
+@keyframes fall{to{transform:translateY(900px) rotate(520deg);opacity:.15}}
+.overlay{position:absolute;inset:0;background:linear-gradient(180deg,#fff7feee,#eef7ffee);z-index:50;display:flex;align-items:center;justify-content:center;text-align:center;padding:22px}
+.startbox{background:white;border-radius:28px;padding:25px;max-width:560px;box-shadow:0 14px 40px #735c9b2d}.startbox .u{font-size:90px}.startbox h2{font-size:32px;margin:6px}.startbox p{font-size:19px;line-height:1.4}.startbtn{border:0;background:#7562da;color:#fff;border-radius:18px;padding:15px 22px;font-size:21px;font-weight:900;cursor:pointer}
+@media(max-width:540px){.app{padding:15px}.word{font-size:23px;grid-template-columns:1fr 90px}.badge{display:block;width:max-content;margin:5px 0 0}.controls{position:absolute;right:0;top:0}.hero{font-size:50px}}
+</style>
+</head>
+<body>
+<main class="app">
+<div id="flyer" class="flyer">🦄✨</div>
+<div id="confetti" class="confetti"></div>
+
+<div id="overlay" class="overlay">
+  <div class="startbox">
+    <div class="u">🦄🌈</div>
+    <h2>Le défi licorne d’Harmonie</h2>
+    <p>10 missions pour préparer l’évaluation de mardi. On regarde la 1re lettre, puis la 2e. À chaque bonne réponse, la licorne s’envole !</p>
+    <button id="startBtn" class="startbtn">Commencer avec la musique 🎵</button>
+    <a href="../" style="display:block;margin-top:12px;padding:12px;border-radius:14px;background:#f0edfb;color:#554b86;font-weight:850;text-decoration:none">📝 Découvrir L’Ardoise magique</a>
+  </div>
+</div>
+
+<header>
+ <div class="hero">🦄</div>
+ <div><h1>Le défi licorne d’Harmonie</h1><p class="sub">Objectif mardi — 1re et 2e lettre</p></div>
+ <div class="controls">
+   <button class="mini" id="musicBtn" title="Musique">🎵</button>
+   <button class="mini" id="soundBtn" title="Sons">🔊</button>
+   <button class="mini" id="voiceBtn" title="Voix">🗣️</button>
+ </div>
+</header>
+
+<section id="game">
+ <div class="top"><div class="pill" id="round"></div><div class="progress"><div class="bar" id="bar"></div></div><div class="pill" id="score"></div></div>
+ <div class="card">
+  <p class="instruction">Mets 1, 2, 3… dans le bon ordre alphabétique.</p>
+  <p class="tip">Regarde d’abord la 1re lettre. Si elle est pareille, regarde seulement la 2e 👀</p>
+  <div id="words" class="words"></div>
+  <button class="main" id="check">Je vérifie ✨</button>
+  <button class="main" id="next">La licorne continue ➜</button>
+  <div id="message" class="message"></div>
+  <div id="stars" class="stars"></div>
+ </div>
+ <div class="small">⭐ = bonne réponse du premier coup. Si tu te trompes, tu peux corriger et continuer.</div>
+</section>
+
+<section id="final" class="final">
+ <div class="big" id="finalEmoji">🏆</div>
+ <h2 id="finalTitle"></h2>
+ <p id="finalText"></p>
+ <div id="gift" class="gift"></div><br>
+ <button id="restart">Rejouer 🔁</button>
+</section>
+</main>
+
+<script>
+const rounds=[
+ {words:["arbre","bateau","chat"],note:"Mission 1 : commence par regarder la première lettre.",badge:true},
+ {words:["dame","lapin","moto"],note:"Mission 2 : les premières lettres suffisent.",badge:true},
+ {words:["avion","fleur","poule","soleil"],note:"Mission 3 : classe d’abord avec la première lettre.",badge:true},
+ {words:["ballon","bébé","bille"],note:"Mission 4 : même première lettre B. Regarde la deuxième : BA, BÉ, BI.",badge:true},
+ {words:["cadeau","cerise","citron"],note:"Mission 5 : même première lettre C. Compare la deuxième.",badge:true},
+ {words:["dame","dessin","domino"],note:"Mission 6 : DA, DE, DO. Tu n’as besoin que des deux premières lettres.",badge:true},
+ {words:["farine","fenêtre","fille","forêt"],note:"Mission 7 : FA, FE, FI, FO. Très bon entraînement pour mardi.",badge:true},
+ {words:["arbre","avion","melon","minute"],note:"Mini-évaluation : plus d’indice coloré. Première puis deuxième lettre.",badge:false},
+ {words:["panda","peluche","pirate","poule"],note:"Mini-évaluation : même première lettre P. À toi de comparer la deuxième.",badge:false},
+ {words:["salade","seau","singe","soleil"],note:"Mission finale : comme mardi. Première lettre, puis deuxième.",badge:false}
+];
+
+let idx=0,score=0,firstTry=true,locked=false;
+let soundOn=true,voiceOn=true,musicOn=true,audioCtx=null,musicTimer=null,musicStep=0;
+
+const cheers=[
+ "Bravo Harmonie ! La licorne est super fière de toi !",
+ "Youpi ! Encore une étoile pour Harmonie !",
+ "Trop forte ! La licorne décolle !",
+ "Bien joué ! Tu as trouvé le bon ordre !",
+ "Wouhou ! Mission réussie !"
+];
+const jokes=[
+ "Petite blagounette : pourquoi la licorne aime les cahiers ? Parce qu’elle adore les belles lignes !",
+ "Petite blagounette : que mange une licorne au goûter ? Un arc-en-ciel croustillant !",
+ "Petite blagounette : pourquoi la licorne court vite ? Parce qu’elle a des sabots turbo !",
+ "Petite blagounette : comment s’appelle une licorne qui raconte des blagues ? Une rigolicorne !"
+];
+
+function normalizeWord(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
+function sortedWords(a){return [...a].sort((x,y)=>normalizeWord(x).localeCompare(normalizeWord(y),"fr"))}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+function getCtx(){
+ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+ if(audioCtx.state==="suspended") audioCtx.resume();
+ return audioCtx;
+}
+function oscillator(freq,start,duration,gain=.04,type="sine",endFreq=null){
+ if(!soundOn && !musicOn) return;
+ const c=getCtx(),o=c.createOscillator(),g=c.createGain();
+ o.type=type;o.frequency.setValueAtTime(freq,start);
+ if(endFreq) o.frequency.exponentialRampToValueAtTime(endFreq,start+duration);
+ g.gain.setValueAtTime(gain,start);
+ g.gain.exponentialRampToValueAtTime(.0001,start+duration);
+ o.connect(g);g.connect(c.destination);o.start(start);o.stop(start+duration);
+}
+function chime(){
+ if(!soundOn)return;
+ const c=getCtx(),t=c.currentTime;
+ [659,784,1047].forEach((f,i)=>oscillator(f,t+i*.11,.22,.055,"sine"));
+}
+function wrongSound(){
+ if(!soundOn)return;
+ const c=getCtx(),t=c.currentTime;
+ oscillator(270,t,.16,.05,"triangle",210);oscillator(190,t+.17,.18,.04,"triangle",155);
+}
+function unicornNeigh(){
+ if(!soundOn)return;
+ const c=getCtx(),t=c.currentTime;
+ oscillator(430,t,.24,.045,"sawtooth",650);
+ oscillator(650,t+.2,.25,.04,"triangle",390);
+ oscillator(520,t+.42,.18,.035,"sine",760);
+}
+function sillyPop(){
+ if(!soundOn)return;
+ const c=getCtx(),t=c.currentTime;
+ oscillator(120,t,.18,.055,"sawtooth",65);
+ oscillator(85,t+.08,.22,.045,"square",48);
+}
+function applause(){
+ if(!soundOn)return;
+ const c=getCtx();
+ const dur=1.05,buf=c.createBuffer(1,c.sampleRate*dur,c.sampleRate),data=buf.getChannelData(0);
+ for(let i=0;i<data.length;i++){
+   const pulse=(Math.sin(i/90)>0.72?1:.18);
+   data[i]=(Math.random()*2-1)*pulse*(1-i/data.length);
+ }
+ const src=c.createBufferSource(),g=c.createGain();
+ src.buffer=buf;g.gain.value=.17;src.connect(g);g.connect(c.destination);src.start();
+}
+function startMusic(){
+ if(!musicOn||musicTimer)return;
+ const notes=[523,659,784,659,587,698,880,698];
+ musicTimer=setInterval(()=>{
+   if(!musicOn)return;
+   const c=getCtx(),t=c.currentTime;
+   oscillator(notes[musicStep%notes.length],t,.16,.018,"sine");
+   if(musicStep%4===0) oscillator(notes[musicStep%notes.length]/2,t,.22,.012,"triangle");
+   musicStep++;
+ },330);
+}
+function stopMusic(){if(musicTimer){clearInterval(musicTimer);musicTimer=null}}
+function speak(text){
+ if(!voiceOn||!("speechSynthesis" in window))return;
+ speechSynthesis.cancel();
+ const u=new SpeechSynthesisUtterance(text);
+ u.lang="fr-FR";u.pitch=1.65;u.rate=1.08;u.volume=.95;
+ const voices=speechSynthesis.getVoices();
+ u.voice=voices.find(v=>v.lang&&v.lang.startsWith("fr")&&/Audrey|Amélie|Aurelie|female|Marie|Thomas/i.test(v.name))
+      ||voices.find(v=>v.lang&&v.lang.startsWith("fr"))||null;
+ speechSynthesis.speak(u);
+}
+
+function updateStars(){
+ document.getElementById("stars").textContent="⭐".repeat(score)+"☆".repeat(10-score);
+ document.getElementById("score").textContent="⭐ "+score;
+}
+function render(){
+ locked=false;firstTry=true;
+ const r=rounds[idx];
+ document.getElementById("round").textContent="Mission "+(idx+1)+" / 10";
+ document.getElementById("bar").style.width=((idx+1)*10)+"%";
+ document.querySelector(".tip").textContent=r.note;
+ document.getElementById("message").textContent="À toi de jouer, Harmonie 🦄";
+ document.getElementById("check").style.display="block";
+ document.getElementById("next").style.display="none";
+ const shuffled=shuffle(r.words),box=document.getElementById("words");box.innerHTML="";
+ shuffled.forEach(w=>{
+   const row=document.createElement("div");row.className="word";row.dataset.word=w;
+   const label=document.createElement("div");
+   const prefix=w.slice(0,2).toUpperCase();
+   label.innerHTML=r.badge ? w+' <span class="badge">'+prefix+'</span>' : w;
+   const sel=document.createElement("select");sel.setAttribute("aria-label","Numéro pour "+w);
+   sel.innerHTML='<option value="">—</option>'+shuffled.map((_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join("");
+   row.append(label,sel);box.appendChild(row);
+ });
+ updateStars();
+}
+function uniqueAndComplete(rows){
+ const v=rows.map(r=>Number(r.querySelector("select").value));
+ return v.every(Boolean)&&new Set(v).size===rows.length;
+}
+function flyUnicorn(){
+ const f=document.getElementById("flyer");f.classList.remove("fly");void f.offsetWidth;f.classList.add("fly");
+ unicornNeigh();
+ setTimeout(()=>f.classList.remove("fly"),2000);
+}
+function confetti(big=false){
+ const box=document.getElementById("confetti"),icons=["⭐","✨","🌸","💛","🌈","💫"];
+ const n=big?50:20;
+ for(let i=0;i<n;i++){
+   const e=document.createElement("i");e.textContent=icons[Math.floor(Math.random()*icons.length)];
+   e.style.left=(Math.random()*100)+"%";e.style.fontSize=(16+Math.random()*22)+"px";e.style.animationDelay=(Math.random()*.4)+"s";
+   box.appendChild(e);setTimeout(()=>e.remove(),2300);
+ }
+}
+function checkAnswer(){
+ if(locked)return;
+ const rows=[...document.querySelectorAll(".word")];
+ if(!uniqueAndComplete(rows)){
+   document.getElementById("message").textContent="Il faut donner un numéro différent à chaque mot 😊";
+   wrongSound();speak("Oups ! Un numéro différent pour chaque mot.");
+   return;
+ }
+ const chosen=[...rows].sort((a,b)=>Number(a.querySelector("select").value)-Number(b.querySelector("select").value)).map(r=>r.dataset.word);
+ const correct=sortedWords(rounds[idx].words);
+ const ok=chosen.every((w,i)=>w===correct[i]);
+ if(ok){
+   locked=true;
+   if(firstTry){score++;updateStars()}
+   document.getElementById("message").textContent=firstTry?"Bravo ! +1 étoile 🌟":"Oui ! Tu as corrigé, mission réussie 💪";
+   document.getElementById("check").style.display="none";
+   document.getElementById("next").style.display="block";
+   chime();flyUnicorn();confetti();
+   const phrase=cheers[Math.floor(Math.random()*cheers.length)];
+   setTimeout(()=>speak(phrase),420);
+   if((idx===3||idx===7)&&soundOn)setTimeout(sillyPop,1100);
+   if(idx===4||idx===8)setTimeout(()=>speak(jokes[Math.floor(Math.random()*jokes.length)]),1800);
+ }else{
+   firstTry=false;
+   document.getElementById("message").innerHTML="Presque ! Regarde les lettres une par une et corrige 👀";
+   wrongSound();speak("Presque ! Regarde bien les lettres une par une.");
+ }
+}
+function nextRound(){
+ if(idx<9){idx++;render();speak("Mission suivante !")}else finish();
+}
+function finish(){
+ stopMusic();
+ document.getElementById("game").style.display="none";
+ document.getElementById("final").style.display="block";
+ const win=score>=7;
+ document.getElementById("finalEmoji").textContent=win?"🦄🏆🎁":"🦄💛";
+ document.getElementById("finalTitle").textContent=win?"Harmonie est prête pour mardi !":"Bien joué Harmonie !";
+ document.getElementById("finalText").innerHTML="Ton score est de <b>"+score+" / 10</b>.<br>"+(win?"Tu as réussi le défi de la licorne !":"Tu as appris plein de choses. Une deuxième partie et tu peux encore gagner des étoiles !");
+ document.getElementById("gift").textContent=win?"🎁 Défi de mardi réussi — cadeau du dimanche débloqué !":"🌟 Encore un petit entraînement et tu seras prête pour mardi !";
+ applause();confetti(true);
+ if(win) setTimeout(()=>speak("Bravo Harmonie ! Tu as gagné ! Le cadeau du dimanche est débloqué !"),350);
+ else setTimeout(()=>speak("Bravo Harmonie ! Tu peux être fière de toi. On rejoue ?"),350);
+}
+function restart(){
+ idx=0;score=0;
+ document.getElementById("final").style.display="none";
+ document.getElementById("game").style.display="block";
+ if(musicOn)startMusic();
+ render();speak("Et c'est reparti !");
+}
+document.getElementById("check").onclick=checkAnswer;
+document.getElementById("next").onclick=nextRound;
+document.getElementById("restart").onclick=restart;
+document.getElementById("startBtn").onclick=()=>{
+ document.getElementById("overlay").style.display="none";
+ getCtx();startMusic();render();
+ speak("Coucou Harmonie ! Moi, c'est Lili la licorne. On prépare ton évaluation de mardi. D'abord la première lettre. Si elle est pareille, on regarde la deuxième. Pas besoin d'aller plus loin. À chaque bonne réponse, je m'envole !");
+};
+document.getElementById("musicBtn").onclick=()=>{
+ musicOn=!musicOn;document.getElementById("musicBtn").textContent=musicOn?"🎵":"🔇";
+ if(musicOn)startMusic();else stopMusic();
+};
+document.getElementById("soundBtn").onclick=()=>{soundOn=!soundOn;document.getElementById("soundBtn").textContent=soundOn?"🔊":"🔈"};
+document.getElementById("voiceBtn").onclick=()=>{
+ voiceOn=!voiceOn;document.getElementById("voiceBtn").textContent=voiceOn?"🗣️":"🤐";
+ if(!voiceOn&&"speechSynthesis" in window)speechSynthesis.cancel();
+};
+render();
+</script>
+</body>
+</html>
