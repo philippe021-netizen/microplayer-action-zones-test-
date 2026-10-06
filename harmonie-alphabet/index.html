@@ -328,8 +328,10 @@ document.getElementById("restart").onclick=restart;
 document.getElementById("resetProgress").onclick=resetProgress;
 document.getElementById("startBtn").onclick=()=>{
  document.getElementById("overlay").style.display="none";
- getCtx();startMusic();render();
- if(!rounds.length){document.getElementById("game").style.display="none";document.getElementById("final").style.display="block";finish();return} speak("Coucou Harmonie ! Voici de nouveaux mots. D’abord la première lettre. Si elle est pareille, regarde la deuxième. Les séries réussies disparaîtront pour laisser la place aux suivantes !");
+ getCtx();startMusic();
+ if(!rounds.length){finish();return}
+ render();
+ speak("Coucou Harmonie ! Voici de nouveaux mots. D’abord la première lettre. Si elle est pareille, regarde la deuxième. Les séries réussies disparaîtront pour laisser la place aux suivantes !");
 };
 document.getElementById("musicBtn").onclick=()=>{
  musicOn=!musicOn;document.getElementById("musicBtn").textContent=musicOn?"🎵":"🔇";
@@ -340,7 +342,7 @@ document.getElementById("voiceBtn").onclick=()=>{
  voiceOn=!voiceOn;document.getElementById("voiceBtn").textContent=voiceOn?"🗣️":"🤐";
  if(!voiceOn&&"speechSynthesis" in window)speechSynthesis.cancel();
 };
-render();
+if(rounds.length) render();
 </script>
 </body>
 </html>
