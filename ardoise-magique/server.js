@@ -5,19 +5,27 @@ const path=require('node:path');
 
 const app=express();
 const root=__dirname;
-const wrap=handler=>(req,res,next)=>Promise.resolve(handler(req,res)).catch(next);
+const route=handlerPath=>(req,res,next)=>{
+  let handler;
+  try{
+    handler=require(handlerPath);
+  }catch(error){
+    return next(error);
+  }
+  return Promise.resolve().then(()=>handler(req,res)).catch(next);
+};
 
 app.disable('x-powered-by');
 app.use(express.json({limit:'8mb'}));
 
-app.all('/api/teacher-speech',wrap(require('./api/teacher-speech')));
-app.all('/api/sync',wrap(require('./api/sync')));
-app.all('/api/recognize-handwriting',wrap(require('./api/recognize-handwriting')));
-app.all('/api/recognize-poetry',wrap(require('./api/recognize-poetry')));
-app.all('/api/harmonie-idle-video',wrap(require('./api/harmonie-idle-video')));
-app.all('/api/harmonie-point-video',wrap(require('./api/harmonie-point-video')));
-app.all('/api/teacher-video',wrap(require('./api/teacher-video')));
-app.all('/api/harmonie-pixverse',wrap(require('./api/harmonie-pixverse')));
+app.all('/api/teacher-speech',route('./api/teacher-speech'));
+app.all('/api/sync',route('./api/sync'));
+app.all('/api/recognize-handwriting',route('./api/recognize-handwriting'));
+app.all('/api/recognize-poetry',route('./api/recognize-poetry'));
+app.all('/api/harmonie-idle-video',route('./api/harmonie-idle-video'));
+app.all('/api/harmonie-point-video',route('./api/harmonie-point-video'));
+app.all('/api/teacher-video',route('./api/teacher-video'));
+app.all('/api/harmonie-pixverse',route('./api/harmonie-pixverse'));
 
 app.use(express.static(root,{
   index:'index.html',
