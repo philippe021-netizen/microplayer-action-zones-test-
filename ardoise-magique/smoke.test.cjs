@@ -11,6 +11,7 @@ const teacherSpeech=fs.readFileSync(path.join(__dirname,'api/teacher-speech.js')
 const server=fs.readFileSync(path.join(__dirname,'server.js'),'utf8');
 const lesson=JSON.parse(fs.readFileSync(path.join(__dirname,'lessons/r-01.json'),'utf8'));
 const alphabetLesson=JSON.parse(fs.readFileSync(path.join(__dirname,'lessons/alphabet-2letters.json'),'utf8'));
+const uLesson=JSON.parse(fs.readFileSync(path.join(__dirname,'lessons/u-01.json'),'utf8'));
 const alphabet=fs.readFileSync(path.join(__dirname,'../harmonie-alphabet/index.html'),'utf8');
 
 assert.deepEqual(lesson.words,['une rue','le roi','le repas','un arbre','mon frère','un fruit','une voiture','trois']);
@@ -19,6 +20,19 @@ assert.deepEqual(lesson.marches[1].words,['la reine','mon père','après','il ro
 assert.deepEqual(lesson.marches[2].words,['rond','ronde','aujourd’hui','hier','derrière','un carré']);
 assert.equal(lesson.difficulty,'normal');
 assert.equal(lesson.displaySeconds,3);
+assert.equal(uLesson.id,'u-01');
+assert.equal(uLesson.type,'writing');
+assert.equal(uLesson.letter,'U');
+assert.equal(uLesson.marches.length,3);
+assert.deepEqual(uLesson.words,['la rue','un fruit','une voiture','du sucre','de la confiture','un nuage']);
+assert.deepEqual(uLesson.marches[0].words,uLesson.words);
+assert.deepEqual(uLesson.marches[1].words,['je suis','une plume','des lunettes','un pull','la musique','la rue']);
+assert.deepEqual(uLesson.marches[2].words,['la nature','plus','surtout','sur','dessus','aujourd’hui']);
+assert.equal(uLesson.words.length,6);
+assert.equal(new Set([...uLesson.marches[0].words,...uLesson.marches[1].words]).size,11);
+assert.equal(new Set([...uLesson.marches.flatMap(m=>m.words)]).size,17);
+assert.ok(client.includes("'./lessons/u-01.json'"),'Semaine 6 (U) must be loaded from the home menu');
+
 assert.equal(alphabetLesson.type,'alphabet');
 assert.equal(alphabetLesson.items.length,10);
 assert.ok(alphabetLesson.items.slice(0,7).every(x=>x.showPrefix!==false));
