@@ -1,0 +1,57 @@
+{
+  "id": "u-01",
+  "letter": "U",
+  "title": "Semaine 6 — Les mots en U",
+  "words": [
+    "la rue",
+    "un fruit",
+    "une voiture",
+    "du sucre",
+    "de la confiture",
+    "un nuage"
+  ],
+  "marches": [
+    {
+      "id": "marche-1",
+      "label": "Marche 1",
+      "words": [
+        "la rue",
+        "un fruit",
+        "une voiture",
+        "du sucre",
+        "de la confiture",
+        "un nuage"
+      ]
+    },
+    {
+      "id": "marche-2",
+      "label": "Marche 2",
+      "words": [
+        "je suis",
+        "une plume",
+        "des lunettes",
+        "un pull",
+        "la musique",
+        "la rue"
+      ]
+    },
+    {
+      "id": "marche-3",
+      "label": "Marche 3",
+      "words": [
+        "la nature",
+        "plus",
+        "surtout",
+        "sur",
+        "dessus",
+        "aujourd’hui"
+      ]
+    }
+  ],
+  "difficulty": "normal",
+  "displaySeconds": 3,
+  "customPhrases": [],
+  "rewards": [],
+  "type": "writing",
+  "theme": "son U"
+}
