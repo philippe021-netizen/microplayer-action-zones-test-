@@ -1,4 +1,4 @@
-const DEFAULT_URLS=['./lessons/r-01.json','./lessons/alphabet-2letters.json'];
+const DEFAULT_URLS=['./lessons/r-01.json','./lessons/u-01.json','./lessons/alphabet-2letters.json'];
 const ALPHABET_URL='../harmonie-alphabet/index.html';
 const STORAGE_KEY='harmonie-classe-v2';
 const LEGACY_KEY='harmonie-ardoise-v1';
