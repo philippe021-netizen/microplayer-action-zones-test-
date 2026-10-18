@@ -540,6 +540,7 @@ function tone(f,start,duration,vol=.045,type='sine',end=null){
 }
 function funnySound(kind){
  if(!soundsOn)return;
+ if(window.GusMedia?.enabled)return;
  const c=audioContext();if(!c)return;const t=c.currentTime;
  if(kind==='fart'){
    animate('fart');
@@ -572,6 +573,7 @@ function goofy(randomFart=false){
 }
 function sayPhrase(text){
  dialog.textContent=text;
+ if(window.GusMedia?.hasOriginalSound())return;
  if(!voiceOn||!activated||!window.speechSynthesis)return;
  try{
   speechSynthesis.cancel();
@@ -597,7 +599,7 @@ function setMusic(enabled){
 function activate(){
  activated=true;audioContext();setMusic(true);
  get('gus-start').hidden=true;notice.textContent="Gus parle quand tu réussis, t'encourage si tu hésites, et raconte parfois une bêtise.";
- sayPhrase(pick('intro'));goofy();
+ sayPhrase(pick('intro'));goofy();window.GusMedia?.play('05_Presentation');
 }
 get('gus-start').addEventListener('click',activate);
 musicButton.addEventListener('click',()=>{if(!activated){activate();return}setMusic(!musicOn)});
@@ -613,10 +615,10 @@ soundButton.addEventListener('click',()=>{
  if(soundsOn)funnySound('pop');
 });
 get('gus-fart').addEventListener('click',()=>{
- if(!activated)activated=true;funnySound('fart');sayPhrase(pick('joke'));
+ if(!activated)activated=true;window.GusMedia?.play('01_Prout');funnySound('fart');sayPhrase(pick('joke'));
 });
 character.addEventListener('click',()=>{
- if(!activated)activated=true;goofy(true);sayPhrase(pick('joke'));
+ if(!activated)activated=true;window.GusMedia?.play('06_Rires');goofy(true);sayPhrase(pick('joke'));
 });
 const feedback=get('feedback');
 const feedbackObserver=new MutationObserver(()=>{
@@ -630,11 +632,13 @@ const feedbackObserver=new MutationObserver(()=>{
  const wrong=/^Pas tout|^On peut réessayer|^Presque|^Tu peux corriger|^Réessaie/i.test(text);
  if(success){
   correctCount++;animate('cheer');
+  window.GusMedia?.playCorrect();
   funnySound(correctCount%3===0?'trumpet':'applause');
   const kind=correctCount%4===0?'joke':'correct';
   // Les phrases doivent finir avant la question suivante ; les paroles restent facultatives.
   sayPhrase(pick(kind));
  }else if(wrong){
+  window.GusMedia?.play('04_Oups');
   funnySound(['pop','boing','slide'][Math.floor(Math.random()*3)]);
   sayPhrase(pick('retry'));
  }
@@ -643,7 +647,7 @@ feedbackObserver.observe(feedback,{childList:true,characterData:true,subtree:tru
 const finishText=get('finishText');
 new MutationObserver(()=>{
  if(!get('finish').hidden&&finishText.textContent&&activated){
-  animate('cheer');funnySound('trumpet');sayPhrase(pick('finish'));
+  animate('cheer');window.GusMedia?.play('08_Au_revoir');funnySound('trumpet');sayPhrase(pick('finish'));
  }
 }).observe(finishText,{childList:true,characterData:true,subtree:true});
 get('nextBtn').addEventListener('click',()=>{
