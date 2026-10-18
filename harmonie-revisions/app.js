@@ -13,8 +13,8 @@ const frDay=d=>new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"shor
 function available(){return chosen===currentDay()&&D.guardDays.includes(chosen)}
 function seconds(){return Math.min(MAX,progress.spent[currentDay()]||0)}
 function addSeconds(s){if(!available()||s<=0)return;progress.spent[chosen]=Math.min(MAX,(progress.spent[chosen]||0)+s);save();paintClock();if(seconds()>=MAX&&game)stopForDay()}
-function startTimer(){stopTimer();lastTick=Date.now();ticker=setInterval(()=>{if(document.hidden)return;const now=Date.now(),delta=Math.min(2,Math.max(0,Math.floor((now-lastTick)/1000)));if(delta){lastTick=now;addSeconds(delta)}},1000)}
-function stopTimer(){if(ticker){clearInterval(ticker);ticker=null}if(lastTick&&game&&!document.hidden){const delta=Math.min(2,Math.max(0,Math.floor((Date.now()-lastTick)/1000)));lastTick=0;if(delta)addSeconds(delta)}}
+function startTimer(){stopTimer();lastTick=Date.now();ticker=setInterval(()=>{if(document.hidden)return;if(!available()){endGame();return}const now=Date.now(),delta=Math.min(2,Math.max(0,Math.floor((now-lastTick)/1000)));if(delta){lastTick=now;addSeconds(delta)}},1000)}
+function stopTimer(){if(ticker){clearInterval(ticker);ticker=null}const previous=lastTick;lastTick=0;if(previous&&game&&!document.hidden){const delta=Math.min(2,Math.max(0,Math.floor((Date.now()-previous)/1000)));if(delta)addSeconds(delta)}}
 document.addEventListener("visibilitychange",()=>{if(document.hidden){stopTimer()}else if(game){startTimer()}});
 function paintClock(){$("clock").textContent=Math.ceil(seconds()/60)+" / 30 min";$("clock").style.color=seconds()>=MAX?"#a52d45":""}
 function complete(m){if(!(progress.done[chosen]||[]).includes(m)){(progress.done[chosen]||=([])).push(m)}save()}
@@ -52,7 +52,7 @@ function generate(type,level){
  }
  if(type==="spell-u"||type==="spell-ou"){
  const kind=type.endsWith("ou")?"ou":"u";
- const words=D.words[kind][level]||D.words[kind][1];
+ const words=[...new Set(Array.from({length:level},(_,i)=>D.words[kind][i+1]||[]).flat())];
  return shuffled(words).slice(0,Math.min(6,words.length)).map(w=>({mode:"spell",prompt:"Écoute le mot puis écris-le.",answer:w,label:"Dictée — son "+kind,hint:"Tu peux réécouter autant de fois que tu veux."}));
  }
  if(type==="write-u"||type==="write-ou"){
@@ -195,7 +195,7 @@ function closeParent(){$("parentDialog").close?.();$("parentDialog").removeAttri
 $("voiceBtn").addEventListener("click",()=>{voice=!voice;$("voiceBtn").setAttribute("aria-pressed",String(voice));$("voiceBtn").textContent=voice?"🔊":"🗣️";if(voice)speak("Coucou Harmonie !")});
 $("parentBtn").addEventListener("click",parent);$("closeParent").addEventListener("click",closeParent);$("closeParentBottom").addEventListener("click",closeParent);
 $("exportCsv").addEventListener("click",exportCSV);
-$("resetDay").addEventListener("click",()=>{if(confirm("Recommencer les missions ? Le temps déjà passé ne sera pas effacé.")){delete progress.done[chosen];save();parent();render()}});
+$("resetDay").addEventListener("click",()=>{if(confirm("Recommencer les missions ? Le temps déjà passé ne sera pas effacé.")){delete progress.done[chosen];save();closeParent();parent();render()}});
 $("backBtn").addEventListener("click",endGame);$("finishHome").addEventListener("click",()=>{show("finish",false);show("home",true);render()});
 $("nextBtn").addEventListener("click",next);$("spellCheck").addEventListener("click",spellCheck);
 $("spellInput").addEventListener("keydown",e=>{if(e.key==="Enter")spellCheck()});
