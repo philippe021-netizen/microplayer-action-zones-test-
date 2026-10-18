@@ -46,9 +46,9 @@ function speak(text,forced=false){if((!voice&&!forced)||!("speechSynthesis" in w
 function generate(type,level){
  if(type==="read-u"||type==="read-ou"){
  const sound=type.endsWith("ou")?"ou":"u";
- const targets=sound==="ou"?["un loup","la soupe","une souris","la route","bonjour","une couleur"]:["la rue","du sucre","un nuage","une plume","la musique","la nature"];
- const others=sound==="ou"?["la rue","une plume","du sucre","la nature","un nuage"]:["un loup","une souris","la soupe","bonjour","la route"];
- return targets.map((correct,i)=>item("Quel mot s’écrit avec « "+sound+" » ?",correct,[correct,others[i%others.length],others[(i+1)%others.length]],"Écoute et regarde les lettres du mot.","Lecture"));
+ const targets=sound==="ou"?["rouge","la soupe","la route","toujours","bonjour","pour"]:["la rue","du sucre","la nature","une plume","la musique","de la confiture"];
+ const others=sound==="ou"?["la rue","une plume","du sucre","la nature","la musique"]:["rouge","la soupe","bonjour","la route","toujours"];
+ return targets.map((correct,i)=>item("Quel mot contient « "+sound+" » ?",correct,[correct,others[i%others.length],others[(i+1)%others.length]],"Cherche le groupe de lettres « "+sound+" » dans le mot.","Lecture"));
  }
  if(type==="spell-u"||type==="spell-ou"){
  const kind=type.endsWith("ou")?"ou":"u";
@@ -62,8 +62,8 @@ function generate(type,level){
  }
  if(type==="tens"){
  const nums=level===1?[56,42,73,19,80,67]:[64,37,95,28,71,49];
- return nums.map(n=>item(n+" : combien de dizaines ?",Math.floor(n/10),[Math.floor(n/10),n%10,Math.floor(n/10)+1],"Le chiffre de gauche donne les dizaines. Le chiffre de droite donne les unités.","Dizaines et unités"))
- .flatMap((q,i)=>i%2===0?[q,item(nums[i]+" : combien d’unités ?",nums[i]%10,[nums[i]%10,Math.floor(nums[i]/10),9],"Les unités sont à droite.","Dizaines et unités")]:[q]).slice(0,8);
+ return nums.map(n=>item(n+" : combien de dizaines ?",Math.floor(n/10),[Math.floor(n/10),n%10,Math.floor(n/10)+1,Math.max(0,Math.floor(n/10)-1)],"Le chiffre de gauche donne les dizaines. Le chiffre de droite donne les unités.","Dizaines et unités"))
+ .flatMap((q,i)=>i%2===0?[q,item(nums[i]+" : combien d’unités ?",nums[i]%10,[nums[i]%10,Math.floor(nums[i]/10),9,Math.max(0,nums[i]%10-1)],"Les unités sont à droite.","Dizaines et unités")]:[q]).slice(0,8);
  }
  if(type==="friends"){
  return [7,4,6,9,3,5,8,2].slice(level===2?2:0,level===2?8:6).map(a=>item(a+" + ? = 10",10-a,[10-a,Math.max(0,9-a),Math.min(9,11-a)],"Compte les cases qui manquent jusqu’à 10.","Les amis de 10"));
@@ -156,8 +156,14 @@ function showWrite(){
 }
 function compareWrite(){
  if(!game||!canvasStrokes.length){$("feedback").textContent="Essaie d’écrire au moins une lettre avant de comparer.";return}
- const q=game.questions[game.pos];$("memory").textContent=q.answer;$("feedback").textContent="Compare ton écriture avec « "+q.answer+" ». On vérifie ensemble, sans reconnaissance automatique.";
- show("clearWrite",false);show("verifyWrite",false);succeed("Regarde si toutes les lettres sont présentes. Tu peux continuer ou refaire le mot plus tard.");
+ const q=game.questions[game.pos];$("memory").textContent=q.answer;$("feedback").textContent="Compare ton écriture avec « "+q.answer+" ». À toi (ou à un adulte) de vérifier : le jeu ne reconnaît pas automatiquement les lettres.";
+ show("clearWrite",false);show("verifyWrite",false);
+ const choices=$("choices");choices.replaceChildren();
+ const accept=document.createElement("button");accept.textContent="J’ai bien écrit le mot";
+ accept.addEventListener("click",()=>{choices.replaceChildren();succeed("Bravo pour tes efforts et ta belle écriture !")});
+ const retry=document.createElement("button");retry.textContent="Je recommence";
+ retry.addEventListener("click",()=>{game.mistakes++;canvasStrokes=[];stroke=null;paintBoard();choices.replaceChildren();$("memory").textContent="Regarde bien le mot…";$("feedback").textContent="Réessaie tranquillement.";show("boardBox",false);show("showWrite",true)});
+ choices.append(accept,retry);
 }
 function next(){
  if(!game||!game.solved)return;
