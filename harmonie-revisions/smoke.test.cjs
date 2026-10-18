@@ -104,4 +104,28 @@ assert.equal(new vm.Script('round').runInContext(context), 1);
 for (const control of ['music', 'voice', 'sound', 'parentBtn', 'progressBtn', 'saveWords', 'resetProgress']) {
   assert.ok(element(control), 'missing control ' + control);
 }
+
+/* Regression: after two games a scheduled mission must resume, not loop on the pause. */
+app.session(0);
+for (let miniIndex = 0; miniIndex < 2; miniIndex++) {
+  const game = new vm.Script('active').runInContext(context);
+  assert.equal(game.topic, miniIndex === 0 ? 'readingU' : 'soundsU');
+  for (const question of game.questions) {
+    if (question.kind === 'task') element('completeTask').onclick();
+    else if (question.kind === 'write') element('checkWrite').onclick();
+    else app.answer(question.answer);
+    app.advance();
+  }
+}
+assert.equal(typeof element('resume').onclick, 'function', 'break must offer resume');
+element('resume').onclick();
+const resumedGame = new vm.Script('active').runInContext(context);
+assert.equal(resumedGame.topic, 'math', 'resume must start the third mini-game');
+for (const question of resumedGame.questions) {
+  app.answer(question.answer);
+  app.advance();
+}
+assert.equal(new vm.Script('finished').runInContext(context), true);
+app.finish();
+
 console.log('Harmonie revision smoke checks passed.');
