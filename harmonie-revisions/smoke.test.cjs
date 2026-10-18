@@ -40,3 +40,48 @@ test('JavaScript des deux modules chargé sans erreur de syntaxe',()=>{
  assert.doesNotThrow(()=>new Function(src));
  assert.doesNotThrow(()=>new Function(app));
 });
+
+test('chaque mini-jeu a des questions solvables, avec une réponse unique',()=>{
+ const start=app.indexOf('function shuffled');
+ const end=app.indexOf('function startGame');
+ assert.ok(start>=0&&end>start);
+ const generator=vm.runInNewContext('(()=>{'+app.slice(start,end)+';return generate})()', {D:data,Math});
+ let total=0;
+ for(const missions of Object.values(data.schedule)){
+   for(const [name,type,level] of missions){
+     const questions=generator(type,level);
+     assert.ok(questions.length>0,name);
+     for(const q of questions){
+       total++;
+       assert.ok(q.answer && q.prompt, type);
+       if(q.mode==='choice'){
+         assert.ok(q.options.length>=3,type+' : pas assez de choix');
+         assert.equal(new Set(Array.from(q.options)).size,q.options.length,type);
+         assert.ok(q.options.some(x=>x===q.answer),type+' : réponse introuvable');
+       }
+     }
+   }
+ }
+ assert.equal(total,182);
+});
+
+test('lecture u et ou : choix orthographiques non ambigus',()=>{
+ const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()',{D:data,Math});
+ for(const [type,graph] of [['read-u','u'],['read-ou','ou']]){
+   const qs=generator(type,1);
+   for(const q of qs){
+     const selected=q.answer.toLowerCase();
+     if(graph==='ou') assert.ok(selected.includes('ou'),'cible doit contenir ou');
+     else {assert.ok(selected.includes('u'),'cible doit contenir u');assert.ok(!selected.includes('ou'),'cible u ambiguë')}
+     for(const d of q.options.filter(x=>x!==q.answer)){
+       if(graph==='ou')assert.ok(!d.toLowerCase().includes('ou'),'distracteur contient aussi ou');
+       else assert.ok(d.toLowerCase().includes('ou'),'distracteur doit contenir ou');
+     }
+   }
+ }
+});
+
+test('ardoise : validation humaine avant de compter le mot comme réussi',()=>{
+ assert.match(app,/const accept=document\.createElement\("button"\)/);
+ assert.match(app,/Le jeu ne reconnaît pas automatiquement|le jeu ne reconnaît pas automatiquement/);
+});
