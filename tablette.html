@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f9eefa">
+<title>Harmonie — Les missions des vacances</title>
+<style>
+@font-face{font-family:Marelle;src:url(https://marelle.forge.apps.education.fr/fonts/Marelle-Regular.woff2) format("woff2");font-display:swap}
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#36345d;background:#fff5fa;--violet:#755bd9;--green:#248360}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;}body{background:linear-gradient(135deg,#ffe9f8,#eef6ff 64%,#fff9df);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}button,input{font:inherit}button{cursor:pointer;min-height:44px;touch-action:manipulation}button:disabled{cursor:not-allowed;opacity:.47}
+.app{max-width:980px;margin:0 auto;padding:18px 16px 35px}header{display:flex;gap:14px;align-items:center}header h1{margin:0;font-size:clamp(22px,3.4vw,37px)}header p{margin:3px 0;color:#6e6a89}.mascot{font-size:57px;flex:none;animation:bob 3s ease-in-out infinite;display:inline-block}.mascot.small{font-size:48px}.mascot.giant{font-size:90px}@keyframes bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-7px) rotate(-4deg)}}.header-actions{margin-left:auto;display:flex;gap:7px}.header-actions button,#closeParent{border:0;border-radius:12px;background:#fff9;padding:9px;color:#504887;font-weight:800}
+.summary{margin:18px 0 10px;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px;background:#fff;border-radius:22px;box-shadow:0 5px 24px #7660ad15}.summary strong{font-size:22px}.summary p{margin:3px 0;color:#6d668a}.minute-pill{padding:12px 14px;background:#eee9ff;border-radius:30px;font-weight:850;white-space:nowrap;font-variant-numeric:tabular-nums}
+.days{display:flex;gap:7px;overflow-x:auto;padding:5px 1px 14px;scrollbar-width:thin}.day{background:#fff8;border:2px solid transparent;border-radius:16px;padding:10px;min-width:84px;display:flex;align-items:center;flex-direction:column;color:#555274}.day strong{font-size:16px}.day span{font-size:13px;margin-top:4px}.day.active{background:white;border-color:#8167e1;box-shadow:0 5px 18px #8f70bb33}.day.today:not(.active){border-color:#e9c6e4}.section-row{display:flex;align-items:center;gap:12px;justify-content:space-between}.section-row h2{font-size:24px;margin:6px 0 14px}#doneLabel{font-weight:800;color:#5b5089}
+.missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px}.mission{background:#fff;border:2px solid #ece6f6;border-radius:23px;padding:18px;display:flex;flex-direction:column;min-height:192px;box-shadow:0 10px 22px #7865a515}.mission .number{font-size:13px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:#9178bf}.mission h3{font-size:22px;line-height:1.2;margin:13px 0 8px}.mission p{font-size:15px;color:#77728e;flex:1;margin:0 0 14px}.mission button{background:var(--violet);color:white;border:0;border-radius:14px;font-weight:850;font-size:17px;padding:12px}.mission.done{border-color:#8edbc0}.mission.done button{background:#e5f8ef;color:#197357}.fine{font-size:14px;color:#726b85;line-height:1.4}.old-games{border-top:1px solid #ded6ea;margin-top:17px;padding:10px 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center}.old-games p{width:100%;margin:8px 0}.old-games a{display:inline-block;border:1px solid #e6def2;padding:13px 16px;border-radius:14px;background:#fff;text-decoration:none;color:#6650a7;font-weight:800}
+.game-head{display:flex;align-items:center;gap:10px;margin:18px 0 9px;font-weight:850;justify-content:space-between}.game-head button{border:0;background:#fff9;color:#57517d;border-radius:12px;padding:10px}.progress{height:12px;border-radius:99px;background:#e7e3f1;overflow:hidden;margin-bottom:12px}.progress div{height:100%;width:0;background:linear-gradient(90deg,#ffa5c9,#816cf5,#83d9f6);transition:width .3s}
+.game-card{text-align:center;background:#fff;border-radius:26px;padding:clamp(16px,3vw,28px);min-height:340px;box-shadow:0 11px 29px #7865a515}.game-card h2{font-size:clamp(23px,3vw,32px);margin:10px auto;max-width:720px}.label{font-size:15px;color:#8774ab;font-weight:850;text-transform:uppercase}.hint{color:#716b87;min-height:25px;margin:7px auto 16px}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:auto;max-width:700px}.choices button{border:2px solid #dcd3f7;border-radius:16px;padding:18px 12px;background:#f8f5ff;font-size:clamp(18px,2.6vw,25px);font-weight:800;color:#4c447d;overflow-wrap:anywhere}.choices button:hover{background:#f1ebff}.choices button.wrong{border-color:#e6a9ac;background:#fff1ee}.choices button.correct{border-color:#7ac9a2;background:#e4f7ef}.buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:15px}button.primary{border:0;background:var(--violet);color:white;font-weight:850;border-radius:15px;padding:13px 22px;font-size:18px}.next{margin:15px auto 0;display:block}.feedback{font-weight:800;color:#5d5782;min-height:30px;margin-top:15px;line-height:1.35}#typing label{display:block;margin:10px;font-weight:750}#typing input{width:min(490px,100%);padding:15px 17px;border-radius:15px;border:2px solid #ac97e6;font-size:24px;text-align:center}#typing button,#handwrite button{border:0;border-radius:14px;padding:12px 16px;font-weight:800;background:#eee9ff;color:#554695}#typing button.primary,#handwrite button.primary{background:var(--violet);color:white}.memory{font-family:Marelle,cursive;font-size:clamp(35px,6vw,65px);font-weight:400;min-height:83px;margin:10px auto;color:#473f7d}.memory.hide{visibility:hidden}
+#boardBox{position:relative;overflow:hidden;width:100%;height:245px;background:#fffdf8;border:2px solid #e2ddec;border-radius:17px;touch-action:none}.lines{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(to bottom,transparent 0,transparent 38px,#dce3ed 39px,transparent 40px,transparent 78px,#ebb1c7 79px,transparent 80px)}#board{position:absolute;inset:0;width:100%;height:100%;touch-action:none}.finish{text-align:center;background:white;border-radius:25px;padding:35px}.finish h2{font-size:32px}dialog{width:min(630px,95vw);border:0;border-radius:24px;padding:24px;box-shadow:0 15px 60px #25194255;color:#343251}dialog::backdrop{background:#25204099}.dialog-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.dialog-head h2{margin:0;font-size:24px}.stats{border:1px solid #eee9f6;border-radius:16px;padding:15px;margin:15px 0}.stats p{margin:6px 0}dialog .buttons button{background:#eee9fa;border:0;border-radius:13px;padding:12px;color:#584c89;font-weight:800}
+[hidden]{display:none!important}@media(max-width:590px){.app{padding:12px 10px}.header-actions{flex-direction:column}header .mascot{font-size:42px}.summary{padding:14px;align-items:flex-start}.summary strong{font-size:18px}.minute-pill{font-size:13px}.choices{grid-template-columns:1fr}.choices button{font-size:19px;padding:12px}.mission{min-height:170px}.game-card{padding:13px}.old-games a{width:100%;text-align:center}}@media(prefers-reduced-motion:reduce){.mascot{animation:none}.progress div{transition:none}}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+  <div class="mascot" aria-hidden="true">🦄</div>
+  <div class="header-name"><h1>Les missions d’Harmonie</h1><p>De petits jeux pour apprendre en s’amusant</p></div>
+  <div class="header-actions"><button id="voiceBtn" type="button" aria-pressed="false" aria-label="Activer la voix">🗣️</button><button id="parentBtn" type="button">Parents ⚙️</button></div>
+</header>
+<section class="summary" aria-live="polite">
+  <div><strong id="dayDisplay">Aujourd’hui</strong><p id="dayStatus">Je regarde ton planning…</p></div>
+  <div class="minute-pill" id="clock" role="timer">0 / 30 min</div>
+</section>
+<section class="days" aria-label="Séances prévues" id="days"></section>
+<section id="home">
+  <div class="section-row"><h2>Les 3 aventures du jour</h2><span id="doneLabel"></span></div>
+  <div id="missions" class="missions"></div>
+  <p class="fine">Une mission dure environ 5 à 10 minutes. La séance s'arrête au plus tard à 30 minutes d'activité. Les jours sans garde sont réservés au repos.</p>
+  <div class="old-games"><p>Retrouve aussi tes jeux préférés :</p><a href="./ardoise-magique/index.html">✍️ Ardoise magique</a><a href="./ardoise-magique/harmonie-alphabet/index.html">🦄 Défi alphabétique</a></div>
+</section>
+<section id="play" hidden>
+  <div class="game-head">
+    <button id="backBtn" type="button">← Missions</button><span id="gameName"></span>
+    <span id="count">1 / 6</span>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="game-card">
+    <div class="mascot small" aria-hidden="true">🦄</div>
+    <p class="label" id="promptType"></p>
+    <h2 id="question"></h2>
+    <p id="hint" class="hint"></p>
+    <div id="choices" class="choices"></div>
+    <div id="typing" hidden><label for="spellInput">Écris ta réponse</label><input id="spellInput" type="text" lang="fr" autocomplete="off" autocapitalize="none" spellcheck="false"><div class="buttons"><button id="hearBtn">🔊 Réécouter</button><button id="spellCheck" class="primary">Vérifier</button></div></div>
+    <div id="handwrite" hidden>
+      <p id="memory" class="memory">Regarde bien le mot…</p>
+      <div id="boardBox" hidden><div class="lines"></div><canvas id="board" aria-label="Ardoise d’écriture au doigt"></canvas></div>
+      <div class="buttons"><button id="showWrite">Voir 3 secondes</button><button id="clearWrite" hidden>🧽 Effacer</button><button id="verifyWrite" class="primary" hidden>Comparer mon écriture</button></div>
+    </div>
+    <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+    <button id="nextBtn" class="primary next" hidden>Continuer ➜</button>
+  </div>
+  <p class="fine">Une erreur n’enlève jamais d’étoile. Tu peux réessayer autant que nécessaire.</p>
+</section>
+<section id="finish" hidden class="finish">
+  <div class="mascot giant">🦄</div><h2>Mission terminée !</h2><p id="finishText"></p>
+  <div class="buttons"><button id="finishHome" class="primary">Mes autres missions</button></div>
+</section>
+<dialog id="parentDialog">
+  <div class="dialog-head"><h2>Le tableau de bord parent</h2><button id="closeParent" aria-label="Fermer">✕</button></div>
+  <p>Les résultats restent sur cet appareil, dans ce navigateur. Aucune donnée n'est envoyée à un serveur.</p>
+  <div id="parentStats" class="stats"></div>
+  <div class="buttons"><button id="exportCsv">Exporter les progrès (CSV)</button><button id="resetDay">Réinitialiser les missions du jour</button></div>
+  <p class="fine">Le temps consommé reste comptabilisé après réinitialisation pour respecter la limite de 30 minutes.</p>
+  <button id="closeParentBottom" class="primary">Terminer</button>
+</dialog>
+</main>
+<script>
+/* Progression conforme aux photographies des devoirs, octobre 2026.
+   Marches 1/2/3 : graphies de la fiche "Orthographe Cycle 2". */
+window.HARMONIE_DATA = Object.freeze({
+  words: {
+    u: {
+      1: ["la rue","un fruit","une voiture","du sucre","de la confiture","un nuage"],
+      2: ["je suis","une plume","des lunettes","un pull","la musique","la rue"],
+      3: ["la nature","plus","surtout","sur","dessus","aujourd’hui"]
+    },
+    ou: {
+      1: ["un loup","une souris","rouge","la route","une journée","la soupe","toujours"],
+      2: ["oui","une couleur","bonjour","beaucoup","aujourd’hui","pour"],
+      3: ["la cour","autour","sous","dessous","tout","surtout","douze"]
+    }
+  },
+  // Une seule liste de trois missions par date ; aucun jeu imposé hors garde.
+  schedule: {
+    "2026-10-18": [["Lecture du son u","read-u",1],["Les dizaines et unités","tens",1],["La machine à remonter le temps","time",1]],
+    "2026-10-19": [["Les mots en u — marche 1","spell-u",1],["La dizaine magique","subtract",1],["Les phrases négatives","negative",1]],
+    "2026-10-20": [["L’ardoise du son u","write-u",1],["Les additions en morceaux","add",1],["Les amis de 10","friends",1]],
+    "2026-10-26": [["Lecture du son ou","read-ou",1],["Les nombres jusqu’à 99","tens",2],["Le détective des phrases négatives","negative",2]],
+    "2026-10-27": [["Les mots en ou — marche 1","spell-ou",1],["Les soustractions","subtract",2],["Passé, présent ou futur ?","time",2]],
+    "2026-10-30": [["Les mots en ou — marche 2","spell-ou",2],["Les additions avec retenue","add",2],["Le détective des phrases négatives","negative",3]],
+    "2026-10-31": [["L’ardoise du son ou","write-ou",1],["Les amis de 10","friends",2],["Les phrases négatives","negative",3]],
+    "2026-11-01": [["Révision des mots en u","spell-u",1],["Passé, présent, futur","time",2],["Entraînement à la négation","negative",3]],
+    "2026-11-02": [["Lecture du son u","read-u",1],["Soustraire en passant par la dizaine","subtract",3],["Nombres jusqu’à 99","tens",2]],
+    "2026-11-03": [["Les mots en ou — dernier tour","write-ou",2],["Calculs jusqu’à 99","subtract",3],["Mini-évaluation des négations","negative",4]]
+  },
+  // Les réponses sont vérifiées par le moteur, jamais inventées par une IA.
+  questions: {
+    time: [
+      ["Hier, nous avons joué.", "passé"],
+      ["Demain, je ferai du vélo.", "futur"],
+      ["Aujourd’hui, je mange une pomme.", "présent"],
+      ["La semaine dernière, il pleuvait.", "passé"],
+      ["En ce moment, elle dessine.", "présent"],
+      ["Bientôt, nous partirons.", "futur"],
+      ["Hier soir, j’ai lu un livre.", "passé"],
+      ["Plus tard, tu seras grande.", "futur"]
+    ],
+    negative: [
+      ["Il joue dans le jardin.", "Il ne joue pas dans le jardin.", "Il joue pas dans le jardin."],
+      ["Elle aime les fraises.", "Elle n’aime pas les fraises.", "Elle ne aime pas les fraises."],
+      ["Nous chantons.", "Nous ne chantons pas.", "Nous chantons jamais."],
+      ["J’écoute la musique.", "Je n’écoute pas la musique.", "Je ne écoute pas la musique."],
+      ["Tu cours vite.", "Tu ne cours pas vite.", "Tu cours ne pas vite."],
+      ["On regarde les étoiles.", "On ne regarde pas les étoiles.", "On regarde pas les étoiles."],
+      ["Il a un vélo.", "Il n’a pas de vélo.", "Il ne a pas un vélo."],
+      ["Elles jouent dehors.", "Elles ne jouent pas dehors.", "Elles jouent ne pas dehors."]
+    ]
+  },
+  // Dates connues dans Google Agenda : calendriers de garde Philippe / Maud.
+  guardDays: ["2026-10-18","2026-10-19","2026-10-20","2026-10-26","2026-10-27","2026-10-30","2026-10-31","2026-11-01","2026-11-02","2026-11-03"],
+  maxMinutes: 30
+});
+
+(() => {
+"use strict";
+const D=window.HARMONIE_DATA;
+const $=id=>document.getElementById(id);
+const KEY="harmonie-revisions-toussaint-2026-v1";
+const MAX=D.maxMinutes*60;
+let progress=readProgress(),chosen=currentDay(),game=null,ticker=null,lastTick=0;
+let voice=false,canvasStrokes=[],stroke=null,ctx=null,canvasWidth=1,canvasHeight=1;
+function readProgress(){try {const x=JSON.parse(localStorage.getItem(KEY)||"{}");return {spent:x.spent||{},done:x.done||{},results:x.results||[]}}catch{return {spent:{},done:{},results:[]}}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(progress))}catch{}}
+function currentDay(){const p=Object.fromEntries(new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Paris",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()).map(x=>[x.type,x.value]));return p.year+"-"+p.month+"-"+p.day}
+const frDay=d=>new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
+function available(){return chosen===currentDay()&&D.guardDays.includes(chosen)}
+function seconds(){return Math.min(MAX,progress.spent[currentDay()]||0)}
+function addSeconds(s){if(!available()||s<=0)return;progress.spent[chosen]=Math.min(MAX,(progress.spent[chosen]||0)+s);save();paintClock();if(seconds()>=MAX&&game)stopForDay()}
+function startTimer(){stopTimer();lastTick=Date.now();ticker=setInterval(()=>{if(document.hidden)return;if(!available()){endGame();return}const now=Date.now(),delta=Math.min(2,Math.max(0,Math.floor((now-lastTick)/1000)));if(delta){lastTick=now;addSeconds(delta)}},1000)}
+function stopTimer(){if(ticker){clearInterval(ticker);ticker=null}const previous=lastTick;lastTick=0;if(previous&&game&&!document.hidden){const delta=Math.min(2,Math.max(0,Math.floor((Date.now()-previous)/1000)));if(delta)addSeconds(delta)}}
+document.addEventListener("visibilitychange",()=>{if(document.hidden){stopTimer()}else if(game){startTimer()}});
+function paintClock(){$("clock").textContent=Math.ceil(seconds()/60)+" / 30 min";$("clock").style.color=seconds()>=MAX?"#a52d45":""}
+function complete(m){if(!(progress.done[chosen]||[]).includes(m)){(progress.done[chosen]||=([])).push(m)}save()}
+function isDone(m){return (progress.done[chosen]||[]).includes(m)}
+function show(el,yes){$(el).hidden=!yes}
+function renderDays(){
+ const host=$("days");host.replaceChildren();
+ D.guardDays.forEach(d=>{const b=document.createElement("button");b.className="day"+(d===chosen?" active":"")+(d===currentDay()?" today":"");b.type="button";const [day,month]=d.slice(8).split("-");b.innerHTML="<strong>"+frDay(d)+"</strong><span>"+((progress.done[d]||[]).length)+"/3 jeux</span>";b.addEventListener("click",()=>{if(game)endGame();chosen=d;render()});host.appendChild(b)})
+}
+function render(){
+ paintClock();renderDays();
+ $("dayDisplay").textContent=frDay(chosen).replace(/^./,c=>c.toUpperCase());
+ const isToday=chosen===currentDay();
+ $("dayStatus").textContent=!isToday?"Programme à consulter — pas de jeu hors de la date prévue":available()?seconds()>=MAX?"30 minutes atteintes : place au repos !":"C’est ton jour avec papa !":"Pas de mission aujourd’hui : profite de ta journée !";
+ const host=$("missions");host.replaceChildren();const list=D.schedule[chosen]||[];
+ $("doneLabel").textContent=(progress.done[chosen]||[]).length+" / "+list.length+" réussies";
+ list.forEach(([title,type,level],i)=>{const c=document.createElement("article");c.className="mission"+(isDone(i)?" done":"");
+ const b=document.createElement("button");b.textContent=isDone(i)?"Rejouer ✓":"Jouer ➜";b.disabled=!available()||seconds()>=MAX;
+ const tag=document.createElement("span");tag.className="number";tag.textContent="Mission "+(i+1);
+ const h=document.createElement("h3");h.textContent=title;
+ const p=document.createElement("p");p.textContent=type.startsWith("write")?"Observe 3 secondes et écris avec ton doigt.":type.startsWith("spell")?"Écoute, puis retrouve l'orthographe exacte.":"5 à 10 minutes de jeu tranquille.";
+ c.append(tag,h,p,b);b.addEventListener("click",()=>startGame(i,title,type,level));host.append(c)});
+ if(!list.length){host.textContent="Aucune mission prévue ce jour."}
+}
+function shuffled(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+const clean=s=>String(s).normalize("NFC").trim().toLocaleLowerCase("fr").replace(/[’‘]/g,"'").replace(/\s+/g," ");
+function item(prompt,answer,options,hint,label="Choisis la bonne réponse"){return {mode:"choice",prompt,answer:String(answer),options:shuffled([...new Set(options.map(String))]),hint,label}}
+function speak(text,forced=false){if((!voice&&!forced)||!("speechSynthesis" in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="fr-FR";u.pitch=1.25;u.rate=.86;speechSynthesis.speak(u)}
+function generate(type,level){
+ if(type==="read-u"||type==="read-ou"){
+ const sound=type.endsWith("ou")?"ou":"u";
+ const targets=sound==="ou"?["rouge","la soupe","la route","toujours","bonjour","pour"]:["la rue","du sucre","la nature","une plume","la musique","de la confiture"];
+ const others=sound==="ou"?["la rue","une plume","du sucre","la nature","la musique"]:["rouge","la soupe","bonjour","la route","toujours"];
+ return targets.map((correct,i)=>item("Quel mot contient « "+sound+" » ?",correct,[correct,others[i%others.length],others[(i+1)%others.length]],"Cherche le groupe de lettres « "+sound+" » dans le mot.","Lecture"));
+ }
+ if(type==="spell-u"||type==="spell-ou"){
+ const kind=type.endsWith("ou")?"ou":"u";
+ const words=[...new Set(Array.from({length:level},(_,i)=>D.words[kind][i+1]||[]).flat())];
+ return shuffled(words).slice(0,Math.min(6,words.length)).map(w=>({mode:"spell",prompt:"Écoute le mot puis écris-le.",answer:w,label:"Dictée — son "+kind,hint:"Tu peux réécouter autant de fois que tu veux."}));
+ }
+ if(type==="write-u"||type==="write-ou"){
+ const kind=type.endsWith("ou")?"ou":"u";
+ const words=level===2?[...D.words[kind][1],...D.words[kind][2]]:D.words[kind][1];
+ return shuffled(words).slice(0,4).map(w=>({mode:"write",prompt:"Écris le mot sur l’ardoise.",answer:w,label:"Écriture cursive",hint:"Regarde le modèle 3 secondes, puis écris sans le voir."}));
+ }
+ if(type==="tens"){
+ const nums=level===1?[56,42,73,19,80,67]:[64,37,95,28,71,49];
+ return nums.map(n=>item(n+" : combien de dizaines ?",Math.floor(n/10),[Math.floor(n/10),n%10,Math.floor(n/10)+1,Math.max(0,Math.floor(n/10)-1)],"Le chiffre de gauche donne les dizaines. Le chiffre de droite donne les unités.","Dizaines et unités"))
+ .flatMap((q,i)=>i%2===0?[q,item(nums[i]+" : combien d’unités ?",nums[i]%10,[nums[i]%10,Math.floor(nums[i]/10),9,Math.max(0,nums[i]%10-1)],"Les unités sont à droite.","Dizaines et unités")]:[q]).slice(0,8);
+ }
+ if(type==="friends"){
+ return [7,4,6,9,3,5,8,2].slice(level===2?2:0,level===2?8:6).map(a=>item(a+" + ? = 10",10-a,[10-a,Math.max(0,9-a),Math.min(9,11-a)],"Compte les cases qui manquent jusqu’à 10.","Les amis de 10"));
+ }
+ if(type==="subtract"){
+ const pairs=level===1?[[35,7],[43,6],[52,8],[61,4],[74,9],[32,5]]:level===2?[[46,8],[64,7],[83,6],[51,9],[72,5],[55,8]]:[[35,7],[62,8],[74,6],[91,7],[43,9],[80,5]];
+ return pairs.map(([a,b])=>{const toTen=a%10||10,first=Math.min(b,toTen);const rest=b-first,answer=a-b;return item(a+" − "+b+" = ?",answer,[answer,answer+10,answer-2,answer+2],a+" − "+first+" = "+(a-first)+(rest?", puis − "+rest+" = "+answer:"")+".","Soustraction en passant par la dizaine")});
+ }
+ if(type==="add"){
+ const pairs=level===1?[[25,42],[31,47],[42,26],[16,31],[20,35],[44,23]]:level===2?[[26,47],[35,28],[48,16],[57,25],[38,26],[17,45]]:[[25,42],[53,29],[36,47],[44,38],[19,63],[56,27]];
+ return pairs.map(([a,b])=>{const n=a+b;return item(a+" + "+b+" = ?",n,[n,n-10,n+10,n-2],Math.floor(a/10)*10+" + "+Math.floor(b/10)*10+" = "+(Math.floor(a/10)+Math.floor(b/10))*10+" ; "+(a%10)+" + "+(b%10)+" = "+((a%10)+(b%10))+". Réunis les deux résultats.","Additions et retenues")});
+ }
+ if(type==="negative"){
+ const all=D.questions.negative;const start=level===1?0:level===2?2:level===3?1:0;
+ return [...all.slice(start),...all.slice(0,start)].slice(0,Math.min(level===4?8:6,all.length)).map(([original,right,wrong])=>item("Transforme : « "+original+" »",right,[right,wrong,original],"Il faut deux parties : ne (ou n’) avant le verbe, et pas après le verbe.","Détective des phrases négatives"));
+ }
+ if(type==="time"){
+ return D.questions.time.slice(level===1?0:2,level===1?6:8).map(([sentence,answer])=>item("« "+sentence+" » : quand cela se passe-t-il ?",answer,["passé","présent","futur"],"Hier = passé ; aujourd’hui = présent ; demain = futur.","La machine du temps"));
+ }
+ return [];
+}
+function startGame(id,title,type,level){
+ if(!available()||seconds()>=MAX)return;
+ const questions=generate(type,level);
+ if(!questions.length)return;
+ game={id,title,questions,pos:0,mistakes:0,correct:0,wrongOnCurrent:false,solved:false,writeTimer:null};
+ $("gameName").textContent=title;show("home",false);show("finish",false);show("play",true);
+ renderQuestion();startTimer();
+}
+function renderQuestion(){
+ if(!game)return;const q=game.questions[game.pos];
+ game.solved=false;game.wrongOnCurrent=false;$("promptType").textContent=q.label;
+ $("question").textContent=q.prompt;$("hint").textContent=q.hint;$("feedback").textContent="";
+ $("bar").style.width=(game.pos/game.questions.length*100)+"%";$("count").textContent=(game.pos+1)+" / "+game.questions.length;
+ show("nextBtn",false);show("typing",q.mode==="spell");show("handwrite",q.mode==="write");
+ $("choices").replaceChildren();
+ if(q.mode==="choice"){
+ q.options.forEach(option=>{const b=document.createElement("button");b.textContent=option;
+ b.addEventListener("click",()=>choose(b,option,q));$("choices").appendChild(b)});
+ }else if(q.mode==="spell"){
+ $("spellInput").value="";$("spellInput").disabled=false;$("spellCheck").disabled=false;
+ $("hearBtn").textContent="🔊 Réécouter";$("question").textContent="Écoute le mot, puis écris-le.";
+ speak(q.answer,true);
+ }else if(q.mode==="write"){
+ $("memory").textContent="Regarde bien le mot…";$("memory").classList.remove("hide");
+ show("boardBox",false);show("showWrite",true);show("clearWrite",false);show("verifyWrite",false);
+ canvasStrokes=[];paintBoard();
+ }
+}
+function succeed(text){if(!game||game.solved)return;game.solved=true;game.correct++;$("feedback").textContent=text||"Bravo Harmonie, tu as trouvé !";show("nextBtn",true);speak("Bravo Harmonie !")}
+function choose(button,selected,q){
+ if(!game||game.solved)return;
+ if(clean(selected)===clean(q.answer)){
+ button.classList.add("correct");[...$("choices").children].forEach(b=>b.disabled=true);
+ succeed("Bravo ! "+q.answer+".");
+ }else{
+ button.classList.add("wrong");button.disabled=true;game.mistakes++;game.wrongOnCurrent=true;
+ $("feedback").textContent="Pas tout à fait. "+q.hint+" Essaie une autre réponse.";
+ }
+}
+function spellCheck(){
+ if(!game||game.solved)return;const q=game.questions[game.pos],response=$("spellInput").value;
+ if(!response.trim()){$("feedback").textContent="Écris quelque chose, puis vérifie.";return}
+ if(clean(response)===clean(q.answer)){
+ $("spellInput").disabled=true;$("spellCheck").disabled=true;succeed("Bravo ! Le mot est bien écrit : « "+q.answer+" ».");
+ }else{
+ game.mistakes++;game.wrongOnCurrent=true;
+ $("feedback").textContent="On peut réessayer. Indice : le mot commence par « "+q.answer[0].toLocaleUpperCase("fr")+" ». Clique sur Réécouter.";
+ }
+}
+function paintBoard(){
+ const c=$("board");if(!ctx||!c.width)return;
+ ctx.clearRect(0,0,canvasWidth,canvasHeight);ctx.lineWidth=5;ctx.strokeStyle="#4d4178";ctx.lineJoin="round";ctx.lineCap="round";
+ for(const pts of canvasStrokes){if(!pts.length)continue;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(const p of pts.slice(1))ctx.lineTo(p.x,p.y);ctx.stroke()}
+ if(stroke?.length){ctx.beginPath();ctx.moveTo(stroke[0].x,stroke[0].y);for(const p of stroke.slice(1))ctx.lineTo(p.x,p.y);ctx.stroke()}
+}
+function initCanvas(){
+ const c=$("board"),rect=c.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2);canvasWidth=Math.max(rect.width,100);canvasHeight=Math.max(rect.height,100);
+ c.width=Math.round(canvasWidth*dpr);c.height=Math.round(canvasHeight*dpr);ctx=c.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);paintBoard();
+}
+function showWrite(){
+ if(!game)return;const q=game.questions[game.pos];
+ $("memory").textContent=q.answer;$("memory").classList.remove("hide");
+ show("showWrite",false);show("boardBox",false);
+ game.writeTimer=setTimeout(()=>{
+ if(!game)return;$("memory").textContent="Écris de mémoire…";
+ show("boardBox",true);show("clearWrite",true);show("verifyWrite",true);
+ requestAnimationFrame(initCanvas);game.writeTimer=null;
+ },3000);
+}
+function compareWrite(){
+ if(!game||!canvasStrokes.length){$("feedback").textContent="Essaie d’écrire au moins une lettre avant de comparer.";return}
+ const q=game.questions[game.pos];$("memory").textContent=q.answer;$("feedback").textContent="Compare ton écriture avec « "+q.answer+" ». À toi (ou à un adulte) de vérifier : le jeu ne reconnaît pas automatiquement les lettres.";
+ show("clearWrite",false);show("verifyWrite",false);
+ const choices=$("choices");choices.replaceChildren();
+ const accept=document.createElement("button");accept.textContent="J’ai bien écrit le mot";
+ accept.addEventListener("click",()=>{choices.replaceChildren();succeed("Bravo pour tes efforts et ta belle écriture !")});
+ const retry=document.createElement("button");retry.textContent="Je recommence";
+ retry.addEventListener("click",()=>{game.mistakes++;canvasStrokes=[];stroke=null;paintBoard();choices.replaceChildren();$("memory").textContent="Regarde bien le mot…";$("feedback").textContent="Réessaie tranquillement.";show("boardBox",false);show("showWrite",true)});
+ choices.append(accept,retry);
+}
+function next(){
+ if(!game||!game.solved)return;
+ progress.results.push({date:chosen,mission:game.title,answer:game.questions[game.pos].answer,errors:Number(game.wrongOnCurrent),type:game.questions[game.pos].mode});
+ save();game.pos++;
+ if(game.pos<game.questions.length){renderQuestion();return}
+ const done=game;complete(done.id);endGame();
+ $("finishText").textContent="Tu as terminé "+done.questions.length+" défis avec "+done.correct+" réponses validées. Les erreurs sont normales : chaque essai compte !";
+ show("home",false);show("finish",true);
+}
+function endGame(){
+ if(!game){show("play",false);show("home",true);return}
+ const t=game.writeTimer;game.writeTimer=null;if(t)clearTimeout(t);
+ stopTimer();game=null;show("play",false);show("home",true);render();
+}
+function stopForDay(){
+ // Atteinte de la limite : pas de nouveau jeu ni de question suivante.
+ const t=game?.writeTimer;if(t)clearTimeout(t);
+ game=null;stopTimer();show("play",false);show("finish",false);show("home",true);render();
+ $("dayStatus").textContent="30 minutes terminées : bravo, profite maintenant de tes vacances !";
+}
+function exportCSV(){
+ const lines=[["date","mission","type","reponse_attendue","erreur_au_premier_essai"],...progress.results.map(x=>[x.date,x.mission,x.type,x.answer,x.errors])];
+ const csv="\uFEFF"+lines.map(r=>r.map(s=>'"'+String(s??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");
+ const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download="harmonie-progres.csv";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+function parent(){
+ const total=progress.results.length,wrong=progress.results.filter(x=>x.errors).length;
+ const sessions=Object.keys(progress.spent).sort().map(k=>k+": "+Math.ceil(progress.spent[k]/60)+" min, "+(progress.done[k]||[]).length+" missions");
+ $("parentStats").replaceChildren();
+ [total+" réponses enregistrées",wrong+" réponses corrigées après un premier essai",...sessions].forEach(s=>{const p=document.createElement("p");p.textContent=s;$("parentStats").appendChild(p)});
+ if(typeof $("parentDialog").showModal==="function")$("parentDialog").showModal();else $("parentDialog").setAttribute("open","");
+}
+function closeParent(){$("parentDialog").close?.();$("parentDialog").removeAttribute("open")}
+$("voiceBtn").addEventListener("click",()=>{voice=!voice;$("voiceBtn").setAttribute("aria-pressed",String(voice));$("voiceBtn").textContent=voice?"🔊":"🗣️";if(voice)speak("Coucou Harmonie !")});
+$("parentBtn").addEventListener("click",parent);$("closeParent").addEventListener("click",closeParent);$("closeParentBottom").addEventListener("click",closeParent);
+$("exportCsv").addEventListener("click",exportCSV);
+$("resetDay").addEventListener("click",()=>{if(confirm("Recommencer les missions ? Le temps déjà passé ne sera pas effacé.")){delete progress.done[chosen];save();closeParent();parent();render()}});
+$("backBtn").addEventListener("click",endGame);$("finishHome").addEventListener("click",()=>{show("finish",false);show("home",true);render()});
+$("nextBtn").addEventListener("click",next);$("spellCheck").addEventListener("click",spellCheck);
+$("spellInput").addEventListener("keydown",e=>{if(e.key==="Enter")spellCheck()});
+$("hearBtn").addEventListener("click",()=>{if(game)speak(game.questions[game.pos].answer,true)});
+$("showWrite").addEventListener("click",showWrite);$("verifyWrite").addEventListener("click",compareWrite);
+$("clearWrite").addEventListener("click",()=>{canvasStrokes=[];stroke=null;paintBoard()});
+const board=$("board");
+function point(e){const r=board.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
+board.addEventListener("pointerdown",e=>{e.preventDefault();board.setPointerCapture?.(e.pointerId);stroke=[point(e)];paintBoard()});
+board.addEventListener("pointermove",e=>{if(!stroke)return;e.preventDefault();stroke.push(point(e));paintBoard()});
+function endStroke(){if(!stroke)return;const s=stroke;stroke=null;if(s.length===1)s.push({x:s[0].x+.1,y:s[0].y+.1});canvasStrokes.push(s);paintBoard()}
+board.addEventListener("pointerup",endStroke);board.addEventListener("pointercancel",endStroke);
+window.addEventListener("pagehide",()=>{if(game)stopTimer()});
+if(!D.schedule[chosen])chosen=D.guardDays.find(d=>d>=chosen)||D.guardDays[D.guardDays.length-1];
+render();
+})();
+
+</script>
+</body></html>
