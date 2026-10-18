@@ -22,8 +22,8 @@ window.HARMONIE_DATA = Object.freeze({
     "2026-10-27": [["Les mots en ou — marche 1","spell-ou",1],["Les soustractions","subtract",2],["Passé, présent ou futur ?","time",2]],
     "2026-10-30": [["Les mots en ou — marche 2","spell-ou",2],["Les additions avec retenue","add",2],["Le détective des phrases négatives","negative",3]],
     "2026-10-31": [["L’ardoise du son ou","write-ou",1],["Les amis de 10","friends",2],["Les phrases négatives","negative",3]],
-    "2026-11-01": [["Révision des mots en ou","spell-ou",1],["Passé, présent, futur","time",2],["Entraînement à la négation","negative",3]],
-    "2026-11-02": [["Orthographe ou — révision","spell-ou",2],["Tables d’addition","add",3],["Entraînement à la négation","negative",3]],
+    "2026-11-01": [["Révision des mots en u","spell-u",1],["Passé, présent, futur","time",2],["Entraînement à la négation","negative",3]],
+    "2026-11-02": [["Lecture du son u","read-u",1],["Soustraire en passant par la dizaine","subtract",3],["Nombres jusqu’à 99","tens",2]],
     "2026-11-03": [["Les mots en ou — dernier tour","write-ou",2],["Calculs jusqu’à 99","subtract",3],["Mini-évaluation des négations","negative",4]]
   },
   // Les réponses sont vérifiées par le moteur, jamais inventées par une IA.
