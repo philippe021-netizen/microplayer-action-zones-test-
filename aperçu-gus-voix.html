@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#6e55cf"><title>Gus la Mèche — Essai de voix avant validation</title>
+<style>
+:root{font:16px -apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:#33285e;background:#fcf4ff}*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#ffedfc,#e7f5ff 70%,#ffffe4);min-height:100svh;padding:20px 14px}.main{max-width:850px;margin:0 auto}.header{display:flex;align-items:center;gap:14px}.face{font-size:70px;filter:drop-shadow(0 6px 7px #9980b954);animation:bob 3s infinite}.header h1{font-size:clamp(25px,5vw,39px);margin:0}.header p{margin:7px 0;color:#6c608a}h2{font-size:21px}.banner,.panel{background:#ffffffed;border:2px solid #fff;border-radius:24px;padding:20px;box-shadow:0 12px 25px #7764a51b;margin:13px 0}.banner{font-size:18px;line-height:1.5}.voice-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}button{font:inherit;cursor:pointer;min-height:49px;border:0;border-radius:15px;background:#725bd7;color:white;font-weight:800;padding:13px 16px;touch-action:manipulation}button:active{transform:scale(.98)}button.secondary{background:#eeeafd;color:#55468c}.effects{display:flex;flex-wrap:wrap;gap:9px}.effects button{background:#fff0ad;color:#614074}.note{color:#706985;font-size:14px;line-height:1.55}.status{min-height:27px;font-weight:750;color:#5d4397}.settings{display:flex;gap:15px;align-items:center;flex-wrap:wrap;margin:14px 0}.settings label{font-size:15px;font-weight:750}.settings select{min-height:42px;font:inherit;border:2px solid #dbd0ee;border-radius:13px;padding:7px;background:white;max-width:100%}.quotes{font-size:14px;color:#69607c;line-height:1.5}.quotes p{margin:8px 0}a{color:#5947a0}@keyframes bob{50%{transform:translateY(-7px) rotate(-3deg)}}@media(prefers-reduced-motion:reduce){.face{animation:none}}
+</style></head>
+<body><main class="main">
+<header class="header"><div class="face" aria-hidden="true">🧒🏻</div><div><h1>Gus la Mèche</h1><p>Essai vocal privé de notre petit farceur — pas encore intégré aux devoirs.</p></div></header>
+<section class="banner"><strong>Mission : faire sourire Harmonie tout en l'encourageant.</strong> Gus est un personnage original. Les voix sont des essais de synthèse vocale française disponibles sur la tablette, et non la voix officielle de Titeuf.</section>
+<section class="panel"><h2>Écoute Gus</h2>
+<div class="settings"><label for="tone">Style de voix :</label><select id="tone"><option value="1">Gus, copain malicieux (conseillé)</option><option value="2">Gus, petit clown surexcité</option><option value="3">Gus, plus calme et rassurant</option></select></div>
+<div class="voice-buttons">
+<button data-line="0">▶ Salut Harmonie !</button>
+<button data-line="1">▶ Parole de Gus !</button>
+<button data-line="2">▶ Cerveau turbo-patate !</button>
+<button data-line="3">▶ Oups, on recommence !</button>
+<button data-line="4">▶ Bravo, championne !</button>
+<button data-line="5">▶ Blague du cartable !</button>
+</div>
+<p id="status" class="status" role="status" aria-live="polite">Appuie sur une réplique pour entendre la voix.</p>
+<div class="effects"><button class="secondary" id="stop">■ Stop</button><button class="secondary" id="all">▶ Écouter trois phrases à la suite</button></div>
+</section>
+<section class="panel"><h2>Les bruitages de Gus</h2><div class="effects"><button id="boing">Boïïïng !</button><button id="prout">Petit prout</button><button id="pouet">Pouêt-pouêt !</button><button id="bulle">Bloop !</button></div><p class="note">Bruitages générés localement, sans téléchargement, avec le contrôle du volume de la tablette. Ils ne sont jamais joués automatiquement dans cette page.</p></section>
+<section class="panel"><h2>Ce que tu valides ici</h2><p class="quotes">La personnalité de Gus, ses répliques et l'énergie de sa voix. La synthèse dépend des voix installées sur l'appareil : le timbre pourra être amélioré pour la version définitive.</p><p class="note">L'essai vocal s'active après une pression sur un bouton, comme l'exige généralement Safari. Si rien ne sort, vérifie le volume multimédia de la tablette et réessaie.</p></section>
+</main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const lines=[
+'Salut Harmonie ! Ça roule, les neurones ? On va s’amuser !',
+'Je sais que tu vas tout bien réussir ! Parole de Gus la Mèche !',
+'Attention, attention ! Cerveau en mode turbo-patate ! Éloignez les cartables !',
+'Oups ! Mon cerveau a fait une pirouette ! On recommence, tranquille !',
+'Wouhou ! Bravo Harmonie ! Même ma mèche en tombe à la renverse !',
+'Tu sais pourquoi mon cartable rigole ? Parce que mon cahier lui a raconté une blague !'
+];
+let voices=[],ctx=null,seq=0;const status=$('status');
+function populateVoices(){voices=window.speechSynthesis?.getVoices?.()||[]}
+populateVoices();if('speechSynthesis' in window)speechSynthesis.onvoiceschanged=populateVoices;
+function voiceForGus(){
+ const fr=voices.filter(v=>/^fr\b/i.test(v.lang||''));
+ return fr.find(v=>/Thomas|Henri|Paul|Jean|male|homme/i.test(v.name))
+ ||fr.find(v=>v.localService) ||fr[0]||null;
+}
+function say(text,then){
+ if(!('speechSynthesis' in window)){status.textContent='Voix indisponible dans ce navigateur.';return}
+ speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='fr-FR';
+ const mode=$('tone').value;
+ u.rate=mode==='2'?1.17:mode==='3'?.87:1.03;
+ u.pitch=mode==='2'?1.75:mode==='3'?1.22:1.48;
+ u.volume=1;
+ u.voice=voiceForGus();status.textContent='Gus parle : '+text;
+ if(then){u.onend=then}
+ u.onerror=()=>status.textContent='La voix n’a pas démarré : vérifie le son et réessaie.';
+ speechSynthesis.speak(u)
+}
+document.querySelectorAll('[data-line]').forEach(btn=>btn.onclick=()=>{seq++;say(lines[Number(btn.dataset.line)])});
+$('stop').onclick=()=>{seq++;speechSynthesis?.cancel?.();status.textContent='Gus est silencieux.'};
+$('all').onclick=()=>{
+ const n=++seq;const ids=[0,1,2];let i=0;
+ function next(){if(n!==seq)return;if(i>=ids.length){status.textContent='Échantillon terminé !';return}setTimeout(()=>{if(n!==seq)return;say(lines[ids[i++]],next)},180)}
+ next();
+};
+function audio(){const C=window.AudioContext||window.webkitAudioContext;if(!C){status.textContent='Audio non pris en charge.';return null}if(!ctx)ctx=new C();ctx.resume?.();return ctx}
+function tone(start,end,dur=.4,wave='sine',volume=.15,delay=0){
+ const c=audio();if(!c)return;
+ const os=c.createOscillator(),g=c.createGain(),t=c.currentTime+delay;
+ os.type=wave;os.frequency.setValueAtTime(Math.max(25,start),t);
+ os.frequency.exponentialRampToValueAtTime(Math.max(25,end),t+dur);
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(volume,t+.022);
+ g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+ os.connect(g);g.connect(c.destination);os.start(t);os.stop(t+dur+.01);
+}
+function soundEffect(kind){
+ switch(kind){
+ case 'boing':tone(600,120,.53,'triangle',.22);tone(300,90,.5,'sine',.17,.05);break;
+ case 'prout':{
+ const c=audio();if(!c)return;const n=Math.floor(c.sampleRate*.67),buffer=c.createBuffer(1,n,c.sampleRate),a=buffer.getChannelData(0);let phase=0;
+ for(let i=0;i<n;i++){const x=i/c.sampleRate, f=84+29*Math.sin(x*49)-23*x;phase+=2*Math.PI*f/c.sampleRate;const envelope=Math.pow(1-i/n,1.7);a[i]=(Math.sin(phase)*.65+Math.sin(2*phase)*.16+(Math.random()-.5)*.25)*envelope*.5}
+ const src=c.createBufferSource(),gain=c.createGain();src.buffer=buffer;gain.gain.value=.36;src.connect(gain);gain.connect(c.destination);src.start();break}
+ case 'pouet':tone(250,430,.19,'sawtooth',.13);tone(240,410,.2,'sawtooth',.13,.23);break;
+ case 'bulle':tone(160,570,.27,'sine',.22);tone(310,660,.20,'sine',.1,.09);break;
+ }
+ status.textContent='Bruitage joué : '+kind;
+}
+for(const k of ['boing','prout','pouet','bulle'])$(k).onclick=()=>soundEffect(k);
+})();
+</script></body></html>
