@@ -17,6 +17,41 @@
 .game-card{text-align:center;background:#fff;border-radius:26px;padding:clamp(16px,3vw,28px);min-height:340px;box-shadow:0 11px 29px #7865a515}.game-card h2{font-size:clamp(23px,3vw,32px);margin:10px auto;max-width:720px}.label{font-size:15px;color:#8774ab;font-weight:850;text-transform:uppercase}.hint{color:#716b87;min-height:25px;margin:7px auto 16px}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:auto;max-width:700px}.choices button{border:2px solid #dcd3f7;border-radius:16px;padding:18px 12px;background:#f8f5ff;font-size:clamp(18px,2.6vw,25px);font-weight:800;color:#4c447d;overflow-wrap:anywhere}.choices button:hover{background:#f1ebff}.choices button.wrong{border-color:#e6a9ac;background:#fff1ee}.choices button.correct{border-color:#7ac9a2;background:#e4f7ef}.buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:15px}button.primary{border:0;background:var(--violet);color:white;font-weight:850;border-radius:15px;padding:13px 22px;font-size:18px}.next{margin:15px auto 0;display:block}.feedback{font-weight:800;color:#5d5782;min-height:30px;margin-top:15px;line-height:1.35}#typing label{display:block;margin:10px;font-weight:750}#typing input{width:min(490px,100%);padding:15px 17px;border-radius:15px;border:2px solid #ac97e6;font-size:24px;text-align:center}#typing button,#handwrite button{border:0;border-radius:14px;padding:12px 16px;font-weight:800;background:#eee9ff;color:#554695}#typing button.primary,#handwrite button.primary{background:var(--violet);color:white}.memory{font-family:Marelle,cursive;font-size:clamp(35px,6vw,65px);font-weight:400;min-height:83px;margin:10px auto;color:#473f7d}.memory.hide{visibility:hidden}
 #boardBox{position:relative;overflow:hidden;width:100%;height:245px;background:#fffdf8;border:2px solid #e2ddec;border-radius:17px;touch-action:none}.lines{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(to bottom,transparent 0,transparent 38px,#dce3ed 39px,transparent 40px,transparent 78px,#ebb1c7 79px,transparent 80px)}#board{position:absolute;inset:0;width:100%;height:100%;touch-action:none}.finish{text-align:center;background:white;border-radius:25px;padding:35px}.finish h2{font-size:32px}dialog{width:min(630px,95vw);border:0;border-radius:24px;padding:24px;box-shadow:0 15px 60px #25194255;color:#343251}dialog::backdrop{background:#25204099}.dialog-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.dialog-head h2{margin:0;font-size:24px}.stats{border:1px solid #eee9f6;border-radius:16px;padding:15px;margin:15px 0}.stats p{margin:6px 0}dialog .buttons button{background:#eee9fa;border:0;border-radius:13px;padding:12px;color:#584c89;font-weight:800}
 [hidden]{display:none!important}@media(max-width:590px){.app{padding:12px 10px}.header-actions{flex-direction:column}header .mascot{font-size:42px}.summary{padding:14px;align-items:flex-start}.summary strong{font-size:18px}.minute-pill{font-size:13px}.choices{grid-template-columns:1fr}.choices button{font-size:19px;padding:12px}.mission{min-height:170px}.game-card{padding:13px}.old-games a{width:100%;text-align:center}}@media(prefers-reduced-motion:reduce){.mascot{animation:none}.progress div{transition:none}}
+
+/* Les jeux conservent la licorne originale; Gus est un personnage BD inédit. */
+header .mascot,.game-card .mascot,.finish .mascot{font-size:0!important;flex-shrink:0;width:72px;height:69px;animation:none!important;overflow:visible}
+.game-card .mascot.small{width:56px;height:54px}
+.finish .mascot.giant{width:110px;height:110px}
+.mascot svg{width:100%;height:100%;max-width:100%;max-height:100%;display:block;overflow:visible}
+.mascot-body{transform-origin:50% 80%;animation:unicornBreath 2.1s ease-in-out infinite}
+.mascot-head{transform-origin:68% 49%;animation:unicornLook 4s ease-in-out infinite}
+.mascot-leg{transform-origin:50% 70%;animation:unicornWalk .6s ease-in-out infinite alternate}
+.mascot-eye{transform-origin:center;animation:unicornBlink 4.5s infinite}
+.mascot-horn{animation:unicornGlow 1.4s ease-in-out infinite alternate}
+@keyframes unicornBreath{50%{transform:translateY(-3px)}}@keyframes unicornLook{80%{transform:rotate(0)}90%{transform:rotate(-4deg)}}@keyframes unicornWalk{to{transform:rotate(9deg)}}@keyframes unicornBlink{0%,45%,48%,100%{transform:scaleY(1)}46%,47%{transform:scaleY(.1)}}@keyframes unicornGlow{to{filter:drop-shadow(0 0 5px #ffd972)}}
+#gus-panel{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #efe4ff;border-radius:24px;margin:14px 0;padding:8px 15px 8px 6px;box-shadow:0 7px 20px #8d6db21c}
+#gus-tap{flex:0 0 136px;width:136px;height:172px;border:0;background:none;padding:0;position:relative;cursor:pointer}
+#gus-tap svg{width:100%;height:100%;display:block;filter:drop-shadow(0 6px 4px #71619a30);overflow:visible}
+#gus-body{transform-origin:50% 85%;animation:gusBob 2.8s ease-in-out infinite}
+#gus-hair{transform-origin:60% 30%;animation:gusTuft 3.2s ease-in-out infinite}
+#gus-eye{transform-origin:center;animation:gusBlink 4s infinite}
+#gus-mouth{transform-origin:50% 68%}
+#gus-tap.talking #gus-mouth{animation:gusTalk .18s alternate infinite}
+#gus-tap.fart #gus-body{animation:gusFart .35s ease-out 3}
+#gus-tap.cheer #gus-body{animation:gusJump .35s ease-out 3}
+#gus-panel .gus-text{flex:1;min-width:0}
+#gus-panel h2{margin:0 0 5px;font-size:clamp(18px,2.4vw,25px);color:#5d4d8e}
+#gus-dialog{margin:0 0 9px;color:#655e7e;font-size:16px;line-height:1.4;min-height:40px}
+#gus-panel .gus-buttons{display:flex;gap:7px;flex-wrap:wrap}
+#gus-panel .gus-buttons button{font-weight:800;color:#6652aa;background:#f1eaff;border:1px solid #d9c9f5;border-radius:13px;padding:9px 11px;font-size:14px;min-height:42px}
+#gus-panel .gus-buttons button[aria-pressed=true]{background:#d9f7e9;border-color:#8ddbb8;color:#287353}
+#gus-start{background:#7457cf!important;color:white!important;border:0!important}
+#gus-notice{margin:7px 0 0;font-size:12px;color:#847c95}
+#voiceBtn{display:none!important}
+@keyframes gusBob{50%{transform:translateY(-4px)}}@keyframes gusTuft{50%{transform:rotate(7deg)}}@keyframes gusBlink{0%,43%,47%,100%{transform:scaleY(1)}45%{transform:scaleY(.1)}}@keyframes gusTalk{to{transform:scaleY(1.6)}}@keyframes gusFart{50%{transform:translateY(-9px) rotate(6deg)}}@keyframes gusJump{50%{transform:translateY(-14px) rotate(-3deg)}}
+@media(max-width:580px){#gus-panel{padding:6px;gap:4px}#gus-tap{flex-basis:86px;width:86px;height:130px}#gus-dialog{font-size:13px;min-height:40px}#gus-panel .gus-buttons{gap:4px}#gus-panel .gus-buttons button{padding:7px;font-size:12px}header .mascot{width:58px;height:54px}}
+@media(prefers-reduced-motion:reduce){#gus-tap *, .mascot *{animation:none!important}}
+
 </style>
 </head>
 <body>
@@ -26,6 +61,43 @@
   <div class="header-name"><h1>Les missions d’Harmonie</h1><p>De petits jeux pour apprendre en s’amusant</p></div>
   <div class="header-actions"><button id="voiceBtn" type="button" aria-pressed="false" aria-label="Activer la voix">🗣️</button><button id="parentBtn" type="button">Parents ⚙️</button></div>
 </header>
+
+<section id="gus-panel" aria-label="Gus, le copain farceur d'Harmonie">
+<button id="gus-tap" type="button" title="Touche Gus pour une blague" aria-label="Gus : fais une blague">
+<svg viewBox="0 0 150 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gus, petit garçon de BD à la mèche rousse, sweat violet et baskets turquoise">
+<g id="gus-body">
+<ellipse cx="72" cy="186" rx="44" ry="7" fill="#8174bb" opacity=".14"/>
+<path d="M52 137 48 179 67 179 72 147M88 139 93 179 114 179 103 135" stroke="#35516d" stroke-width="17" fill="none" stroke-linecap="round"/>
+<path d="M47 179 Q48 170 66 174 L70 182 Q71 193 43 191 Q36 186 47 179M93 180 Q97 173 113 175 Q120 187 110 192 L90 189Z" fill="#45d2b4" stroke="#325378" stroke-width="3"/>
+<path d="M46 111 Q38 113 33 139 Q30 146 39 150 L53 137 M100 111 Q117 124 118 137 L111 143 97 135" fill="none" stroke="#7744b0" stroke-width="15" stroke-linecap="round"/>
+<circle cx="37" cy="148" r="10" fill="#ffd2aa" stroke="#d78e7a" stroke-width="2"/><circle cx="114" cy="142" r="10" fill="#ffd2aa" stroke="#d78e7a" stroke-width="2"/>
+<path d="M51 110 Q69 101 98 112 Q111 132 107 162 Q76 175 43 158 Q39 134 51 110" fill="#985ed2" stroke="#563a94" stroke-width="3"/>
+<path d="M54 119 Q76 130 98 118" fill="none" stroke="#c7a5ec" stroke-width="3" stroke-linecap="round"/>
+<path d="M72 125 L77 143 L68 142" stroke="#d9b3f4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M65 95 L64 115 Q72 124 83 114 L85 94" fill="#ffd1a7" stroke="#d18a78" stroke-width="2"/>
+<ellipse cx="73" cy="66" rx="48" ry="48" fill="#ffd9b5" stroke="#d38f78" stroke-width="2.5" transform="rotate(-5 73 66)"/>
+<ellipse cx="28" cy="73" rx="10" ry="16" fill="#ffcaa4" stroke="#d38f78" stroke-width="2"/><ellipse cx="120" cy="76" rx="10" ry="16" fill="#ffcaa4" stroke="#d38f78" stroke-width="2"/>
+<path id="gus-hair" d="M26 46 Q17 16 40 25 L32 7 58 22 60 0 76 19 96 5 91 27 Q119 15 124 44 Q112 36 101 39 Q88 29 74 37 Q57 27 45 39Z" fill="#e46f36" stroke="#944f32" stroke-width="3" stroke-linejoin="round"/>
+<path d="M43 54 Q55 49 64 54 M84 55 Q99 50 108 56" fill="none" stroke="#713c33" stroke-width="4" stroke-linecap="round"/>
+<g id="gus-eye"><ellipse cx="55" cy="69" rx="9" ry="12" fill="white"/><ellipse cx="94" cy="70" rx="9" ry="12" fill="white"/><ellipse cx="58" cy="70" rx="3.4" ry="5" fill="#4c3b57"/><ellipse cx="92" cy="71" rx="3.4" ry="5" fill="#4c3b57"/></g>
+<path d="M73 69 Q79 81 68 84" fill="none" stroke="#c9826b" stroke-width="2.5" stroke-linecap="round"/>
+<path id="gus-mouth" d="M61 93 Q75 108 92 93 Q77 116 61 93Z" fill="#95495a" stroke="#ac6663" stroke-width="2"/>
+<circle cx="43" cy="89" r="7" fill="#f7a4a0" opacity=".55"/><circle cx="105" cy="89" r="7" fill="#f7a4a0" opacity=".55"/>
+</g></svg></button>
+<div class="gus-text"><h2>Gus la Mèche et Lili la licorne</h2>
+<p id="gus-dialog" aria-live="polite">Salut Harmonie ! Moi, c'est Gus. Je connais plein de blagues et même des pets de compétition !</p>
+<div class="gus-buttons">
+<button id="gus-start" type="button">▶ Commencer avec musique et voix</button>
+<button id="gus-music" type="button" aria-pressed="false">🎵 Musique</button>
+<button id="gus-voice" type="button" aria-pressed="true">🗣️ Voix</button>
+<button id="gus-sound" type="button" aria-pressed="true">🔔 Sons rigolos</button>
+<button id="gus-fart" type="button">💨 Prout !</button>
+</div>
+<p id="gus-notice">Touche « Commencer » pour activer les sons sur Safari. Gus est un personnage original, différent de Titeuf.</p>
+</div>
+<audio id="gus-music-player" src="https://raw.githubusercontent.com/philippe021-netizen/microplayer-action-zones-test-/fix/harmonie-real-video-chromakey/ardoise-magique/media/harmonie-musique-fond.m4a" preload="none" loop></audio>
+</section>
+
 <section class="summary" aria-live="polite">
   <div><strong id="dayDisplay">Aujourd’hui</strong><p id="dayStatus">Je regarde ton planning…</p></div>
   <div class="minute-pill" id="clock" role="timer">0 / 30 min</div>
@@ -351,5 +423,244 @@ if(!D.schedule[chosen])chosen=D.guardDays.find(d=>d>=chosen)||D.guardDays[D.guar
 render();
 })();
 
+</script>
+<script>
+
+(()=>{"use strict";
+const MASCOT_ART={unicorn:"<svg class=\"mascot-art\" viewBox=\"0 0 130 115\" role=\"img\" aria-label=\"Lili la licorne\">\n  <g class=\"mascot-body\"><ellipse cx=\"61\" cy=\"78\" rx=\"31\" ry=\"20\" fill=\"#fff\"/><path d=\"M41 88l-2 16m17-15 1 15m21-19 8 18m-1-24 12 13\" stroke=\"#765ed5\" stroke-width=\"7\" stroke-linecap=\"round\" class=\"mascot-leg\"/><path d=\"M43 68c-17-20-4-45 20-44 24 1 35 25 21 44-10 14-29 14-41 0z\" fill=\"#fff\"/><g class=\"mascot-head\"><path d=\"M76 52c3-19 15-30 29-26 13 4 15 22 7 34-8 12-25 13-36 2z\" fill=\"#fff\"/><path d=\"M98 27l7-21 7 22\" fill=\"#ffda65\" class=\"mascot-horn\"/><path d=\"M82 36c-2-17 8-26 20-27-8 7-4 14 4 15\" fill=\"#f49acb\"/><path d=\"M89 54q7-6 15 0q-8 8-15 0\" fill=\"#ffb2ca\"/><ellipse class=\"mascot-eye\" cx=\"94\" cy=\"43\" rx=\"2.4\" ry=\"3.2\" fill=\"#393456\"/><path d=\"M108 47q5 3 8-1\" fill=\"none\" stroke=\"#5c4774\" stroke-width=\"2\" stroke-linecap=\"round\"/></g><path d=\"M42 59q-18-20-12-32 14 5 17 24\" fill=\"#ff91c7\"/><path d=\"M43 64q-22-12-23 2 10 8 24 7\" fill=\"#a88bff\"/><circle cx=\"110\" cy=\"61\" r=\"3\" fill=\"#ffb2cc\"/></g>\n </svg>"};
+
+for(const el of document.querySelectorAll('.mascot')){
+ el.innerHTML=MASCOT_ART.unicorn;el.setAttribute('aria-label','Lili la licorne animée');
+}
+const get=id=>document.getElementById(id);
+const panel=get('gus-panel'),character=get('gus-tap'),dialog=get('gus-dialog'),notice=get('gus-notice');
+const audio=get('gus-music-player'),musicButton=get('gus-music'),voiceButton=get('gus-voice'),soundButton=get('gus-sound');
+let musicOn=false,voiceOn=true,soundsOn=true,activated=false,ctx=null,previousText='',lastPhrase=-1,lastNoise=0,lastAnnounce=0,correctCount=0;
+const quotes={
+ intro:[
+  "Hé Harmonie ! Moi, c'est Gus la Mèche ! On va tout déchirer... les devoirs, pas le cahier !",
+  "Prête, championne ? Parole de Gus, tu vas tout réussir !",
+  "Attention, ici Gus ! Mon cerveau est branché... enfin, je crois !",
+  "Salut Harmonie ! J'ai révisé trois heures... dans mes rêves !",
+  "Tu vas réussir, parole de Gus ! Même ma mèche est d'accord.",
+  "On va jouer et apprendre. Et promis, pas de contrôle surprise de mes chaussettes !",
+  "Bienvenue dans ma classe de rigolade ! Interdiction de s'ennuyer.",
+  "Tu es prête ? Ma mèche frétille tellement que je vais décoller !"
+ ],
+ correct:[
+  "Trop forte ! Parole de Gus, t'es une championne !",
+  "Waouh ! Ma mèche vient de faire un salto !",
+  "Bonne réponse ! Nom d'un cornichon volant !",
+  "Youhou ! Même mes chaussettes applaudissent !",
+  "T'as trouvé ! Ma cervelle fait du trampoline !",
+  "Génial ! J'en tombe sur les fesses... pouêt !",
+  "Bien joué ! Je te donne la médaille du super cerveau.",
+  "Bravo Harmonie ! T'as mis le turbo dans tes neurones !",
+  "T'es la reine des réponses ! Et moi le roi des blagues nulles.",
+  "Félicitations ! Mon cartable vient de dire bravo.",
+  "Mais comment tu fais ? T'as un ordinateur dans la tête ?",
+  "Je le savais ! Parole de Gus, tu allais réussir !",
+  "Bingo ! Une étoile pour toi, un cornichon pour moi !",
+  "Trop bien ! Lili la licorne fait la danse de la victoire !",
+  "C'est exact ! Je fais péter... les confettis !",
+  "Hé hé ! Réponse parfaite ! Et pas besoin de tricher avec mon nez !",
+  "Super ! Ta réponse a sauté plus haut qu'un kangourou !",
+  "C'est la bonne ! On entend presque mes baskets applaudir."
+ ],
+ retry:[
+  "Oups, mon cerveau a glissé sur une peau de banane ! On réessaie ?",
+  "Pas grave ! Même ma mèche se trompe de direction !",
+  "On recommence ! Les erreurs, c'est l'entraînement des champions.",
+  "Presque ! Fais un petit détour par l'indice, et hop !",
+  "Aïe, caramba... euh, non, je voulais dire : courage !",
+  "Un raté ? C'est juste un cerveau qui fait des acrobaties !",
+  "Tu peux y arriver ! Je croise les doigts... et les lacets !",
+  "Hop ! Une autre tentative, avec le super pouvoir de la patience.",
+  "Rien de grave ! Même les licornes trébuchent parfois.",
+  "Patatras ! L'important c'est de comprendre, pas d'aller vite.",
+  "J'ai une idée : on réfléchit et on retente sans se presser.",
+  "Pas tout à fait ! Mais je parie une chaussette que tu vas trouver."
+ ],
+ joke:[
+  "Pourquoi les cahiers n'aiment pas courir ? Parce qu'ils ont des lignes !",
+  "Quel est le comble pour une gomme ? Perdre la mémoire !",
+  "Tu sais quoi ? Mes chaussettes font un concert de prouts... mais en sourdine !",
+  "Comment s'appelle une licorne qui adore les maths ? Une calcucorne !",
+  "Alerte ! Une banane vient de dépasser mon cartable !",
+  "Je suis si fort en orthographe que j'ai écrit pizza avec trois Z !",
+  "Pourquoi les crayons sont calmes ? Parce qu'ils savent garder la pointe froide !",
+  "Devine ce que fait un éléphant sur un trampoline ? BOÏNG !",
+  "Mon chien sait compter jusqu'à dix. Après, il mange le cahier !",
+  "Si ma mèche bouge toute seule, c'est qu'elle réfléchit à ma place.",
+  "Un prout au fond de la classe ? Ce n'est pas moi ! C'est mon cartable !",
+  "J'ai inventé la machine à devoirs... elle transforme les additions en crêpes !",
+  "Je viens d'entendre un klaxon dans mon cerveau. Pouêt pouêt !",
+  "Un extraterrestre m'a demandé où étaient les toilettes. J'ai dit : sur la Lune !",
+  "Pourquoi la règle est toujours sérieuse ? Parce qu'elle garde la ligne !",
+  "Mon cartable a éternué : atchou... j'ai perdu mes devoirs !",
+  "Parole de Gus, quand tu réfléchis, même mes oreilles font du sport !",
+  "Aujourd'hui, mon super pouvoir, c'est de faire rire les chaussettes.",
+  "Comment on appelle un pet très poli ? Un prout s'il vous plaît !",
+  "Attention, mes cheveux captent Radio-Cornichon !",
+  "J'ai demandé au zéro de compter. Il m'a dit : rien à signaler !",
+  "Qu'est-ce qu'une carotte qui fait du vélo ? Un légume à deux roues !"
+ ],
+ finish:[
+  "Mission terminée, Harmonie ! Parole de Gus, je suis fier de toi !",
+  "C'est fini ! Ma mèche saute de joie et mes baskets font la fête !",
+  "Bravo ! Tu as gagné le trophée du cerveau qui rigole !",
+  "Mission accomplie ! Tu peux dire à ton cartable qu'il est en vacances.",
+  "Incroyable ! Même Lili la licorne applaudit avec ses sabots !",
+  "Super boulot ! Je te décerne le grand diplôme de championne des bêtises intelligentes !",
+  "Tout terminé ! Maintenant, repos pour les neurones, rigolade pour les oreilles !"
+ ]
+};
+function pick(kind){
+ const arr=quotes[kind]||quotes.joke;let n=Math.floor(Math.random()*arr.length);
+ if(arr.length>1&&n===lastPhrase)n=(n+1)%arr.length;lastPhrase=n;return arr[n];
+}
+function animate(kind){
+ character.classList.remove('fart','cheer');void character.offsetWidth;
+ character.classList.add(kind);setTimeout(()=>character.classList.remove(kind),1050);
+}
+function audioContext(){
+ if(!ctx){const C=window.AudioContext||window.webkitAudioContext;if(C)ctx=new C()}
+ if(ctx?.state==='suspended')ctx.resume().catch(()=>{});
+ return ctx;
+}
+function tone(f,start,duration,vol=.045,type='sine',end=null){
+ const c=audioContext();if(!c)return;
+ const oscillator=c.createOscillator(),gain=c.createGain();
+ oscillator.type=type;oscillator.frequency.setValueAtTime(Math.max(30,f),start);
+ if(end)oscillator.frequency.exponentialRampToValueAtTime(Math.max(30,end),start+duration);
+ gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(vol,start+.012);
+ gain.gain.exponentialRampToValueAtTime(.001,start+duration);
+ oscillator.connect(gain);gain.connect(c.destination);
+ oscillator.start(start);oscillator.stop(start+duration+.015);
+}
+function funnySound(kind){
+ if(!soundsOn)return;
+ const c=audioContext();if(!c)return;const t=c.currentTime;
+ if(kind==='fart'){
+   animate('fart');
+   tone(105,t,.24,.11,'sawtooth',51);tone(85,t+.2,.19,.08,'square',42);tone(64,t+.35,.16,.055,'sawtooth',37);
+ }else if(kind==='boing'){
+   tone(180,t,.4,.06,'sine',520);tone(480,t+.15,.32,.06,'triangle',110);
+ }else if(kind==='honk'){
+   tone(440,t,.22,.07,'square',470);tone(350,t+.27,.21,.075,'square',365);
+ }else if(kind==='pop'){
+   tone(720,t,.1,.06,'sine',140);
+ }else if(kind==='bubbles'){
+   [340,410,520,640].forEach((f,i)=>tone(f,t+i*.095,.12,.036,'sine',f*1.4));
+ }else if(kind==='trumpet'){
+   [392,523,659,523].forEach((f,i)=>tone(f,t+i*.135,.18,.043,'sawtooth'));
+ }else if(kind==='slide'){
+   tone(710,t,.46,.045,'triangle',125);
+ }else if(kind==='alien'){
+   tone(290,t,.17,.038,'sine',740);tone(740,t+.17,.25,.045,'triangle',160);
+ }else if(kind==='applause'){
+   [523,659,784,1046].forEach((f,i)=>tone(f,t+i*.095,.16,.048,'sine'));
+ }else if(kind==='cuckoo'){
+   tone(784,t,.19,.044,'triangle');tone(622,t+.22,.2,.044,'triangle');
+ }
+}
+const soundKinds=['boing','honk','pop','bubbles','trumpet','slide','alien','cuckoo','fart'];
+function goofy(randomFart=false){
+ if(!soundsOn)return;
+ let kind=soundKinds[Math.floor(Math.random()*soundKinds.length)];
+ if(!randomFart&&kind==='fart')kind='pop';funnySound(kind);
+}
+function sayPhrase(text){
+ dialog.textContent=text;
+ if(!voiceOn||!activated||!window.speechSynthesis)return;
+ try{
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);u.lang='fr-FR';u.pitch=1.5;u.rate=1.12;u.volume=.92;
+  const voices=speechSynthesis.getVoices();
+  u.voice=voices.find(v=>v.lang?.toLowerCase().startsWith('fr')&&/amelie|amélie|aurelie|audrey|marie|female/i.test(v.name.toLowerCase()))||
+     voices.find(v=>v.lang?.toLowerCase().startsWith('fr'))||null;
+  u.onstart=()=>{character.classList.add('talking');audio.volume=.032};
+  const done=()=>{character.classList.remove('talking');audio.volume=.16};
+  u.onend=done;u.onerror=done;
+  speechSynthesis.speak(u);
+ }catch(_){}
+}
+function setMusic(enabled){
+ musicOn=enabled;
+ musicButton.setAttribute('aria-pressed',String(enabled));
+ musicButton.textContent=enabled?'🎵 Musique ON':'🔇 Musique OFF';
+ if(!enabled){audio.pause();return}
+ audio.volume=.16;
+ const p=audio.play();
+ if(p?.catch)p.catch(()=>{musicOn=false;musicButton.setAttribute('aria-pressed','false');musicButton.textContent='🎵 Réessayer la musique';notice.textContent='La musique n’a pas démarré : touche Musique. Vérifie aussi le volume de la tablette.'});
+}
+function activate(){
+ activated=true;audioContext();setMusic(true);
+ get('gus-start').hidden=true;notice.textContent="Gus parle quand tu réussis, t'encourage si tu hésites, et raconte parfois une bêtise.";
+ sayPhrase(pick('intro'));goofy();
+}
+get('gus-start').addEventListener('click',activate);
+musicButton.addEventListener('click',()=>{if(!activated){activate();return}setMusic(!musicOn)});
+voiceButton.addEventListener('click',()=>{
+ voiceOn=!voiceOn;voiceButton.setAttribute('aria-pressed',String(voiceOn));
+ voiceButton.textContent=voiceOn?'🗣️ Voix ON':'🤐 Voix OFF';
+ if(!voiceOn){try{speechSynthesis.cancel()}catch(_){}}
+ else{if(!activated)activated=true;sayPhrase(pick('intro'))}
+});
+soundButton.addEventListener('click',()=>{
+ soundsOn=!soundsOn;soundButton.setAttribute('aria-pressed',String(soundsOn));
+ soundButton.textContent=soundsOn?'🔔 Sons rigolos':'🔕 Sons coupés';
+ if(soundsOn)funnySound('pop');
+});
+get('gus-fart').addEventListener('click',()=>{
+ if(!activated)activated=true;funnySound('fart');sayPhrase(pick('joke'));
+});
+character.addEventListener('click',()=>{
+ if(!activated)activated=true;goofy(true);sayPhrase(pick('joke'));
+});
+const feedback=get('feedback');
+const feedbackObserver=new MutationObserver(()=>{
+ const text=feedback.textContent.trim();
+ if(!text||text===previousText||!activated)return;
+ previousText=text;
+ const now=Date.now();
+ if(now-lastAnnounce<900)return;
+ lastAnnounce=now;
+ const success=/^Bravo|^Bien joué|^Super|^Génial|^Trop fort|^Regarde si/i.test(text);
+ const wrong=/^Pas tout|^On peut réessayer|^Presque|^Tu peux corriger|^Réessaie/i.test(text);
+ if(success){
+  correctCount++;animate('cheer');
+  funnySound(correctCount%3===0?'trumpet':'applause');
+  const kind=correctCount%4===0?'joke':'correct';
+  // Les phrases doivent finir avant la question suivante ; les paroles restent facultatives.
+  sayPhrase(pick(kind));
+ }else if(wrong){
+  funnySound(['pop','boing','slide'][Math.floor(Math.random()*3)]);
+  sayPhrase(pick('retry'));
+ }
+});
+feedbackObserver.observe(feedback,{childList:true,characterData:true,subtree:true});
+const finishText=get('finishText');
+new MutationObserver(()=>{
+ if(!get('finish').hidden&&finishText.textContent&&activated){
+  animate('cheer');funnySound('trumpet');sayPhrase(pick('finish'));
+ }
+}).observe(finishText,{childList:true,characterData:true,subtree:true});
+get('nextBtn').addEventListener('click',()=>{
+ // Les dictées utilisent leur propre voix : ne pas les interrompre.
+ const promptType=get('promptType').textContent;
+ if(activated&&voiceOn&&!/Dictée/i.test(promptType)){
+   setTimeout(()=>{if(!get('play').hidden&&get('question').textContent&&!/Écoute le mot/i.test(get('question').textContent)){
+     // La prochaine question reste lisible ; Gus la lit sans annoncer sa solution.
+     sayPhrase(get('question').textContent);
+   }},650);
+ }
+});
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden){audio.pause();try{speechSynthesis.cancel()}catch(_){}}
+ else if(musicOn&&activated){audio.play().catch(()=>{})}
+});
+window.addEventListener('pagehide',()=>{audio.pause();try{speechSynthesis.cancel()}catch(_){}});
+})();
 </script>
 </body></html>
