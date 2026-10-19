@@ -17,8 +17,13 @@ style.textContent="#gus-video-tray{display:flex;gap:7px;overflow-x:auto;padding:
 "#gus-video-stage{position:fixed;z-index:60;left:max(5px,env(safe-area-inset-left));bottom:max(3px,env(safe-area-inset-bottom));pointer-events:none;width:clamp(105px,21vw,230px);height:clamp(170px,34vw,340px);overflow:hidden;opacity:0;transition:opacity .14s ease}"+
 "#gus-video-stage.show{opacity:1}#gus-video-stage img{width:100%;height:100%;object-fit:contain;object-position:bottom left}"+
 "#gus-video-stage.presenter{left:max(4px,env(safe-area-inset-left));right:auto;bottom:max(8px,env(safe-area-inset-bottom));width:clamp(160px,24vw,280px);height:clamp(235px,40vw,410px);z-index:61}"+
+"#gus-video-stage.on-board,#gus-video-stage.on-numbers{position:absolute;left:50%;right:auto;bottom:auto;top:50%;z-index:5;pointer-events:none;opacity:0;width:clamp(82px,13vw,142px);height:clamp(105px,22svh,180px);transform:translate(-50%,-50%)}"+
+"#gus-video-stage.on-board.show{opacity:1;animation:gus-board-hop 3s ease-in-out both}"+
+"#gus-video-stage.on-numbers{width:clamp(74px,10vw,115px);height:clamp(76px,12vw,125px)}#gus-video-stage.on-numbers.show{opacity:1;animation:gus-number-pop 2.8s ease both}"+
+"@keyframes gus-board-hop{0%{left:12%;top:68%;transform:translate(-50%,-50%) scale(.55) rotate(-8deg)}18%{left:25%;top:43%;transform:translate(-50%,-50%) scale(1) rotate(7deg)}40%{left:48%;top:61%;transform:translate(-50%,-50%) scale(.96) rotate(-5deg)}68%{left:70%;top:42%;transform:translate(-50%,-50%) scale(1) rotate(5deg)}100%{left:88%;top:65%;transform:translate(-50%,-50%) scale(.65) rotate(0)}}"+
+"@keyframes gus-number-pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.25) rotate(-16deg)}20%,75%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(.7) rotate(8deg)}}"+
 "@media(max-width:560px){#gus-video-stage{width:118px;height:182px}#gus-video-stage.presenter{width:clamp(140px,37vw,190px);height:clamp(210px,56vw,300px)}#gus-video-tray button{font-size:12px;padding:7px 9px}}"+
-"@media(prefers-reduced-motion:reduce){#gus-video-stage{transition:none}}";
+"@media(prefers-reduced-motion:reduce){#gus-video-stage{transition:none}#gus-video-stage.on-board.show,#gus-video-stage.on-numbers.show{animation:none;opacity:1}}";
 document.head.append(style);
 const panel=document.getElementById("gus-panel");
 const tray=document.createElement("div");tray.id="gus-video-tray";tray.setAttribute("aria-label","Tester les animations de Gus");
@@ -33,13 +38,19 @@ function setBackgroundVolume(level){
  bgMusic.volume=Number.isFinite(adjusted)?adjusted:level;
 }
 function stop(){
- clearTimeout(timer);stage.classList.remove("show","presenter");sound.pause();active="";activeMuted=false;
+ clearTimeout(timer);stage.classList.remove("show","presenter","on-board","on-numbers");document.body.append(stage);sound.pause();active="";activeMuted=false;
  if(bgMusic&&bgMusic.volume<.12)setBackgroundVolume(.16);
 }
-function play(name,duration=5200,silent=false){
+function play(name,duration=5200,silent=false,zone="stage"){
  if(!CHOICES.some(x=>x[0]===name))return false;
  clearTimeout(timer);sound.pause();
- const nonce=++counter;active=name;activeMuted=silent;
+ const nonce=++counter;active=name;activeMuted=silent;stage.classList.remove("on-board","on-numbers");
+ if(zone==="board"){
+  const board=document.getElementById("boardBox");if(board&&!board.hidden){board.append(stage);stage.classList.add("on-board")}
+ }else if(zone==="numbers"){
+  const line=document.getElementById("numberLine"),question=document.getElementById("question"),target=line&&!line.hidden?line:question;
+  if(target)target.append(stage);stage.classList.add("on-numbers");
+ }else document.body.append(stage);
  if(!SILENT_SOURCES.has(name)){try{window.speechSynthesis?.cancel()}catch(_){}}
  const allowSound=document.getElementById("gus-sound")?.getAttribute("aria-pressed")!=="false";
  // Start audio synchronously in the activating event; Safari can reject a
@@ -60,13 +71,19 @@ function play(name,duration=5200,silent=false){
 function present(){stage.classList.add("presenter");const name=presentationIndex++%2===0?"05_Presentation":"09_Presentation_bis";return play(name,60000)}
 function playCorrect(){
  const roll=Math.random();
- if(roll<.05)return play("01_Prout");
- if(roll<.15)return play("03_Danse");
- if(roll<.25)return play("10_Bravo_bis");
- return play("02_Bravo");
+ if(roll<.05)return play("01_Prout",5200,true);
+ if(roll<.15)return play("03_Danse",5200,true);
+ if(roll<.25)return play("10_Bravo_bis",5200,true);
+ return play("02_Bravo",5200,true);
 }
 function playEncouragement(){return play(Math.random()<.5?"06_Rires":"07_Surprise",3600,true)}
-function playFinish(){return Math.random()<.65?play("03_Danse",5200):play("08_Au_revoir",5200)}
+function playFinish(){return play("02_Bravo",5200,false)}
+function playMidGameMoment(){
+ const board=document.getElementById("boardBox"),writing=document.getElementById("handwrite");
+ const useBoard=board&&!board.hidden&&(!writing||!writing.hidden)&&Math.random()<.55;
+ if(useBoard)return play(Math.random()<.2?"01_Prout":"03_Danse",3000,false,"board");
+ return play(Math.random()<.5?"07_Surprise":"06_Rires",2800,true,"numbers");
+}
 if(panel.dataset.controls!=="false"){
  for(const [id,label] of CHOICES){
   const b=document.createElement("button");b.type="button";b.textContent=label;
@@ -74,7 +91,7 @@ if(panel.dataset.controls!=="false"){
  }
  panel.insertAdjacentElement("afterend",tray);
 }
-window.GusMedia={enabled:true,play,playCorrect,playEncouragement,playFinish,present,stop,hasOriginalSound:()=>!!active&&!activeMuted&&!SILENT_SOURCES.has(active),get active(){return active}};
+window.GusMedia={enabled:true,play,playCorrect,playEncouragement,playFinish,playMidGameMoment,present,stop,hasOriginalSound:()=>!!active&&!activeMuted&&!SILENT_SOURCES.has(active),get active(){return active}};
 document.getElementById("gus-sound")?.addEventListener("click",()=>{
  if(document.getElementById("gus-sound")?.getAttribute("aria-pressed")==="false")sound.pause();
 });

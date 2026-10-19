@@ -4,26 +4,29 @@ const D=window.HARMONIE_DATA;
 const $=id=>document.getElementById(id);
 const KEY="harmonie-revisions-toussaint-2026-v1";
 const MAX=D.maxMinutes*60;
-let progress=readProgress(),chosen=currentDay(),game=null,ticker=null,lastTick=0,lastActivity=0,idleTimer=null,lastEncouragement=-1;
+let progress=readProgress(),chosen=currentDay(),game=null,ticker=null,lastTick=0,lastActivity=0,idleTimer=null,lastEncouragement=-1,gusMomentTimer=null;
 let canvasStrokes=[],stroke=null,ctx=null,canvasWidth=1,canvasHeight=1,lessonTimer=null;
 const AUDIO_KEY="harmonie-audio-v1";
 let audioSettings=readAudioSettings(),voicePlayer=null,backgroundPlayer=$("gus-music-player");
-if(backgroundPlayer){backgroundPlayer.src="./audio/harmonie-background.mp3";backgroundPlayer.loop=true;backgroundPlayer.volume=.16}
+if(backgroundPlayer){backgroundPlayer.src="./audio/harmonie-background.mp3?v=2";backgroundPlayer.loop=true;backgroundPlayer.volume=.16}
 function readAudioSettings(){try{const s=JSON.parse(localStorage.getItem(AUDIO_KEY)||"{}");return {voice:s.voice!==false,music:s.music!==false}}catch{return {voice:true,music:true}}}
 function saveAudioSettings(){try{localStorage.setItem(AUDIO_KEY,JSON.stringify(audioSettings))}catch{}}
 function paintAudioSettings(){for(const [id,key,on,off] of [["voiceToggle","voice","🗣️ Voix","🤐 Voix coupée"],["musicToggle","music","🎵 Musique","🔇 Musique coupée"]]){const b=$(id),active=audioSettings[key];b.textContent=active?on:off;b.setAttribute("aria-pressed",String(active))}}
 function musicVolume(level=.16){if(!backgroundPlayer)return;const withGus=window.GusMedia?.hasOriginalSound()?Math.min(level,.035):level,withVoice=voicePlayer&&!voicePlayer.paused?Math.min(withGus,.06):withGus;backgroundPlayer.volume=withVoice}
 window.HarmonieMusicVolume=level=>voicePlayer&&!voicePlayer.paused?Math.min(level,.06):level;
 function musicStop(){backgroundPlayer?.pause()}
-function musicStart(){if(!audioSettings.music||!game||!backgroundPlayer)return;musicVolume();if(backgroundPlayer.paused){const p=backgroundPlayer.play();p?.then?.(musicVolume).catch?.(()=>{})}}
+function musicStart(){if(!audioSettings.music||!game||!backgroundPlayer)return;musicVolume();if(backgroundPlayer.ended){try{backgroundPlayer.currentTime=0}catch{}}if(backgroundPlayer.paused||backgroundPlayer.ended){const p=backgroundPlayer.play();p?.then?.(musicVolume).catch?.(()=>{})}}
+backgroundPlayer?.addEventListener("ended",()=>{if(game&&audioSettings.music){try{backgroundPlayer.currentTime=0}catch{}musicStart()}});
 function stopVoice(continueSequence=false){if(voicePlayer){const audio=voicePlayer,next=audio.onended;audio.onended=null;audio.onerror=null;audio.pause();voicePlayer=null;musicVolume();if(continueSequence)next?.()}}
 function playVoice(file,onend){if(!audioSettings.voice){onend?.();return}stopVoice();const prefix=file.startsWith("lili-math-")?"lili-math-":file.startsWith("lili-lesson-")?"lili-lesson-":null;const src=prefix?"/api/tts-math?lesson="+encodeURIComponent(file.slice(prefix.length)):"./audio/"+file+".mp3";const audio=new Audio(src);voicePlayer=audio;let finished=false;const done=()=>{if(finished)return;finished=true;if(voicePlayer===audio){voicePlayer=null;musicStart();musicVolume()}onend?.()};audio.onended=done;audio.onerror=done;const p=audio.play();musicVolume();p?.catch?.(done)}
 function say(){/* Les voix système du navigateur sont désactivées : Lili utilise uniquement les enregistrements du projet. */}
 const encouragements=["Alors, tu dors ou quoi ? Réveille les neurones !","Ton crayon fait la sieste ? On s’y remet !","Ouh là, ça réfléchit fort ! Tu vas trouver !","Ce mot se cache bien : démasque-le !","Allez, championne, encore une lettre !"];
 function encourage(){if(!game||game.solved||document.hidden||!audioSettings.voice||voicePlayer&&!voicePlayer.paused)return;let i=Math.floor(Math.random()*encouragements.length);if(encouragements.length>1&&i===lastEncouragement)i=(i+1+Math.floor(Math.random()*(encouragements.length-1)))%encouragements.length;lastEncouragement=i;window.GusMedia?.playEncouragement?.();playVoice("lili-encourage-"+(i+1))}
 function markActivity(){if(!game)return;lastActivity=Date.now()}
-function startIdleWatch(){clearInterval(idleTimer);lastActivity=Date.now();idleTimer=setInterval(()=>{if(game&&!document.hidden&&!game.solved&&Date.now()-lastActivity>=30000){if(!voicePlayer||voicePlayer.paused){encourage();lastActivity=Date.now()}}},1000)}
-function stopIdleWatch(){clearInterval(idleTimer);idleTimer=null;lastActivity=0}
+function startIdleWatch(){clearInterval(idleTimer);lastActivity=Date.now();idleTimer=setInterval(()=>{if(game&&!document.hidden&&!game.solved&&Date.now()-lastActivity>=30000){if(!voicePlayer||voicePlayer.paused){encourage();lastActivity=Date.now()}}},1000);scheduleGusMoment(game)}
+function stopGusMoments(){clearTimeout(gusMomentTimer);gusMomentTimer=null}
+function scheduleGusMoment(session){stopGusMoments();if(!session)return;gusMomentTimer=setTimeout(()=>{gusMomentTimer=null;if(game!==session)return;const writingNow=!$("boardBox").hidden&&canvasStrokes.length>0;if(!document.hidden&&!session.solved&&!writingNow&&!window.GusMedia?.active&&(!voicePlayer||voicePlayer.paused))window.GusMedia?.playMidGameMoment?.();scheduleGusMoment(session)},36000+Math.random()*18000)}
+function stopIdleWatch(){clearInterval(idleTimer);idleTimer=null;lastActivity=0;stopGusMoments()}
 function readProgress(){try {const x=JSON.parse(localStorage.getItem(KEY)||"{}");return {spent:x.spent||{},done:x.done||{},results:x.results||[]}}catch{return {spent:{},done:{},results:[]}}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(progress))}catch{}}
 function currentDay(){const p=Object.fromEntries(new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Paris",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()).map(x=>[x.type,x.value]));return p.year+"-"+p.month+"-"+p.day}
@@ -209,7 +212,7 @@ function drawNumberLine({min,max}){
  const line=$("numberLine");line.replaceChildren();line.setAttribute("aria-label","Droite graduée de "+min+" à "+max+", avec une graduation par nombre");
  for(let n=min;n<=max;n++){const tick=document.createElement("span");tick.className="number-tick"+(n%10===0?" decade":"");const mark=document.createElement("i");tick.appendChild(mark);if(n%10===0){const label=document.createElement("small");label.textContent=n;tick.appendChild(label)}line.appendChild(tick)}
 }
-function succeed(text){if(!game||game.solved)return;game.solved=true;game.correct++;markActivity();$("feedback").textContent=text||"Bravo Harmonie, tu as trouvé !";show("nextBtn",true);window.GusMedia?.playCorrect();}
+function succeed(text){if(!game||game.solved)return;game.solved=true;game.correct++;markActivity();stopGusMoments();$("feedback").textContent=text||"Bravo Harmonie, tu as trouvé !";show("nextBtn",true);window.GusMedia?.playCorrect();}
 function choose(button,selected,q){
  if(!game||game.solved)return;
  if(clean(selected)===clean(q.answer)){
