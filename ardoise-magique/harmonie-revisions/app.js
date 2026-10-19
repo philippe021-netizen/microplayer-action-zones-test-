@@ -10,7 +10,7 @@ function readProgress(){try {const x=JSON.parse(localStorage.getItem(KEY)||"{}")
 function save(){try{localStorage.setItem(KEY,JSON.stringify(progress))}catch{}}
 function currentDay(){const p=Object.fromEntries(new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Paris",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()).map(x=>[x.type,x.value]));return p.year+"-"+p.month+"-"+p.day}
 const frDay=d=>new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
-function available(){return chosen===currentDay()&&D.guardDays.includes(chosen)}
+function available(){return chosen===currentDay()&&Boolean(D.schedule[chosen])}
 function seconds(){return Math.min(MAX,progress.spent[currentDay()]||0)}
 function addSeconds(s){if(!available()||s<=0)return;progress.spent[chosen]=Math.min(MAX,(progress.spent[chosen]||0)+s);save();paintClock();if(seconds()>=MAX&&game)stopForDay()}
 function startTimer(){stopTimer();lastTick=Date.now();ticker=setInterval(()=>{if(document.hidden)return;if(!available()){endGame();return}const now=Date.now(),delta=Math.min(2,Math.max(0,Math.floor((now-lastTick)/1000)));if(delta){lastTick=now;addSeconds(delta)}},1000)}
@@ -22,13 +22,13 @@ function isDone(m){return (progress.done[chosen]||[]).includes(m)}
 function show(el,yes){$(el).hidden=!yes}
 function renderDays(){
  const host=$("days");host.replaceChildren();
- D.guardDays.forEach(d=>{const b=document.createElement("button");b.className="day"+(d===chosen?" active":"")+(d===currentDay()?" today":"");b.type="button";const [day,month]=d.slice(8).split("-");b.innerHTML="<strong>"+frDay(d)+"</strong><span>"+((progress.done[d]||[]).length)+"/3 jeux</span>";b.addEventListener("click",()=>{if(game)endGame();chosen=d;render()});host.appendChild(b)})
+ Object.keys(D.schedule).sort().forEach(d=>{const b=document.createElement("button");b.className="day"+(d===chosen?" active":"")+(d===currentDay()?" today":"");b.type="button";b.innerHTML="<strong>"+frDay(d)+"</strong><span>"+((progress.done[d]||[]).length)+"/3 jeux</span>";b.addEventListener("click",()=>{if(game)endGame();chosen=d;render()});host.appendChild(b)})
 }
 function render(){
  paintClock();renderDays();
  $("dayDisplay").textContent=frDay(chosen).replace(/^./,c=>c.toUpperCase());
  const isToday=chosen===currentDay();
- $("dayStatus").textContent=!isToday?"Programme à consulter — pas de jeu hors de la date prévue":available()?seconds()>=MAX?"30 minutes atteintes : place au repos !":"C’est ton jour avec papa !":"Pas de mission aujourd’hui : profite de ta journée !";
+ $("dayStatus").textContent=!isToday?"Programme du jour consultable — les jeux se font à la date prévue":available()?seconds()>=MAX?"30 minutes atteintes : place au repos !":"Tes missions du jour sont prêtes !":"Aucune mission n’est prévue aujourd’hui.";
  const host=$("missions");host.replaceChildren();const list=D.schedule[chosen]||[];
  $("doneLabel").textContent=(progress.done[chosen]||[]).length+" / "+list.length+" réussies";
  list.forEach(([title,type,level],i)=>{const c=document.createElement("article");c.className="mission"+(isDone(i)?" done":"");
@@ -41,24 +41,28 @@ function render(){
 }
 function shuffled(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 const clean=s=>String(s).normalize("NFC").trim().toLocaleLowerCase("fr").replace(/[’‘]/g,"'").replace(/\s+/g," ");
+function cumulativeWords(graph,level){return [...new Set(Array.from({length:level},(_,i)=>D.words[graph]?.[i+1]||[]).flat())]}
+function alphabetKey(word){return clean(word).replace(/^(?:un|une|le|la|les|des|du)\s+/,"").replace(/^l'/,"")}
 function item(prompt,answer,options,hint,label="Choisis la bonne réponse"){return {mode:"choice",prompt,answer:String(answer),options:shuffled([...new Set(options.map(String))]),hint,label}}
 function speak(text,forced=false){if((!voice&&!forced)||!("speechSynthesis" in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="fr-FR";u.pitch=1.25;u.rate=.86;speechSynthesis.speak(u)}
 function generate(type,level){
- if(type==="read-u"||type==="read-ou"){
- const sound=type.endsWith("ou")?"ou":"u";
- const targets=sound==="ou"?["rouge","la soupe","la route","toujours","bonjour","pour"]:["la rue","du sucre","la nature","une plume","la musique","de la confiture"];
- const others=sound==="ou"?["la rue","une plume","du sucre","la nature","la musique"]:["rouge","la soupe","bonjour","la route","toujours"];
- return targets.map((correct,i)=>item("Quel mot contient « "+sound+" » ?",correct,[correct,others[i%others.length],others[(i+1)%others.length]],"Cherche le groupe de lettres « "+sound+" » dans le mot.","Lecture"));
+ if(type.startsWith("read-")){
+ const graph=type.slice(5),words=cumulativeWords(graph,level),targets=words.slice(0,6);
+ const targetKeys=new Set(words.map(clean));
+ const others=[...new Set(Object.values(D.words).flatMap(m=>Object.values(m).flat()))].filter(w=>!targetKeys.has(clean(w)));
+ return targets.map((correct,i)=>{const start=(i*2)%Math.max(1,others.length),distractors=[others[start%others.length],others[(start+1)%others.length]];return item("Quel mot appartient à la liste du son « "+graph+" » ?",correct,[correct,...distractors],"Cherche un mot que tu as appris dans la liste de ce son.","Lecture — son "+graph)});
  }
- if(type==="spell-u"||type==="spell-ou"){
- const kind=type.endsWith("ou")?"ou":"u";
- const words=[...new Set(Array.from({length:level},(_,i)=>D.words[kind][i+1]||[]).flat())];
+ if(type.startsWith("spell-")){
+ const kind=type.slice(6),words=cumulativeWords(kind,level);
  return shuffled(words).slice(0,Math.min(6,words.length)).map(w=>({mode:"spell",prompt:"Écoute le mot puis écris-le.",answer:w,label:"Dictée — son "+kind,hint:"Tu peux réécouter autant de fois que tu veux."}));
  }
- if(type==="write-u"||type==="write-ou"){
- const kind=type.endsWith("ou")?"ou":"u";
- const words=level===2?[...D.words[kind][1],...D.words[kind][2]]:D.words[kind][1];
+ if(type.startsWith("write-")){
+ const kind=type.slice(6),words=cumulativeWords(kind,level);
  return shuffled(words).slice(0,4).map(w=>({mode:"write",prompt:"Écris le mot sur l’ardoise.",answer:w,label:"Écriture cursive",hint:"Regarde le modèle 3 secondes, puis écris sans le voir."}));
+ }
+ if(type==="alphabet"){
+ const sets=level===1?[["un arbre","un fruit","la rue"],["un loup","une souris","un arbre"]]:[["la route","le roi","la rue"],["une plume","un pull","un pantalon"]];
+ return sets.map(words=>{const ordered=[...words].sort((a,b)=>alphabetKey(a).localeCompare(alphabetKey(b),"fr"));return item("Quel mot vient en premier dans l’ordre alphabétique ?",ordered[0],words,"Compare les lettres une par une. Ignore le petit mot placé devant.","Ordre alphabétique")});
  }
  if(type==="tens"){
  const nums=level===1?[56,42,73,19,80,67]:[64,37,95,28,71,49];
@@ -215,6 +219,6 @@ board.addEventListener("pointermove",e=>{if(!stroke)return;e.preventDefault();st
 function endStroke(){if(!stroke)return;const s=stroke;stroke=null;if(s.length===1)s.push({x:s[0].x+.1,y:s[0].y+.1});canvasStrokes.push(s);paintBoard()}
 board.addEventListener("pointerup",endStroke);board.addEventListener("pointercancel",endStroke);
 window.addEventListener("pagehide",()=>{if(game)stopTimer()});
-if(!D.schedule[chosen])chosen=D.guardDays.find(d=>d>=chosen)||D.guardDays[D.guardDays.length-1];
+if(!D.schedule[chosen]){const days=Object.keys(D.schedule).sort();chosen=days.find(d=>d>=chosen)||days[days.length-1]}
 render();
 })();

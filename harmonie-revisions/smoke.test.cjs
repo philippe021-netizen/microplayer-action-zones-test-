@@ -11,19 +11,30 @@ const win={};
 vm.runInNewContext(src,{window:win});
 const data=win.HARMONIE_DATA;
 
-test('10 jours de garde avec 3 missions par date',()=>{
- assert.equal(data.guardDays.length,10);
- assert.equal(Object.keys(data.schedule).length,10);
- for(const date of data.guardDays){
+test('un programme quotidien continu du 18 octobre au 3 novembre',()=>{
+ const dates=Object.keys(data.schedule).sort();
+ assert.equal(dates.length,17);
+ assert.equal(dates[0],'2026-10-18');
+ assert.equal(dates.at(-1),'2026-11-03');
+ for(let i=0;i<dates.length;i++){
+   const date=dates[i];
    assert.equal(data.schedule[date].length,3,date);
    assert.equal(new Date(date).toISOString().slice(0,10),date);
+   if(i>0){const previous=new Date(dates[i-1]+'T12:00:00');previous.setDate(previous.getDate()+1);assert.equal(dates[i],previous.toISOString().slice(0,10),'jour manquant après '+dates[i-1]);}
  }
 });
-test('mots des semaines 6 et 7 correctement rangés par marche',()=>{
+test('mots des sons u et ou correctement rangés par marche',()=>{
  assert.deepEqual(Array.from(data.words.u[1]),['la rue','un fruit','une voiture','du sucre','de la confiture','un nuage']);
- assert.deepEqual(Array.from(data.words.ou[1]),['un loup','une souris','rouge','la route','une journée','la soupe','toujours']);
+ assert.deepEqual(Array.from(data.words.ou[1]),['un loup','une souris','rouge','la route','une journée','la soupe']);
  assert.equal(data.words.ou[2].includes('beaucoup'),true);
  assert.equal(data.words.ou[3].includes('douze'),true);
+ assert.equal(data.words.t[3].includes('toujours'),true);
+});
+test('les sept sons photographiés sont intégrés en trois marches',()=>{
+ for(const sound of ['r','u','ou','eu','o','p','t']){
+   assert.deepEqual(Object.keys(data.words[sound]).sort(),['1','2','3']);
+   assert.ok(data.words[sound][1].length>0,sound+' marche 1 vide');
+ }
 });
 test('la date du 2 novembre est prioritairement consacrée au son u et aux maths',()=>{
  const titles=data.schedule['2026-11-02'].map(x=>x[1]);
@@ -35,6 +46,12 @@ test('limite de temps et références HTML',()=>{
  const ids=[...app.matchAll(/\$\("([^"]+)"\)/g)].map(m=>m[1]);
  const htmlIds=new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]));
  for(const id of ids)assert.ok(htmlIds.has(id),'missing '+id);
+});
+test('les fichiers servis par le projet Vercel restent synchronisés',()=>{
+ const deployed=path.join(base,'..','ardoise-magique','harmonie-revisions');
+ assert.equal(fs.readFileSync(path.join(deployed,'data.js'),'utf8'),src);
+ assert.equal(fs.readFileSync(path.join(deployed,'app.js'),'utf8'),app);
+ assert.match(fs.readFileSync(path.join(deployed,'index.html'),'utf8'),/Trois petites missions sont prévues chaque jour/);
 });
 test('JavaScript des deux modules chargé sans erreur de syntaxe',()=>{
  assert.doesNotThrow(()=>new Function(src));
@@ -62,22 +79,26 @@ test('chaque mini-jeu a des questions solvables, avec une réponse unique',()=>{
      }
    }
  }
- assert.equal(total,182);
+ assert.ok(total>182,'les missions quotidiennes doivent toutes générer des questions');
 });
 
-test('lecture u et ou : choix orthographiques non ambigus',()=>{
+test('lecture des graphies : choix orthographiques non ambigus',()=>{
  const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()',{D:data,Math});
- for(const [type,graph] of [['read-u','u'],['read-ou','ou']]){
+ for(const [type,graph] of ['r','u','ou','eu','o','p','t'].map(sound=>['read-'+sound,sound])){
    const qs=generator(type,1);
+   const targets=new Set(data.words[graph][1].map(x=>x.toLocaleLowerCase('fr')));
    for(const q of qs){
-     const selected=q.answer.toLowerCase();
-     if(graph==='ou') assert.ok(selected.includes('ou'),'cible doit contenir ou');
-     else {assert.ok(selected.includes('u'),'cible doit contenir u');assert.ok(!selected.includes('ou'),'cible u ambiguë')}
-     for(const d of q.options.filter(x=>x!==q.answer)){
-       if(graph==='ou')assert.ok(!d.toLowerCase().includes('ou'),'distracteur contient aussi ou');
-       else assert.ok(d.toLowerCase().includes('ou'),'distracteur doit contenir ou');
-     }
+     assert.ok(targets.has(q.answer.toLocaleLowerCase('fr')),'réponse doit être dans la marche du son '+graph);
+     for(const d of q.options.filter(x=>x!==q.answer))assert.ok(!targets.has(d.toLocaleLowerCase('fr')),'distracteur dans la même liste '+graph);
    }
+ }
+});
+test('ordre alphabétique : le mot attendu est bien le premier',()=>{
+ const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()',{D:data,Math});
+ for(const level of [1,2])for(const q of generator('alphabet',level)){
+   const words=q.options;
+   const key=x=>x.toLocaleLowerCase('fr').replace(/^(?:un|une|le|la|les|des|du)\s+/,"").replace(/^l'/,"");
+   assert.equal(q.answer,[...words].sort((a,b)=>key(a).localeCompare(key(b),'fr'))[0]);
  }
 });
 

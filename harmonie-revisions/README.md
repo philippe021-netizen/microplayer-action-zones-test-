@@ -1,35 +1,33 @@
-# Harmonie — Révisions de la Toussaint 2026
+# Harmonie — Révisions quotidiennes de la Toussaint 2026
 
-Nouvelle entrée : [index.html](./index.html) (ouvrir sur Safari iPad). Les applications existantes \`ardoise-magique/\` et \`harmonie-alphabet/\` restent inchangées.
+Entrée de l'application : [index.html](./index.html), prévue pour Safari sur iPad. Les jeux existants dans `ardoise-magique/` et `harmonie-alphabet/` restent séparés.
 
-## Éléments utilisés
+## Programme
 
-- Devoirs photographiés : lire le son « u » pour le lundi 2/11 ; apprendre le son « ou » pour le 3, 5 et 6/11 ; numération à 99, soustraction en passant par la dizaine, additions avec retenue et tables ; compléments à 10 ; passé/présent/futur ; phrases négatives pour l’évaluation du 6/11.
-- Fiche « Orthographe Cycle 2 » : mots de la semaine 6 (« u ») et semaine 7 (« ou »), marches 1, 2 et 3, retranscrits en \`data.js\`.
-- Calendrier Google Agenda : gardes Philippe les 18, 19, 20, 26, 27, 30, 31 octobre et les 1, 2, 3 novembre 2026. Les dates sont une **copie statique** de l’agenda, pas une synchronisation automatique.
+- Du 18 octobre au 3 novembre 2026 : trois missions par jour, sans journée vide dans le calendrier.
+- Les missions portent sur les sept sons de la fiche « Orthographe Cycle 2 » : r, u, ou, eu, o, p et t. Les mots sont rangés dans les trois marches photographiées ; les dictées et ardoises des marches 2 et 3 reprennent les marches précédentes.
+- La progression reprend aussi les devoirs photographiés : ordre alphabétique (première et deuxième lettres), dizaines et unités jusqu'à 99, additions avec retenue, soustractions en passant par la dizaine, compléments à 10, passé/présent/futur et phrases négatives.
+- Les photos du cahier couvrent le planning scolaire du 5 au 9 octobre. Ces dates sont passées ; le calendrier de révision utilise donc des séances quotidiennes sur les vacances.
 
-## Fonctionnalités
+## Fonctionnement
 
-- Trois mini-jeux par jour de garde ; 30 minutes **au maximum d’activité** dans cette application, avec arrêt automatique à l’atteinte du plafond.
-- Dix jours de programme, 30 missions, réponses multiples, dictées vocales en français, cursive avec le doigt, correction progressive, explications des calculs.
-- Marches d'orthographe : dictée du niveau 2 = mots des marches 1 et 2 (cumulatif). Les mots de la marche 3 sont conservés dans les données pour une extension ultérieure.
-- Tableau de bord parent ; sauvegarde dans \`localStorage\`, export CSV (pas de compte, pas de serveur).
+- Trois mini-jeux par jour ; le jeu reste activable uniquement à la date affichée. Les autres dates servent à consulter le programme.
+- Limite de 30 minutes d'activité par jour, avec arrêt automatique.
+- Dictées vocales en français, écriture cursive au doigt, correction progressive et explications des calculs.
+- Tableau de bord parent, sauvegarde locale dans `localStorage` et export CSV. Il n'y a ni compte ni serveur.
 - Liens vers les deux jeux préexistants.
 
 ## Limites connues
 
-- La dictée utilise \`speechSynthesis\` ; dépend des voix installées sur iPad. Nécessite un geste utilisateur pour certains navigateurs.
-- L'ardoise **ne fait pas de reconnaissance automatique de l'écriture**. L'enfant compare sa production au modèle.
-- Le suivi est **local à Safari sur cet appareil** et disparaît si ses données sont effacées ; il n'est pas partagé entre iPad et PC.
-- Le plafond porte sur le temps où un mini-jeu est ouvert au premier plan, pas sur le temps passé dans les menus.
-- Le planning est figé : si la garde change, mettre à jour \`guardDays\` et \`schedule\` dans \`data.js\`.
-- Les exercices de lecture utilisent des mots de la fiche, mais le texte, la comptine et la gamme de lecture du porte-vues ne sont pas reproduits faute de photos lisibles de ces pages.
-- Tester en condition réelle sur Safari iPad avant fusion. Aucun déploiement en production n'est autorisé par cette branche seule.
+- La dictée utilise `speechSynthesis` et dépend des voix installées sur l'iPad. Safari peut demander un geste de l'utilisateur pour démarrer le son.
+- L'ardoise ne reconnaît pas automatiquement l'écriture : l'enfant compare son tracé au modèle et confirme, ou demande à recommencer.
+- Le suivi est local à Safari sur cet appareil. Il n'est pas partagé avec le PC et disparaît si les données du site sont effacées.
+- Le calendrier est figé dans `data.js`; il ne se synchronise pas avec Google Agenda.
+- La comptine et le texte complet du porte-vues ne sont pas intégrés : la photo fournie ne montre pas les pages de lecture correspondantes.
+- Vérifier le son, le tracé tactile et la limite de séance sur Safari iPad avant fusion. Cette branche ne modifie pas `main`.
 
-## Vérifications
+## Vérification
 
-\`\`\`bash
+```bash
 node --test harmonie-revisions/smoke.test.cjs
-\`\`\`
-
-Les tests inspectent les listes de mots, les dates, le nombre de séances et la cohérence des références DOM. Des essais manuels sont nécessaires pour le son, le tracé tactile et les sessions de 30 minutes.
+```
