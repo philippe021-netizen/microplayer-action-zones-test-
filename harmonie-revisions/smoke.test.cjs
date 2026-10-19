@@ -155,6 +155,18 @@ test('additions et soustractions montrent les étapes exactes des méthodes du c
  assert.ok(subtractions.some(q=>q.prompt.startsWith('66 − 9')));
  assert.match(subtractions.find(q=>q.prompt.startsWith('36 − 7')).hint,/36 − 6 = 30.*30 − 1 = 29/);
 });
+test('les additions et soustractions proposent une ardoise de calcul libre, effaçable',()=>{
+ const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()', {D:data,Math});
+ for(const type of ['add','subtract'])for(const level of [1,2,3]){
+   const questions=generator(type,level);
+   assert.ok(questions.length>0,type+' niveau '+level);
+   assert.ok(questions.every(q=>q.scratchpad===true),type+' doit afficher l’ardoise pour chaque calcul');
+ }
+ assert.match(html,/id="scratchHelp"/);
+ assert.match(app,/show\("handwrite",q\.mode==="write"\|\|Boolean\(q\.scratchpad\)\)/);
+ assert.match(app,/if\(q\.scratchpad\)[\s\S]*show\("clearWrite",true\)/);
+ assert.match(html,/id="clearWrite"[^>]*>🧽 Effacer l’ardoise/);
+});
 
 test('chaque jeu de maths choisit une explication orale Lili adaptée avant la première question',()=>{
  assert.match(app,/function mathLesson\(type\)/);
