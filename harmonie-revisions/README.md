@@ -13,14 +13,13 @@ Entrée de l'application : [index.html](./index.html), prévue pour Safari sur i
 
 - Trois mini-jeux par jour ; le jeu reste activable uniquement à la date affichée. Les autres dates servent à consulter le programme.
 - Limite de 30 minutes d'activité par jour, avec arrêt automatique.
-- Les mots à écrire apparaissent automatiquement pendant trois secondes, puis l’enfant les écrit au doigt sur un tableau vert. La synthèse vocale du navigateur n’est pas utilisée.
-- Les animations et sons d’encouragement de Gus utilisent les médias originaux dans `gus_media/`; le son peut être coupé depuis le bouton de la page.
+- Les mots à écrire restent visibles au moins trois secondes et sont lus à voix haute par une voix française aiguë, comme dans l’ancien programme. Une phrase d’accueil et des encouragements accompagnent les réponses. La voix dépend des voix installées sur l’iPad.
+- La mélodie d’origine est rejouée en boucle pendant les missions ; la voix et la musique peuvent chacune être coupées depuis les boutons en haut de page. Les animations et sons d’encouragement de Gus utilisent les médias originaux dans `gus_media/`; leurs sons ont leur propre bouton.
 - Tableau de bord parent, sauvegarde locale dans `localStorage` et export CSV. Il n'y a ni compte ni serveur.
 - Liens vers les deux jeux préexistants.
 
 ## Limites connues
 
-- La dictée utilise `speechSynthesis` et dépend des voix installées sur l'iPad. Safari peut demander un geste de l'utilisateur pour démarrer le son.
 - L'ardoise ne reconnaît pas automatiquement l'écriture : l'enfant compare son tracé au modèle et confirme, ou demande à recommencer.
 - Le suivi est local à Safari sur cet appareil. Il n'est pas partagé avec le PC et disparaît si les données du site sont effacées.
 - Le calendrier est figé dans `data.js`; il ne se synchronise pas avec Google Agenda.
