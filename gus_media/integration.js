@@ -26,25 +26,25 @@ const stage=document.createElement("div");stage.id="gus-video-stage";stage.setAt
 const picture=document.createElement("img");picture.alt="";picture.decoding="async";stage.append(picture);
 const sound=document.createElement("audio");sound.preload="none";sound.setAttribute("playsinline","");document.body.append(sound);document.body.append(stage);
 const bgMusic=document.getElementById("gus-music-player");
-let counter=0,timer=0,active="";
+let counter=0,timer=0,active="",activeMuted=false,presentationIndex=0;
 function setBackgroundVolume(level){
  if(!bgMusic)return;
  const adjusted=typeof window.HarmonieMusicVolume==="function"?window.HarmonieMusicVolume(level):level;
  bgMusic.volume=Number.isFinite(adjusted)?adjusted:level;
 }
 function stop(){
- clearTimeout(timer);stage.classList.remove("show","presenter");sound.pause();active="";
+ clearTimeout(timer);stage.classList.remove("show","presenter");sound.pause();active="";activeMuted=false;
  if(bgMusic&&bgMusic.volume<.12)setBackgroundVolume(.16);
 }
-function play(name,duration=5200){
+function play(name,duration=5200,silent=false){
  if(!CHOICES.some(x=>x[0]===name))return false;
  clearTimeout(timer);sound.pause();
- const nonce=++counter;active=name;
+ const nonce=++counter;active=name;activeMuted=silent;
  if(!SILENT_SOURCES.has(name)){try{window.speechSynthesis?.cancel()}catch(_){}}
  const allowSound=document.getElementById("gus-sound")?.getAttribute("aria-pressed")!=="false";
  // Start audio synchronously in the activating event; Safari can reject a
  // delayed play() call made only after an image load callback.
- if(allowSound){
+ if(allowSound&&!silent){
   sound.src=BASE+name+".m4a";sound.currentTime=0;
   const promise=sound.play();if(promise?.catch)promise.catch(()=>{
    const notice=document.getElementById("gus-notice");if(notice)notice.textContent="Le son de Gus est bloqué par Safari. Touche une animation pour réessayer.";
@@ -57,12 +57,16 @@ function play(name,duration=5200){
  timer=setTimeout(stop,duration);
  return true;
 }
-function present(){stage.classList.add("presenter");return play("05_Presentation",60000)}
+function present(){stage.classList.add("presenter");const name=presentationIndex++%2===0?"05_Presentation":"09_Presentation_bis";return play(name,60000)}
 function playCorrect(){
- if(Math.random()<.12)return play("01_Prout");
- const options=["02_Bravo","03_Danse","06_Rires","10_Bravo_bis"];
- return play(options[Math.floor(Math.random()*options.length)]);
+ const roll=Math.random();
+ if(roll<.05)return play("01_Prout");
+ if(roll<.15)return play("03_Danse");
+ if(roll<.25)return play("10_Bravo_bis");
+ return play("02_Bravo");
 }
+function playEncouragement(){return play(Math.random()<.5?"06_Rires":"07_Surprise",3600,true)}
+function playFinish(){return Math.random()<.65?play("03_Danse",5200):play("08_Au_revoir",5200)}
 if(panel.dataset.controls!=="false"){
  for(const [id,label] of CHOICES){
   const b=document.createElement("button");b.type="button";b.textContent=label;
@@ -70,7 +74,7 @@ if(panel.dataset.controls!=="false"){
  }
  panel.insertAdjacentElement("afterend",tray);
 }
-window.GusMedia={enabled:true,play,playCorrect,present,stop,hasOriginalSound:()=>!!active&&!SILENT_SOURCES.has(active),get active(){return active}};
+window.GusMedia={enabled:true,play,playCorrect,playEncouragement,playFinish,present,stop,hasOriginalSound:()=>!!active&&!activeMuted&&!SILENT_SOURCES.has(active),get active(){return active}};
 document.getElementById("gus-sound")?.addEventListener("click",()=>{
  if(document.getElementById("gus-sound")?.getAttribute("aria-pressed")==="false")sound.pause();
 });

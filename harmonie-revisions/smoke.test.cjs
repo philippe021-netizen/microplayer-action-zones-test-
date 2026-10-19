@@ -320,9 +320,20 @@ test('ardoise : ampoule d’indices progressifs pour retrouver un mot oublié',(
  assert.equal(memory.textContent,'un fruit');assert.equal(memory.classList.hidden,false);assert.equal(shown,true);
 });
 
-test('Gus : le prout original peut apparaître rarement après une bonne réponse',()=>{
+test('Gus : bravo est systématique la plupart du temps, prout et danse restent des surprises',()=>{
  const gus=fs.readFileSync(path.join(base,'..','gus_media','integration.js'),'utf8');
- assert.match(gus,/Math\.random\(\)<\.12\)return play\("01_Prout"\)/);
+ assert.match(gus,/if\(roll<\.05\)return play\("01_Prout"\)/);
+ assert.match(gus,/if\(roll<\.15\)return play\("03_Danse"\)/);
+ assert.match(gus,/return play\("02_Bravo"\)/);
+ assert.match(gus,/function playEncouragement\(\).*06_Rires.*07_Surprise/);
+ assert.match(gus,/function playFinish\(\).*03_Danse.*08_Au_revoir/);
+ assert.match(gus,/presentationIndex\+\+%2===0\?"05_Presentation":"09_Presentation_bis"/);
+ assert.match(app,/GusMedia\?\.playEncouragement\?\.\(\)/);
+ assert.match(app,/GusMedia\?\.playFinish\?\.\(\)/);
  assert.ok(fs.statSync(path.join(base,'..','gus_media','01_Prout.m4a')).size>50000);
  assert.ok(fs.statSync(path.join(base,'..','gus_media','01_Prout.webp')).size>500000);
+ for(const name of ['01_Prout','02_Bravo','03_Danse','04_Oups','05_Presentation','06_Rires','07_Surprise','08_Au_revoir','09_Presentation_bis','10_Bravo_bis']){
+  assert.ok(fs.statSync(path.join(base,'..','gus_media',name+'.m4a')).size>2000,name+' audio manquant');
+  assert.ok(fs.statSync(path.join(base,'..','gus_media',name+'.webp')).size>500000,name+' animation manquante');
+ }
 });
