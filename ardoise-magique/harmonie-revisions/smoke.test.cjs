@@ -335,6 +335,7 @@ test('Gus : bravo est systématique la plupart du temps, prout et danse restent 
  assert.match(gus,/function playEncouragement\(\).*06_Rires.*07_Surprise/);
  assert.match(gus,/function playFinish\(\)\{return play\("02_Bravo",5200,false\)\}/,'le Bravo sonore est réservé à la fin de la mission');
  assert.match(gus,/function playMidGameMoment\(\)[\s\S]*"board"[\s\S]*"numbers"/);
+ assert.match(gus,/activeMuted=silent\|\|!allowSound\|\|SILENT_SOURCES\.has\(name\)/);
  assert.match(gus,/@keyframes gus-board-hop/);
  assert.match(gus,/@keyframes gus-number-pop/);
  assert.match(gus,/presentationIndex\+\+%2===0\?"05_Presentation":"09_Presentation_bis"/);

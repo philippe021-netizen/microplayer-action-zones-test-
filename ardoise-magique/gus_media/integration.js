@@ -44,7 +44,7 @@ function stop(){
 function play(name,duration=5200,silent=false,zone="stage"){
  if(!CHOICES.some(x=>x[0]===name))return false;
  clearTimeout(timer);sound.pause();
- const nonce=++counter;active=name;activeMuted=silent;stage.classList.remove("on-board","on-numbers");
+ const nonce=++counter;active=name;stage.classList.remove("on-board","on-numbers");
  if(zone==="board"){
   const board=document.getElementById("boardBox");if(board&&!board.hidden){board.append(stage);stage.classList.add("on-board")}
  }else if(zone==="numbers"){
@@ -53,6 +53,7 @@ function play(name,duration=5200,silent=false,zone="stage"){
  }else document.body.append(stage);
  if(!SILENT_SOURCES.has(name)){try{window.speechSynthesis?.cancel()}catch(_){}}
  const allowSound=document.getElementById("gus-sound")?.getAttribute("aria-pressed")!=="false";
+ activeMuted=silent||!allowSound||SILENT_SOURCES.has(name);
  // Start audio synchronously in the activating event; Safari can reject a
  // delayed play() call made only after an image load callback.
  if(allowSound&&!silent){
