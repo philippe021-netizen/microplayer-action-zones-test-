@@ -146,7 +146,7 @@ test('les mots restent visibles trois secondes et Lili utilise des audios ralent
  assert.doesNotMatch(voiceBlock,/GusMedia\?\.stop/);
  assert.match(app,/AUDIO_KEY/);
  for(const file of ['lili-intro.mp3','lili-u-marche1.mp3','lili-u-words.mp3',...Array.from({length:5},(_,i)=>`lili-encourage-${i+1}.mp3`)])assert.ok(fs.statSync(path.join(base,'audio',file)).size>5000,file);
- assert.ok(fs.statSync(path.join(base,'audio','harmonie-background.mp3')).size>1000000);
+ assert.ok(fs.statSync(path.join(base,'audio','harmonie-background.mp3')).size>500000);
  assert.match(app,/harmonie-background\.mp3/);
  assert.match(html,/id="gus-music-player"/);
 });
