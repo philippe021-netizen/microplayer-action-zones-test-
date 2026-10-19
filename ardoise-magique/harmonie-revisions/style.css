@@ -46,6 +46,7 @@ body.playing #handwrite.scratch-active #boardBox .lines{opacity:.12}
 .scratch-row{display:flex;align-items:flex-end;gap:clamp(8px,1.6vw,22px);width:100%;min-height:0;font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif;font-size:clamp(16px,3.2vw,32px);font-weight:750;line-height:1.2;letter-spacing:.035em;white-space:nowrap}
 .scratch-fixed{flex:none}.scratch-slot{flex:1 1 0;min-width:24px;height:1.15em;border-bottom:2px dashed #fff6d7;margin-bottom:.08em}
 #board{z-index:2}
+body.playing #nextBtn:not([hidden]){position:fixed;z-index:100;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);margin:0;min-width:min(280px,calc(100vw - 32px));box-shadow:0 5px 18px #211a3a50}
 body.playing .writing-actions{margin-top:8px;gap:8px}
 #retryWrite{background:#f4efff;border:2px solid #cfc2f3;color:#514388;font-weight:850}
 #hintWrite{background:#fff6d5;border:2px solid #f2d77c;color:#725616;font-weight:850}

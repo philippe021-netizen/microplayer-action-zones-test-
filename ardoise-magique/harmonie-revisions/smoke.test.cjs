@@ -215,6 +215,12 @@ test('un nouveau jeu efface les choix et indices de la mission précédente pend
  assert.match(start,/show\("lessonVisual",false\)/);
 });
 
+test('le bouton Continuer reste fixé en bas de l’écran pendant le jeu',()=>{
+ assert.match(html,/id="nextBtn"/);
+ assert.match(css,/body\.playing #nextBtn:not\(\[hidden\]\)\{position:fixed/);
+ assert.match(css,/bottom:calc\(env\(safe-area-inset-bottom\) \+ 14px\)/);
+});
+
 test('les mots restent visibles trois secondes et Lili utilise des audios ralentis',()=>{
  const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()', {D:data,Math});
  const qs=generator('spell-u',1);
