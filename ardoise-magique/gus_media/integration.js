@@ -16,6 +16,7 @@ style.textContent="#gus-video-tray{display:flex;gap:7px;overflow-x:auto;padding:
 "#gus-video-tray button:focus-visible{outline:3px solid #875bdc}"+
 "#gus-video-stage{position:fixed;z-index:60;left:max(5px,env(safe-area-inset-left));bottom:max(3px,env(safe-area-inset-bottom));pointer-events:none;width:clamp(105px,21vw,230px);height:clamp(170px,34vw,340px);overflow:hidden;opacity:0;transition:opacity .14s ease}"+
 "#gus-video-stage.show{opacity:1}#gus-video-stage img{width:100%;height:100%;object-fit:contain;object-position:bottom left}"+
+"#gus-video-stage.presenter{left:auto;right:max(8px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));width:clamp(90px,14vw,150px);height:clamp(145px,26vw,220px);z-index:61}"+
 "@media(max-width:560px){#gus-video-stage{width:118px;height:182px}#gus-video-tray button{font-size:12px;padding:7px 9px}}"+
 "@media(prefers-reduced-motion:reduce){#gus-video-stage{transition:none}}";
 document.head.append(style);
@@ -32,10 +33,10 @@ function setBackgroundVolume(level){
  bgMusic.volume=Number.isFinite(adjusted)?adjusted:level;
 }
 function stop(){
- clearTimeout(timer);stage.classList.remove("show");sound.pause();active="";
+ clearTimeout(timer);stage.classList.remove("show","presenter");sound.pause();active="";
  if(bgMusic&&bgMusic.volume<.12)setBackgroundVolume(.16);
 }
-function play(name){
+function play(name,duration=5200){
  if(!CHOICES.some(x=>x[0]===name))return false;
  clearTimeout(timer);sound.pause();
  const nonce=++counter;active=name;
@@ -53,9 +54,10 @@ function play(name){
  picture.onload=()=>{if(nonce!==counter)return;stage.classList.add("show")};
  picture.onerror=()=>{if(nonce!==counter)return;stage.classList.remove("show")};
  stage.classList.remove("show");picture.src=BASE+name+".webp?cycle="+nonce;
- timer=setTimeout(stop,5200);
+ timer=setTimeout(stop,duration);
  return true;
 }
+function present(){stage.classList.add("presenter");return play("05_Presentation",60000)}
 function playCorrect(){
  if(Math.random()<.12)return play("01_Prout");
  const options=["02_Bravo","03_Danse","06_Rires","10_Bravo_bis"];
@@ -68,7 +70,7 @@ if(panel.dataset.controls!=="false"){
  }
  panel.insertAdjacentElement("afterend",tray);
 }
-window.GusMedia={enabled:true,play,playCorrect,stop,hasOriginalSound:()=>!!active&&!SILENT_SOURCES.has(active),get active(){return active}};
+window.GusMedia={enabled:true,play,playCorrect,present,stop,hasOriginalSound:()=>!!active&&!SILENT_SOURCES.has(active),get active(){return active}};
 document.getElementById("gus-sound")?.addEventListener("click",()=>{
  if(document.getElementById("gus-sound")?.getAttribute("aria-pressed")==="false")sound.pause();
 });

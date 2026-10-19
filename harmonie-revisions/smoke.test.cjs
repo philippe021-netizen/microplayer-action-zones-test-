@@ -160,8 +160,33 @@ test('chaque jeu de maths choisit une explication orale Lili adaptée avant la p
  assert.match(app,/lili-math-numbers/);
  assert.match(app,/lili-math-friends/);
  const start=app.slice(app.indexOf('function startGame'),app.indexOf('function renderQuestion'));
- assert.match(start,/mathLesson\(type\)/);
+ assert.match(start,/gameLesson\(type,level\)/);
+ assert.match(app,/const math=mathLesson\(type\)/);
  assert.match(start,/renderQuestion\(\);startIdleWatch\(\)/);
+});
+test('chaque type de mission quotidienne prépare une explication visuelle avant les questions',()=>{
+ const start=app.indexOf('function shuffled');
+ const end=app.indexOf('function startGame');
+ const lessonFor=vm.runInNewContext('(()=>{'+app.slice(start,end)+';return gameLesson})()', {D:data});
+ const seen=new Set();
+ for(const missions of Object.values(data.schedule))for(const [,type,level] of missions){
+   const lesson=lessonFor(type,level);
+   assert.ok(lesson,`explication manquante pour ${type}`);
+   assert.ok(lesson.audio,`voix manquante pour ${type}`);
+   assert.ok(lesson.cards.length>=2,`décomposition visuelle insuffisante pour ${type}`);
+   seen.add(type);
+ }
+ for(const type of ['add','subtract','tens','friends','negative','time','alphabet','read-u','spell-u','write-u'])assert.ok(seen.has(type));
+ assert.match(app,/function renderLessonVisual\(lesson\)/);
+ assert.match(app,/show\("lessonVisual",true\)/);
+});
+test('un nouveau jeu efface les choix et indices de la mission précédente pendant son explication',()=>{
+ const start=app.slice(app.indexOf('function startGame'),app.indexOf('function renderQuestion'));
+ assert.match(start,/\$\("choices"\)\.replaceChildren\(\)/);
+ assert.match(start,/show\("numberLine",false\)/);
+ assert.match(start,/show\("nextBtn",false\)/);
+ assert.match(start,/\$\("feedback"\)\.textContent=""/);
+ assert.match(start,/show\("lessonVisual",false\)/);
 });
 
 test('les mots restent visibles trois secondes et Lili utilise des audios ralentis',()=>{
@@ -172,7 +197,8 @@ test('les mots restent visibles trois secondes et Lili utilise des audios ralent
  assert.match(app,/setTimeout\(\(\)=>\{/);
  assert.match(app,/},3000\)/);
  assert.match(app,/function playVoice\(file,onend\)/);
- assert.match(app,/const sequence=\["lili-intro"\]/,'l’introduction ne récite pas la liste des mots');
+ assert.match(app,/type\.startsWith\("spell-"\)\?"spell"/,'les mots à mémoriser ont une explication dédiée');
+ assert.match(app,/type\.startsWith\("write-"\)\?"write"/,'les mots à recopier ont une explication dédiée');
  assert.doesNotMatch(app,/sequence=.*lili-u-(?:marche1|words)/,'les enregistrements qui récitent toute la liste ne sont pas joués au démarrage');
  assert.match(app,/function encourage\(\).*playVoice\("lili-encourage-"\+\(i\+1\)\)/);
  assert.doesNotMatch(app,/SpeechSynthesisUtterance|speechSynthesis/);
@@ -193,6 +219,7 @@ test('ardoise scolaire, animations et médias Gus sont raccordés',()=>{
  assert.deepEqual(fs.readdirSync(deployedGus).sort(),fs.readdirSync(gusDir).sort());
  assert.equal(fs.readFileSync(path.join(deployedGus,'integration.js'),'utf8'),gus);
  assert.match(gus,/HarmonieMusicVolume/);
+ assert.match(gus,/function present\(\)/);
  assert.match(app,/GusMedia\?\.playCorrect\(\)/);
  assert.match(app,/GusMedia\?\.play\("04_Oups"\)/);
 });

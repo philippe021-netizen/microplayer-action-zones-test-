@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id);
 const KEY="harmonie-revisions-toussaint-2026-v1";
 const MAX=D.maxMinutes*60;
 let progress=readProgress(),chosen=currentDay(),game=null,ticker=null,lastTick=0,lastActivity=0,idleTimer=null,lastEncouragement=-1;
-let canvasStrokes=[],stroke=null,ctx=null,canvasWidth=1,canvasHeight=1;
+let canvasStrokes=[],stroke=null,ctx=null,canvasWidth=1,canvasHeight=1,lessonTimer=null;
 const AUDIO_KEY="harmonie-audio-v1";
 let audioSettings=readAudioSettings(),voicePlayer=null,backgroundPlayer=$("gus-music-player");
 if(backgroundPlayer){backgroundPlayer.src="./audio/harmonie-background.mp3";backgroundPlayer.loop=true;backgroundPlayer.volume=.16}
@@ -17,7 +17,7 @@ window.HarmonieMusicVolume=level=>voicePlayer&&!voicePlayer.paused?Math.min(leve
 function musicStop(){backgroundPlayer?.pause()}
 function musicStart(){if(!audioSettings.music||!game||!backgroundPlayer)return;musicVolume();if(backgroundPlayer.paused){const p=backgroundPlayer.play();p?.then?.(musicVolume).catch?.(()=>{})}}
 function stopVoice(continueSequence=false){if(voicePlayer){const audio=voicePlayer,next=audio.onended;audio.onended=null;audio.onerror=null;audio.pause();voicePlayer=null;musicVolume();if(continueSequence)next?.()}}
-function playVoice(file,onend){if(!audioSettings.voice){onend?.();return}stopVoice();const src=file.startsWith("lili-math-")?"/api/tts-math?lesson="+encodeURIComponent(file.slice("lili-math-".length)):"./audio/"+file+".mp3";const audio=new Audio(src);voicePlayer=audio;let finished=false;const done=()=>{if(finished)return;finished=true;if(voicePlayer===audio){voicePlayer=null;musicStart();musicVolume()}onend?.()};audio.onended=done;audio.onerror=done;const p=audio.play();musicVolume();p?.catch?.(done)}
+function playVoice(file,onend){if(!audioSettings.voice){onend?.();return}stopVoice();const prefix=file.startsWith("lili-math-")?"lili-math-":file.startsWith("lili-lesson-")?"lili-lesson-":null;const src=prefix?"/api/tts-math?lesson="+encodeURIComponent(file.slice(prefix.length)):"./audio/"+file+".mp3";const audio=new Audio(src);voicePlayer=audio;let finished=false;const done=()=>{if(finished)return;finished=true;if(voicePlayer===audio){voicePlayer=null;musicStart();musicVolume()}onend?.()};audio.onended=done;audio.onerror=done;const p=audio.play();musicVolume();p?.catch?.(done)}
 function say(){/* Les voix système du navigateur sont désactivées : Lili utilise uniquement les enregistrements du projet. */}
 const encouragements=["Alors, tu dors ou quoi ? Réveille les neurones !","Ton crayon fait la sieste ? On s’y remet !","Ouh là, ça réfléchit fort ! Tu vas trouver !","Ce mot se cache bien : démasque-le !","Allez, championne, encore une lettre !"];
 function encourage(){if(!game||game.solved||document.hidden||!audioSettings.voice||voicePlayer&&!voicePlayer.paused)return;let i=Math.floor(Math.random()*encouragements.length);if(encouragements.length>1&&i===lastEncouragement)i=(i+1+Math.floor(Math.random()*(encouragements.length-1)))%encouragements.length;lastEncouragement=i;playVoice("lili-encourage-"+(i+1))}
@@ -121,25 +121,53 @@ function mathLesson(type){
  };
  return lessons[type]||null;
 }
+function gameLesson(type,level){
+ const math=mathLesson(type);
+ const graph=type.startsWith("read-")?type.slice(5):type.startsWith("spell-")||type.startsWith("write-")?type.slice(6):null;
+ const audio=math?.audio||"lili-lesson-"+(type.startsWith("spell-")?"spell":type.startsWith("write-")?"write":type.startsWith("read-")?type:type);
+ const cards={
+  add:["63 = 60 + 3","22 = 20 + 2","60 + 20 = 80","3 + 2 = 5","80 + 5 = 85"],
+  subtract:["36 − 7","36 − 6 = 30","Il reste 1 à enlever","30 − 1 = 29"],
+  tens:["Avant : 64 ← 65 → 66","Après : 71 ← 72 → 73","46 < 64 · 73 > 37 · 55 = 55","On avance d’une graduation à la suivante"],
+  friends:["6 + ? = 10","7 · 8 · 9 · 10","Quatre pas pour arriver à 10","6 + 4 = 10"],
+  negative:["Phrase : Il joue","Le verbe : joue","Il + ne + joue + pas","Il ne joue pas"],
+  time:["HIER → PASSÉ","AUJOURD’HUI → PRÉSENT","DEMAIN → FUTUR"],
+  alphabet:["Roi · Rue · Route","Compare la 1re lettre","Si elle est pareille, compare la suivante","A → B → C → … → R"],
+ };
+ if(graph&&type.startsWith("read-"))cards[type]=["Écoute le son : « "+graph+" »",...(D.words[graph]?.[1]||[]).slice(0,3),"Trouve le mot de la bonne famille !"];
+ if(type.startsWith("spell-"))cards[type]=["1 · Regarde le mot","2 · Photographie-le dans ta tête","3 · Le modèle disparaît","4 · Écris-le, puis vérifie"];
+ if(type.startsWith("write-"))cards[type]=["1 · Observe le modèle","2 · Repère les lettres","3 · Attache-les en cursive","4 · Écris avec ton doigt"];
+ const text=math?.text||({negative:"On place « ne » avant le verbe et « pas » après. Devant une voyelle, « ne » devient « n’ ».",time:"Hier indique le passé ; aujourd’hui, le présent ; demain, le futur.",alphabet:"Compare les mots lettre par lettre, en commençant par la première.",spell:"Observe le mot, mémorise-le, puis écris-le quand il disparaît.",write:"Observe le modèle, puis écris le mot en cursive avec ton doigt."}[type]||(type.startsWith("read-")?"Écoute le son, observe les lettres et trouve un mot qui contient ce son.":""));
+ return cards[type]?{audio,text,cards:cards[type]}:null;
+}
+function renderLessonVisual(lesson){
+ clearInterval(lessonTimer);const title=$("lessonVisualTitle"),step=$("lessonVisualStep"),progress=$("lessonVisualProgress"),slidesHost=$("lessonVisualSlides");
+ slidesHost.replaceChildren();title.textContent="Regardons comment faire";
+ const slides=lesson.cards.map((text,i)=>{const card=document.createElement("div");card.className="lesson-slide"+(i===0?" active":"");card.textContent=text;card.setAttribute("aria-label","Étape "+(i+1)+" : "+text);slidesHost.appendChild(card);return card});
+ progress.replaceChildren();const dots=slides.map((_,i)=>{const dot=document.createElement("i");if(i===0)dot.classList.add("active");progress.appendChild(dot);return dot});
+ let index=0;step.textContent="Étape 1 sur "+slides.length;
+ const advance=()=>{slides[index].classList.remove("active");dots[index].classList.remove("active");index=(index+1)%slides.length;slides[index].classList.add("active");dots[index].classList.add("active");step.textContent="Étape "+(index+1)+" sur "+slides.length};
+ lessonTimer=setInterval(advance,2600);
+ window.GusMedia?.present?.();
+}
 function startGame(id,title,type,level){
  if(!available()||seconds()>=MAX)return;
  const questions=generate(type,level);
  if(!questions.length)return;
  game={id,title,type,questions,pos:0,mistakes:0,correct:0,wrongOnCurrent:false,solved:false,writeTimer:null,hintLevel:0,hintTimer:null};
  document.body.classList.add("playing");$("gameName").textContent=title;show("home",false);show("finish",false);show("play",true);window.scrollTo({top:0,behavior:"smooth"});
- startTimer();musicStart();window.GusMedia?.play("05_Presentation");
- const lesson=mathLesson(type);
- if(type.startsWith("spell-")||type.startsWith("write-")){
-  $("question").textContent="Lili t’explique le jeu…";$("promptType").textContent=title;$("hint").textContent="Écoute bien, puis écris les mots sur l’ardoise.";
-  const sequence=["lili-intro"];
-  const speakNext=i=>{if(!game)return;if(i>=sequence.length){renderQuestion();startIdleWatch();return}playVoice(sequence[i],()=>speakNext(i+1))};speakNext(0);
- }else if(lesson){
-  $("question").textContent="Lili t’explique la méthode…";$("promptType").textContent=title;$("hint").textContent=lesson.text;
-  playVoice(lesson.audio,()=>{if(game){renderQuestion();startIdleWatch()}});
+ clearInterval(lessonTimer);window.GusMedia?.stop?.();$("question").textContent="";$("promptType").textContent=title;$("hint").textContent="";$("feedback").textContent="";$("choices").replaceChildren();
+ show("numberLine",false);show("handwrite",false);show("nextBtn",false);show("lessonVisual",false);show("retryWrite",false);show("hintWrite",false);show("writeHint",false);show("boardBox",false);show("clearWrite",false);show("verifyWrite",false);
+ startTimer();musicStart();
+ const lesson=gameLesson(type,level),session=game;
+ if(lesson){
+  $("question").textContent="Gus te montre, Lili t’explique…";$("hint").textContent=lesson.text;renderLessonVisual(lesson);show("lessonVisual",true);
+  playVoice(lesson.audio,()=>{if(game===session){clearInterval(lessonTimer);window.GusMedia?.stop?.();renderQuestion();startIdleWatch()}});
  }else{renderQuestion();startIdleWatch()}
 }
 function renderQuestion(){
  if(!game)return;const q=game.questions[game.pos];
+ clearInterval(lessonTimer);window.GusMedia?.stop?.();show("lessonVisual",false);
  clearTimeout(game.writeTimer);clearTimeout(game.writeFallback);clearTimeout(game.hintTimer);game.writeTimer=null;game.writeFallback=null;game.hintTimer=null;game.hintLevel=0;
  game.solved=false;game.wrongOnCurrent=false;$("promptType").textContent=q.label;
  $("question").textContent=q.prompt;$("hint").textContent=q.hint;$("feedback").textContent="";
@@ -283,12 +311,14 @@ function next(){
 }
 function endGame(){
  document.body.classList.remove("playing");
+ clearInterval(lessonTimer);lessonTimer=null;
  if(!game){show("play",false);show("home",true);return}
  const t=game.writeTimer,f=game.writeFallback,h=game.hintTimer;game.writeTimer=null;game.writeFallback=null;game.hintTimer=null;if(t)clearTimeout(t);if(f)clearTimeout(f);if(h)clearTimeout(h);
  stopTimer();stopIdleWatch();game=null;stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("home",true);render();
 }
 function stopForDay(){
  // Atteinte de la limite : pas de nouveau jeu ni de question suivante.
+ clearInterval(lessonTimer);lessonTimer=null;
  const t=game?.writeTimer,f=game?.writeFallback,h=game?.hintTimer;if(t)clearTimeout(t);if(f)clearTimeout(f);if(h)clearTimeout(h);
  game=null;document.body.classList.remove("playing");stopTimer();stopIdleWatch();stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("finish",false);show("home",true);render();
  $("dayStatus").textContent="30 minutes terminées : bravo, profite maintenant de tes vacances !";

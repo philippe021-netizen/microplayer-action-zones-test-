@@ -63,9 +63,37 @@ test('rejects unknown lessons, extra query parameters, and non-GET requests', as
   }
 });
 
+test('all scheduled learning topics have a fixed French narration in the same voice', async () => {
+  const previousFetch = global.fetch;
+  const previousKey = process.env.GOOGLE_TTS_API_KEY;
+  process.env.GOOGLE_TTS_API_KEY = 'test-secret';
+  const texts = [];
+  global.fetch = async (_url, options) => {
+    texts.push(JSON.parse(options.body).input.text);
+    return { ok: true, json: async () => ({ audioContent: Buffer.from('lesson-mp3').toString('base64') }) };
+  };
+  try {
+    const lessons = ['negative', 'time', 'alphabet', 'spell', 'write', 'read-r', 'read-u', 'read-ou', 'read-eu', 'read-o', 'read-p', 'read-t'];
+    for (const lesson of lessons) {
+      const res = response();
+      await handler({ method: 'GET', url: `/api/tts-math?lesson=${lesson}` }, res);
+      assert.equal(res.statusCode, 200, lesson);
+    }
+    assert.equal(texts.length, lessons.length);
+    assert.ok(texts.every(text => text.length > 35));
+    assert.match(texts[0], /forme négative/);
+    assert.match(texts[1], /passé/);
+  } finally {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GOOGLE_TTS_API_KEY;
+    else process.env.GOOGLE_TTS_API_KEY = previousKey;
+  }
+});
+
 test('math lessons use the server generated voice endpoint rather than missing mp3 files', () => {
   const fs = require('node:fs');
   const app = fs.readFileSync(require('node:path').join(__dirname, '../harmonie-revisions/app.js'), 'utf8');
   assert.match(app, /file\.startsWith\("lili-math-"\)/);
+  assert.match(app, /file\.startsWith\("lili-lesson-"\)/);
   assert.match(app, /\/api\/tts-math\?lesson=/);
 });
