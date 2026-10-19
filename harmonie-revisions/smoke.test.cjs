@@ -198,3 +198,19 @@ test('comparateur : les lettres lues de travers ou oubliées sont repérées san
  assert.match(app,/className="letter-check-wrong"/);
  assert.match(app,/{countMistake:true,expected:q.answer,actual:decision.read}/);
 });
+
+test('ardoise : réécriture sous le tableau, animation d’erreur et écran recentré',()=>{
+ const boardAt=html.indexOf('id="boardBox"'),retryAt=html.indexOf('id="retryWrite"');
+ assert.ok(boardAt>=0&&retryAt>boardAt,'le bouton de réécriture doit apparaître après l’ardoise dans le HTML');
+ assert.match(app,/show\("retryWrite",true\)/);
+ assert.match(app,/function retryWrite\(\)/);
+ assert.match(app,/if\(countMistake\)animateWrongAnswer\(\)/,'l’animation ne se déclenche que si le mot est reconnu incorrect');
+ assert.match(app,/function animateWrongAnswer\(\)/);
+ assert.match(app,/document\.body\.classList\.add\("playing"\)/);
+ assert.match(app,/document\.body\.classList\.remove\("playing"\)/);
+ const css=fs.readFileSync(path.join(base,'style.css'),'utf8');
+ assert.match(css,/body\.playing>\.app>#play\{display:flex/);
+ assert.match(css,/body\.playing #boardBox\{height:clamp\(/);
+ assert.match(css,/@keyframes wrong-wiggle/);
+ assert.match(css,/@media\(prefers-reduced-motion:reduce\)\{#boardBox\.wrong-answer\{animation:none\}\}/);
+});

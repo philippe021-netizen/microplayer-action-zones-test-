@@ -10,3 +10,25 @@
 #boardBox{position:relative;overflow:hidden;width:100%;height:clamp(250px,38vh,390px);background:radial-gradient(ellipse at 50% 40%,#245344,#173d34 78%);border:12px solid #9b7049;border-radius:12px;box-shadow:inset 0 0 0 3px #c49868, inset 0 0 26px #071d18,0 8px 18px #291d2440;touch-action:none}.lines{position:absolute;inset:0;pointer-events:none;opacity:.34;background:repeating-linear-gradient(to bottom,transparent 0,transparent 61px,#d9e9d9 62px,transparent 63px)}#gus-panel{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0;padding:9px 14px;background:#fff;border:1px solid #efe4ff;border-radius:18px;color:#5d4d8e;font-weight:750}#gus-panel p{margin:0}#gus-panel button{border:0;border-radius:12px;background:#f1eaff;color:#584695;font-weight:800;padding:8px 12px}#gus-panel button[aria-pressed=false]{opacity:.65}#board{position:absolute;inset:0;width:100%;height:100%;touch-action:none}.finish{text-align:center;background:white;border-radius:25px;padding:35px}.finish h2{font-size:32px}dialog{width:min(630px,95vw);border:0;border-radius:24px;padding:24px;box-shadow:0 15px 60px #25194255;color:#343251}dialog::backdrop{background:#25204099}.dialog-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.dialog-head h2{margin:0;font-size:24px}.stats{border:1px solid #eee9f6;border-radius:16px;padding:15px;margin:15px 0}.stats p{margin:6px 0}dialog .buttons button{background:#eee9fa;border:0;border-radius:13px;padding:12px;color:#584c89;font-weight:800}
 [hidden]{display:none!important}@media(max-width:590px){.app{padding:12px 10px}.header-actions{flex-direction:column}header .mascot{font-size:42px}.summary{padding:14px;align-items:flex-start}.summary strong{font-size:18px}.minute-pill{font-size:13px}.choices{grid-template-columns:1fr}.choices button{font-size:19px;padding:12px}.mission{min-height:170px}.game-card{padding:13px}.old-games a{width:100%;text-align:center}}@media(prefers-reduced-motion:reduce){.mascot{animation:none}.progress div{transition:none}}
 .letter-check{display:grid;gap:5px;margin-top:8px}.letter-check-row{display:block;color:#4c447d;font-size:clamp(20px,3vw,29px);font-family:Marelle,cursive}.letter-check-label{font-family:system-ui,sans-serif;font-size:13px;color:#716b87;font-weight:800}.letter-check-wrong{color:#c6283d;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+/* En jeu, masquer le tableau de bord et recentrer l’activité dans l’écran. */
+body.playing{min-height:100svh;overflow-y:auto}
+body.playing>.app{height:calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom));min-height:0;padding:6px 14px 8px;display:flex;flex-direction:column}
+body.playing>.app>header,body.playing>.app>#gus-panel,body.playing>.app>.summary,body.playing>.app>.days,body.playing>.app>#home{display:none}
+body.playing>.app>#play{display:flex;flex:1;min-height:0;flex-direction:column}
+body.playing .game-head{flex:none;margin:0 0 4px}
+body.playing .progress{flex:none;height:8px;margin:0 0 6px}
+body.playing .game-card{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;overflow:auto;padding:10px clamp(12px,2vw,22px)}
+body.playing .game-card>.mascot.small{font-size:34px;line-height:1}
+body.playing .game-card .label{margin:3px 0}
+body.playing .game-card h2{margin:3px auto;font-size:clamp(20px,2.6vw,28px)}
+body.playing .game-card .hint{min-height:0;margin:2px auto 7px}
+body.playing #handwrite:not([hidden]){display:flex;flex-direction:column;align-items:stretch}
+body.playing #handwrite .memory{min-height:0;margin:2px auto 5px;font-size:clamp(30px,5vw,52px)}
+body.playing #boardBox{height:clamp(180px,35svh,340px);flex:none;margin:0 auto}
+body.playing .writing-actions{margin-top:8px;gap:8px}
+#retryWrite{background:#f4efff;border:2px solid #cfc2f3;color:#514388;font-weight:850}
+body.playing .feedback{flex:none;min-height:0;margin-top:6px}
+body.playing #play>.fine{flex:none;margin:5px 0 0}
+#boardBox.wrong-answer{animation:wrong-wiggle .48s ease-in-out;box-shadow:inset 0 0 0 3px #c49868,inset 0 0 26px #071d18,0 0 0 4px #ef879455,0 8px 18px #291d2440}
+@keyframes wrong-wiggle{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px) rotate(-.35deg)}40%{transform:translateX(7px) rotate(.35deg)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@media(prefers-reduced-motion:reduce){#boardBox.wrong-answer{animation:none}}

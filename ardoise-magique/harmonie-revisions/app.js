@@ -111,7 +111,7 @@ function startGame(id,title,type,level){
  const questions=generate(type,level);
  if(!questions.length)return;
  game={id,title,type,questions,pos:0,mistakes:0,correct:0,wrongOnCurrent:false,solved:false,writeTimer:null};
- $("gameName").textContent=title;show("home",false);show("finish",false);show("play",true);
+ document.body.classList.add("playing");$("gameName").textContent=title;show("home",false);show("finish",false);show("play",true);window.scrollTo({top:0,behavior:"smooth"});
  startTimer();musicStart();window.GusMedia?.play("05_Presentation");
  if(type.startsWith("spell-")||type.startsWith("write-")){
   $("question").textContent="Lili t’explique le jeu…";$("promptType").textContent=title;$("hint").textContent="Écoute bien, puis écris les mots sur l’ardoise.";
@@ -124,6 +124,7 @@ function renderQuestion(){
  clearTimeout(game.writeTimer);clearTimeout(game.writeFallback);game.writeTimer=null;game.writeFallback=null;
  game.solved=false;game.wrongOnCurrent=false;$("promptType").textContent=q.label;
  $("question").textContent=q.prompt;$("hint").textContent=q.hint;$("feedback").textContent="";
+ $("boardBox").classList.remove("wrong-answer");show("retryWrite",false);
  $("bar").style.width=(game.pos/game.questions.length*100)+"%";$("count").textContent=(game.pos+1)+" / "+game.questions.length;
  show("nextBtn",false);show("handwrite",q.mode==="write");
  $("choices").replaceChildren();
@@ -198,16 +199,24 @@ function showLetterComparison(expected,actual){
  const rows=letterAlignment(expected,actual),box=document.createElement("div");box.className="letter-check";
  for(const [label,letters] of [["Mot attendu",rows.expected],["Mot lu",rows.actual]]){const line=document.createElement("div"),caption=document.createElement("span");line.className="letter-check-row";caption.className="letter-check-label";caption.textContent=label+" : ";line.append(caption);for(const part of letters){if(part.char===" "){line.append(document.createTextNode(" "));continue}const letter=document.createElement("span");letter.textContent=part.char;if(part.wrong)letter.className="letter-check-wrong";line.append(letter)}box.append(line)}$("feedback").append(box);
 }
+function animateWrongAnswer(){
+ const board=$("boardBox");board.classList.remove("wrong-answer");void board.offsetWidth;board.classList.add("wrong-answer");
+ board.addEventListener("animationend",()=>board.classList.remove("wrong-answer"),{once:true});
+}
 function offerWriteRetry(message,{countMistake=false,expected=null,actual=null}={}){
  const choices=$("choices");choices.replaceChildren();$("feedback").textContent=message;
  if(expected&&actual)showLetterComparison(expected,actual);
- const retry=document.createElement("button");retry.textContent="Réécrire le mot";retry.addEventListener("click",()=>{
+ game.retryCountsMistake=countMistake;
+ if(countMistake)animateWrongAnswer();
+ show("retryWrite",true);
+}
+function retryWrite(){
   if(!game)return;
-  if(countMistake){game.mistakes++;game.wrongOnCurrent=true;markActivity()}
+  const countMistake=Boolean(game.retryCountsMistake);
+  if(countMistake){game.mistakes++;markActivity()}
   renderQuestion();
   if(countMistake)game.wrongOnCurrent=true;
   say(countMistake?"Regarde bien le modèle. Il y a une lettre à corriger, puis tu réessaies !":"Je n’arrive pas bien à lire ton écriture. Trace chaque lettre séparément, puis réessaie !");
- });choices.append(retry);
 }
 function handwritingDecision(expected,actual,confidence){
  const normalize=s=>clean(s).replace(/[^\p{L}\p{N}]/gu,"");
@@ -238,6 +247,7 @@ function next(){
  show("home",false);show("finish",true);say("Bravo Harmonie ! Tu as terminé ta mission. Chaque essai t’a aidée à apprendre, je suis fière de toi !");
 }
 function endGame(){
+ document.body.classList.remove("playing");
  if(!game){show("play",false);show("home",true);return}
  const t=game.writeTimer,f=game.writeFallback;game.writeTimer=null;game.writeFallback=null;if(t)clearTimeout(t);if(f)clearTimeout(f);
  stopTimer();stopIdleWatch();game=null;stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("home",true);render();
@@ -245,7 +255,7 @@ function endGame(){
 function stopForDay(){
  // Atteinte de la limite : pas de nouveau jeu ni de question suivante.
  const t=game?.writeTimer,f=game?.writeFallback;if(t)clearTimeout(t);if(f)clearTimeout(f);
- game=null;stopTimer();stopIdleWatch();stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("finish",false);show("home",true);render();
+ game=null;document.body.classList.remove("playing");stopTimer();stopIdleWatch();stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("finish",false);show("home",true);render();
  $("dayStatus").textContent="30 minutes terminées : bravo, profite maintenant de tes vacances !";
 }
 function exportCSV(){
@@ -267,6 +277,7 @@ $("resetDay").addEventListener("click",()=>{if(confirm("Recommencer les missions
 $("backBtn").addEventListener("click",endGame);$("finishHome").addEventListener("click",()=>{show("finish",false);show("home",true);render()});
 $("nextBtn").addEventListener("click",next);
 $("verifyWrite").addEventListener("click",compareWrite);
+$("retryWrite").addEventListener("click",retryWrite);
 $("gus-sound").addEventListener("click",()=>{const b=$("gus-sound"),on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",String(on));b.textContent=on?"🔔 Sons de Gus":"🔕 Sons coupés"});
 $("voiceToggle").addEventListener("click",()=>{audioSettings.voice=!audioSettings.voice;if(!audioSettings.voice)stopVoice(true);saveAudioSettings();paintAudioSettings()});
 $("musicToggle").addEventListener("click",()=>{audioSettings.music=!audioSettings.music;if(audioSettings.music)musicStart();else musicStop();saveAudioSettings();paintAudioSettings()});
