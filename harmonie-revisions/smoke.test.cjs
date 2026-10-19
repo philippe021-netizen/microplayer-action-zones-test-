@@ -131,6 +131,39 @@ test('ordre alphabétique : le mot attendu est bien le premier',()=>{
  }
 });
 
+test('les révisions de nombres reprennent les quatre exercices de la fiche jusqu’à 99',()=>{
+ const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()', {D:data,Math});
+ const qs=generator('tens',1);
+ assert.ok(qs.some(q=>q.prompt.includes('nombre avant')));
+ assert.ok(qs.some(q=>q.prompt.includes('nombre après')));
+ assert.ok(qs.some(q=>q.prompt.includes('Compare')));
+ assert.ok(qs.some(q=>q.numberLine&&q.numberLine.min===59&&q.numberLine.max===100));
+ assert.ok(qs.some(q=>q.prompt.includes('Complète la bande')));
+ for(const q of qs){assert.ok(q.answer);assert.ok(q.options.includes(q.answer));}
+});
+
+test('additions et soustractions montrent les étapes exactes des méthodes du cahier',()=>{
+ const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()', {D:data,Math});
+ const additions=generator('add',1),subtractions=generator('subtract',1);
+ assert.ok(additions.some(q=>q.prompt.startsWith('63 + 22')));
+ assert.ok(additions.some(q=>q.prompt.startsWith('43 + 54')));
+ assert.match(additions.find(q=>q.prompt.startsWith('63 + 22')).hint,/60 \+ 3 \+ 20 \+ 2.*60 \+ 20 \+ 3 \+ 2.*80 \+ 5.*85/);
+ assert.ok(subtractions.some(q=>q.prompt.startsWith('36 − 7')));
+ assert.ok(subtractions.some(q=>q.prompt.startsWith('66 − 9')));
+ assert.match(subtractions.find(q=>q.prompt.startsWith('36 − 7')).hint,/36 − 6 = 30.*30 − 1 = 29/);
+});
+
+test('chaque jeu de maths choisit une explication orale Lili adaptée avant la première question',()=>{
+ assert.match(app,/function mathLesson\(type\)/);
+ assert.match(app,/lili-math-add/);
+ assert.match(app,/lili-math-subtract/);
+ assert.match(app,/lili-math-numbers/);
+ assert.match(app,/lili-math-friends/);
+ const start=app.slice(app.indexOf('function startGame'),app.indexOf('function renderQuestion'));
+ assert.match(start,/mathLesson\(type\)/);
+ assert.match(start,/renderQuestion\(\);startIdleWatch\(\)/);
+});
+
 test('les mots restent visibles trois secondes et Lili utilise des audios ralentis',()=>{
  const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()', {D:data,Math});
  const qs=generator('spell-u',1);

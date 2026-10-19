@@ -82,20 +82,26 @@ function generate(type,level){
  return sets.map(words=>{const ordered=[...words].sort((a,b)=>alphabetKey(a).localeCompare(alphabetKey(b),"fr"));return item("Quel mot vient en premier dans l’ordre alphabétique ?",ordered[0],words,"Compare les lettres une par une. Ignore le petit mot placé devant.","Ordre alphabétique")});
  }
  if(type==="tens"){
- const nums=level===1?[56,42,73,19,80,67]:[64,37,95,28,71,49];
- return nums.map(n=>item(n+" : combien de dizaines ?",Math.floor(n/10),[Math.floor(n/10),n%10,Math.floor(n/10)+1,Math.max(0,Math.floor(n/10)-1)],"Le chiffre de gauche donne les dizaines. Le chiffre de droite donne les unités.","Dizaines et unités"))
- .flatMap((q,i)=>i%2===0?[q,item(nums[i]+" : combien d’unités ?",nums[i]%10,[nums[i]%10,Math.floor(nums[i]/10),9,Math.max(0,nums[i]%10-1)],"Les unités sont à droite.","Dizaines et unités")]:[q]).slice(0,8);
+ const beforeAfter=level===1?[[95,"avant"],[98,"après"],[90,"avant"],[97,"après"]]:[[64,"avant"],[72,"après"],[80,"avant"],[89,"après"]];
+ const comparisons=level===1?[[65,95],[92,62],[91,91],[99,88]]:[[64,46],[37,73],[55,55],[81,18]];
+ const lineNumbers=level===1?[59,72,88,95,97]:[61,74,86,92,99];
+ const bands=level===1?[[87,90],[94,96]]:[[81,84],[96,99]];
+ const adjacent=beforeAfter.map(([n,side])=>{const answer=side==="avant"?n-1:n+1;return item("Quel est le nombre "+side+" "+n+" ?",answer,[answer,n,side==="avant"?n+1:n-1],"Pour trouver le nombre avant, recule d’un. Pour trouver le nombre après, avance d’un.","Le nombre avant et le nombre après")});
+ const compare=comparisons.map(([a,b])=>{const answer=a<b?"<":a>b?">":"=";return item("Compare "+a+" et "+b+" : quel signe faut-il écrire ?",answer,["<",">","="],"Compare les deux nombres, puis choisis le signe plus petit <, plus grand > ou égal =.","Comparer les nombres")});
+ const line=lineNumbers.map(n=>({...item("Sur la droite graduée, quelle graduation correspond à "+n+" ?",n,[n,n-1,n+1,n+2],"Chaque petite graduation avance d’un. Repère les dizaines écrites sous la droite.","Se repérer sur la droite graduée"),numberLine:true}));
+ const numberBand=bands.map(([start,missing])=>item("Complète la bande numérique : "+[start,start+1,start+2,"___",missing+1,missing+2].join(" · "),missing,[missing,missing-1,missing+1,missing+10],"Les nombres se suivent : après un nombre, on avance d’un.","La bande numérique"));
+ return [...adjacent,...compare,...line,...numberBand].map(q=>q.numberLine?{...q,numberLine:{min:59,max:100}}:q);
  }
  if(type==="friends"){
  return [7,4,6,9,3,5,8,2].slice(level===2?2:0,level===2?8:6).map(a=>item(a+" + ? = 10",10-a,[10-a,Math.max(0,9-a),Math.min(9,11-a)],"Compte les cases qui manquent jusqu’à 10.","Les amis de 10"));
  }
  if(type==="subtract"){
- const pairs=level===1?[[35,7],[43,6],[52,8],[61,4],[74,9],[32,5]]:level===2?[[46,8],[64,7],[83,6],[51,9],[72,5],[55,8]]:[[35,7],[62,8],[74,6],[91,7],[43,9],[80,5]];
- return pairs.map(([a,b])=>{const toTen=a%10||10,first=Math.min(b,toTen);const rest=b-first,answer=a-b;return item(a+" − "+b+" = ?",answer,[answer,answer+10,answer-2,answer+2],a+" − "+first+" = "+(a-first)+(rest?", puis − "+rest+" = "+answer:"")+".","Soustraction en passant par la dizaine")});
+ const pairs=level===1?[[36,7],[44,8],[52,4],[66,9],[36,7],[52,4]]:level===2?[[46,8],[64,7],[83,6],[51,9],[72,5],[66,9]]:[[35,7],[62,8],[74,6],[91,7],[43,9],[80,5]];
+ return pairs.map(([a,b])=>{const toTen=a%10||10,first=Math.min(b,toTen),rest=b-first,answer=a-b;return item(a+" − "+b+" = ?",answer,[answer,answer+10,answer-2,answer+2],"On enlève d’abord "+first+" pour arriver à la dizaine : "+a+" − "+first+" = "+(a-first)+(rest?". Il reste "+rest+" à enlever : "+(a-first)+" − "+rest+" = "+answer:"."),"Soustraire en passant par la dizaine")});
  }
  if(type==="add"){
- const pairs=level===1?[[25,42],[31,47],[42,26],[16,31],[20,35],[44,23]]:level===2?[[26,47],[35,28],[48,16],[57,25],[38,26],[17,45]]:[[25,42],[53,29],[36,47],[44,38],[19,63],[56,27]];
- return pairs.map(([a,b])=>{const n=a+b;return item(a+" + "+b+" = ?",n,[n,n-10,n+10,n-2],Math.floor(a/10)*10+" + "+Math.floor(b/10)*10+" = "+(Math.floor(a/10)+Math.floor(b/10))*10+" ; "+(a%10)+" + "+(b%10)+" = "+((a%10)+(b%10))+". Réunis les deux résultats.","Additions et retenues")});
+ const pairs=level===1?[[63,22],[27,42],[43,54],[32,46],[25,42],[20,35]]:level===2?[[26,47],[35,28],[48,16],[57,25],[38,26],[17,45]]:[[25,42],[53,29],[36,47],[44,38],[19,63],[56,27]];
+ return pairs.map(([a,b])=>{const n=a+b,tensA=Math.floor(a/10)*10,tensB=Math.floor(b/10)*10,unitsA=a%10,unitsB=b%10,units=unitsA+unitsB,base=tensA+" + "+unitsA+" + "+tensB+" + "+unitsB+" = "+tensA+" + "+tensB+" + "+unitsA+" + "+unitsB+" = "+(tensA+tensB)+" + "+units;const method=units>=10?base+" = "+(tensA+tensB+10)+" + "+(units-10)+" = "+n:base+" = "+n;return item(a+" + "+b+" = ?",n,[n,n-10,n+10,n-2],method,"Addition par décomposition des dizaines et des unités")});
  }
  if(type==="negative"){
  const all=D.questions.negative;const start=level===1?0:level===2?2:level===3?1:0;
@@ -106,6 +112,15 @@ function generate(type,level){
  }
  return [];
 }
+function mathLesson(type){
+ const lessons={
+  add:{audio:"lili-math-add",text:"Pour additionner, sépare les dizaines et les unités. Soixante-trois, c’est soixante plus trois. Vingt-deux, c’est vingt plus deux. Additionne d’abord les dizaines : soixante plus vingt, ça fait quatre-vingts. Puis les unités : trois plus deux, ça fait cinq. Enfin, quatre-vingts plus cinq, ça fait quatre-vingt-cinq. À toi d’essayer !"},
+  subtract:{audio:"lili-math-subtract",text:"Pour soustraire en passant par la dizaine, enlève d’abord juste ce qu’il faut pour arriver à la dizaine. Trente-six moins sept : j’enlève six à trente-six, il reste trente. Il reste encore un à enlever : trente moins un, ça fait vingt-neuf. À toi d’essayer !"},
+  tens:{audio:"lili-math-numbers",text:"Pour trouver le nombre avant, recule d’un. Pour trouver le nombre après, avance d’un. Pour comparer, regarde quel nombre est le plus grand et choisis le bon signe : plus petit, plus grand ou égal. Sur la droite, chaque petite graduation avance d’un. Dans la bande, compte les nombres dans l’ordre. À toi !"},
+  friends:{audio:"lili-math-friends",text:"Pour trouver ce qui manque jusqu’à dix, compte en avançant. Par exemple, après six, il faut encore quatre pas : sept, huit, neuf, dix. Donc six plus quatre, ça fait dix. À toi d’essayer !"}
+ };
+ return lessons[type]||null;
+}
 function startGame(id,title,type,level){
  if(!available()||seconds()>=MAX)return;
  const questions=generate(type,level);
@@ -113,10 +128,14 @@ function startGame(id,title,type,level){
  game={id,title,type,questions,pos:0,mistakes:0,correct:0,wrongOnCurrent:false,solved:false,writeTimer:null,hintLevel:0,hintTimer:null};
  document.body.classList.add("playing");$("gameName").textContent=title;show("home",false);show("finish",false);show("play",true);window.scrollTo({top:0,behavior:"smooth"});
  startTimer();musicStart();window.GusMedia?.play("05_Presentation");
+ const lesson=mathLesson(type);
  if(type.startsWith("spell-")||type.startsWith("write-")){
   $("question").textContent="Lili t’explique le jeu…";$("promptType").textContent=title;$("hint").textContent="Écoute bien, puis écris les mots sur l’ardoise.";
   const sequence=["lili-intro"];
   const speakNext=i=>{if(!game)return;if(i>=sequence.length){renderQuestion();startIdleWatch();return}playVoice(sequence[i],()=>speakNext(i+1))};speakNext(0);
+ }else if(lesson){
+  $("question").textContent="Lili t’explique la méthode…";$("promptType").textContent=title;$("hint").textContent=lesson.text;
+  playVoice(lesson.audio,()=>{if(game){renderQuestion();startIdleWatch()}});
  }else{renderQuestion();startIdleWatch()}
 }
 function renderQuestion(){
@@ -127,6 +146,7 @@ function renderQuestion(){
  $("boardBox").classList.remove("wrong-answer");show("retryWrite",false);show("hintWrite",false);show("writeHint",false);$("writeHint").textContent="";
  $("bar").style.width=(game.pos/game.questions.length*100)+"%";$("count").textContent=(game.pos+1)+" / "+game.questions.length;
  show("nextBtn",false);show("handwrite",q.mode==="write");
+ show("numberLine",Boolean(q.numberLine));if(q.numberLine)drawNumberLine(q.numberLine);
  $("choices").replaceChildren();
  if(q.mode==="choice"){
  q.options.forEach(option=>{const b=document.createElement("button");b.textContent=option;
@@ -136,6 +156,10 @@ function renderQuestion(){
  show("boardBox",false);show("clearWrite",false);show("verifyWrite",false);
  canvasStrokes=[];paintBoard();showWrite();
  }
+}
+function drawNumberLine({min,max}){
+ const line=$("numberLine");line.replaceChildren();line.setAttribute("aria-label","Droite graduée de "+min+" à "+max+", avec une graduation par nombre");
+ for(let n=min;n<=max;n++){const tick=document.createElement("span");tick.className="number-tick"+(n%10===0?" decade":"");const mark=document.createElement("i");tick.appendChild(mark);if(n%10===0){const label=document.createElement("small");label.textContent=n;tick.appendChild(label)}line.appendChild(tick)}
 }
 function succeed(text){if(!game||game.solved)return;game.solved=true;game.correct++;markActivity();$("feedback").textContent=text||"Bravo Harmonie, tu as trouvé !";show("nextBtn",true);window.GusMedia?.playCorrect();}
 function choose(button,selected,q){
