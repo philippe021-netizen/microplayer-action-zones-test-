@@ -7,7 +7,7 @@ const MAX=D.maxMinutes*60;
 let progress=readProgress(),chosen=currentDay(),game=null,ticker=null,lastTick=0,lastActivity=0,idleTimer=null,lastEncouragement=-1;
 let canvasStrokes=[],stroke=null,ctx=null,canvasWidth=1,canvasHeight=1;
 const AUDIO_KEY="harmonie-audio-v1";
-let audioSettings=readAudioSettings(),audioContext=null,musicTimer=null,musicStep=0,recognitionLoad=null;
+let audioSettings=readAudioSettings(),audioContext=null,musicTimer=null,musicStep=0,recognitionLoad=null,voicePlayer=null;
 function readAudioSettings(){try{const s=JSON.parse(localStorage.getItem(AUDIO_KEY)||"{}");return {voice:s.voice!==false,music:s.music!==false}}catch{return {voice:true,music:true}}}
 function saveAudioSettings(){try{localStorage.setItem(AUDIO_KEY,JSON.stringify(audioSettings))}catch{}}
 function paintAudioSettings(){for(const [id,key,on,off] of [["voiceToggle","voice","🗣️ Voix","🤐 Voix coupée"],["musicToggle","music","🎵 Musique","🔇 Musique coupée"]]){const b=$(id),active=audioSettings[key];b.textContent=active?on:off;b.setAttribute("aria-pressed",String(active))}}
@@ -16,12 +16,13 @@ function tone(freq,duration,volume,type){const c=getAudio();if(!c)return;const o
 const riff=[[[659,784],.18],[[784],.12],[[988,784],.2],[[659],.15],[[587,698],.2],[[880],.12],[[784,659],.24],[[523],.28],[[659,784],.14],[[1047],.18],[[880,698],.2],[[587],.16],[[784,988],.24],[[659],.2],[[523,659],.18],[[784],.3]];
 function musicStop(){clearTimeout(musicTimer);musicTimer=null}
 function musicStart(){if(!audioSettings.music||musicTimer)return;const tick=()=>{if(!audioSettings.music||!game){musicStop();return}const [chord,duration]=riff[musicStep%riff.length];for(const f of chord)tone(f,duration*.82,.007,"triangle");if(musicStep%4===0)tone([330,392,294,392][Math.floor(musicStep/4)%4],duration*.65,.003,"sine");musicStep++;musicTimer=setTimeout(tick,duration*1000+45)};tick()}
-function frenchVoice(){const voices=window.speechSynthesis?.getVoices?.()||[],fr=voices.filter(v=>v.lang?.toLowerCase().startsWith("fr"));return fr.find(v=>/audrey|am[ée]lie|aurelie|female|marie|sophie|claire|céline|celine|manon|hélène|helene|virginie/i.test(v.name))||fr.find(v=>/enhanced|premium|siri/i.test(v.name))||fr.find(v=>/^fr[-_]FR$/i.test(v.lang))||fr[0]||null}
-function say(text){if(!audioSettings.voice||!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;musicStop();window.GusMedia?.stop();window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="fr-FR";u.pitch=1.55;u.rate=1.03;u.volume=.95;u.voice=frenchVoice();u.onend=()=>musicStart();u.onerror=()=>musicStart();window.speechSynthesis.speak(u)}
-const encouragements=["Alors, tu dors ou quoi ? Allez, on réveille les neurones !","Hé, Harmonie, ton crayon fait la sieste ? On s’y remet !","Ouh là, ça réfléchit fort là-dedans ! Vas-y, tu vas trouver !","Allez, championne, une lettre de plus et c’est gagné !","Tu bloques ? Pas grave, même les super-héros cherchent parfois !","Eh ben, ce mot se cache bien ! À toi de le démasquer !","On ne lâche rien, Harmonie ! Ton cerveau prépare un super coup !","Hop hop, doucement mais sûrement : tu vas l’avoir, ce mot !"];
-function encourage(){if(!game||game.solved||document.hidden||!audioSettings.voice||!window.speechSynthesis||window.speechSynthesis.speaking)return;let i=Math.floor(Math.random()*encouragements.length);if(encouragements.length>1&&i===lastEncouragement)i=(i+1+Math.floor(Math.random()*(encouragements.length-1)))%encouragements.length;lastEncouragement=i;say(encouragements[i])}
+function stopVoice(continueSequence=false){if(voicePlayer){const audio=voicePlayer,next=audio.onended;audio.onended=null;audio.onerror=null;audio.pause();voicePlayer=null;if(continueSequence)next?.()}}
+function playVoice(file,onend){if(!audioSettings.voice){onend?.();return}stopVoice();musicStop();window.GusMedia?.stop();const audio=new Audio("./audio/"+file+".mp3");voicePlayer=audio;let finished=false;const done=()=>{if(finished)return;finished=true;if(voicePlayer===audio){voicePlayer=null;musicStart()}onend?.()};audio.onended=done;audio.onerror=done;audio.play().catch(done)}
+function say(){/* Les voix système du navigateur sont désactivées : Lili utilise uniquement les enregistrements du projet. */}
+const encouragements=["Alors, tu dors ou quoi ? Réveille les neurones !","Ton crayon fait la sieste ? On s’y remet !","Ouh là, ça réfléchit fort ! Tu vas trouver !","Ce mot se cache bien : démasque-le !","Allez, championne, encore une lettre !"];
+function encourage(){if(!game||game.solved||document.hidden||!audioSettings.voice||voicePlayer&&!voicePlayer.paused)return;let i=Math.floor(Math.random()*encouragements.length);if(encouragements.length>1&&i===lastEncouragement)i=(i+1+Math.floor(Math.random()*(encouragements.length-1)))%encouragements.length;lastEncouragement=i;playVoice("lili-encourage-"+(i+1))}
 function markActivity(){if(!game)return;lastActivity=Date.now()}
-function startIdleWatch(){clearInterval(idleTimer);lastActivity=Date.now();idleTimer=setInterval(()=>{if(game&&!document.hidden&&!game.solved&&Date.now()-lastActivity>=30000){if(!window.speechSynthesis?.speaking){encourage();lastActivity=Date.now()}}},1000)}
+function startIdleWatch(){clearInterval(idleTimer);lastActivity=Date.now();idleTimer=setInterval(()=>{if(game&&!document.hidden&&!game.solved&&Date.now()-lastActivity>=30000){if(!voicePlayer||voicePlayer.paused){encourage();lastActivity=Date.now()}}},1000)}
 function stopIdleWatch(){clearInterval(idleTimer);idleTimer=null;lastActivity=0}
 function readProgress(){try {const x=JSON.parse(localStorage.getItem(KEY)||"{}");return {spent:x.spent||{},done:x.done||{},results:x.results||[]}}catch{return {spent:{},done:{},results:[]}}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(progress))}catch{}}
@@ -70,7 +71,7 @@ function generate(type,level){
  }
  if(type.startsWith("spell-")){
  const kind=type.slice(6),words=cumulativeWords(kind,level);
- return shuffled(words).slice(0,Math.min(6,words.length)).map(w=>({mode:"write",prompt:"Observe le mot, puis écris-le sur l’ardoise.",answer:w,label:"Mémoire et écriture — son "+kind,hint:"Le modèle reste affiché au moins 4 secondes et la voix le lit, puis écris-le avec ton doigt."}));
+ return shuffled(words).slice(0,Math.min(6,words.length)).map(w=>({mode:"write",prompt:"Observe le mot, puis écris-le sur l’ardoise.",answer:w,label:"Mémoire et écriture — son "+kind,hint:"Le modèle reste affiché 4 secondes, puis écris-le de mémoire avec ton doigt."}));
  }
  if(type.startsWith("write-")){
  const kind=type.slice(6),words=cumulativeWords(kind,level);
@@ -109,9 +110,14 @@ function startGame(id,title,type,level){
  if(!available()||seconds()>=MAX)return;
  const questions=generate(type,level);
  if(!questions.length)return;
- game={id,title,questions,pos:0,mistakes:0,correct:0,wrongOnCurrent:false,solved:false,writeTimer:null};
+ game={id,title,type,questions,pos:0,mistakes:0,correct:0,wrongOnCurrent:false,solved:false,writeTimer:null};
  $("gameName").textContent=title;show("home",false);show("finish",false);show("play",true);
- window.GusMedia?.play("05_Presentation");renderQuestion();startTimer();startIdleWatch();musicStart();if(game.questions[0].mode==="choice")say("Bonjour Harmonie ! On va jouer ensemble. "+game.questions[0].prompt+" Tu peux le faire, je suis avec toi !");
+ window.GusMedia?.play("05_Presentation");startTimer();musicStart();
+ if(type.startsWith("spell-")||type.startsWith("write-")){
+  $("question").textContent="Lili t’explique le jeu…";$("promptType").textContent=title;$("hint").textContent="Écoute bien, puis écris les mots sur l’ardoise.";
+  const sequence=["lili-intro",...(type==="spell-u"?[level===1?"lili-u-marche1":"lili-u-words"]:[])];
+  const speakNext=i=>{if(!game)return;if(i>=sequence.length){renderQuestion();startIdleWatch();return}playVoice(sequence[i],()=>speakNext(i+1))};speakNext(0);
+ }else{renderQuestion();startIdleWatch()}
 }
 function renderQuestion(){
  if(!game)return;const q=game.questions[game.pos];
@@ -157,10 +163,8 @@ function showWrite(){
  const session=game,position=game.pos;
  $("memory").textContent=q.answer;$("memory").classList.remove("hide");
  show("boardBox",false);
- let minimumElapsed=false,speechElapsed=!(audioSettings.voice&&window.speechSynthesis&&window.SpeechSynthesisUtterance);const revealBoard=()=>{if(!minimumElapsed||!speechElapsed||!game||game!==session||game.pos!==position)return;$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");show("boardBox",true);show("clearWrite",true);show("verifyWrite",true);requestAnimationFrame(initCanvas);game.writeTimer=null};
+ let minimumElapsed=false;const revealBoard=()=>{if(!minimumElapsed||!game||game!==session||game.pos!==position)return;$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");show("boardBox",true);show("clearWrite",true);show("verifyWrite",true);requestAnimationFrame(initCanvas);game.writeTimer=null};
  game.writeTimer=setTimeout(()=>{minimumElapsed=true;revealBoard()},4000);
- const utterance=audioSettings.voice&&window.speechSynthesis&&window.SpeechSynthesisUtterance?new SpeechSynthesisUtterance("Mémorise bien le mot : "+q.answer):null;
- if(utterance){musicStop();utterance.lang="fr-FR";utterance.pitch=1.55;utterance.rate=1.03;utterance.volume=.95;utterance.voice=frenchVoice();utterance.onend=()=>{speechElapsed=true;revealBoard()};utterance.onerror=()=>{speechElapsed=true;revealBoard()};speechSynthesis.cancel();speechSynthesis.speak(utterance);game.writeFallback=setTimeout(()=>{speechElapsed=true;revealBoard()},8000)}
 }
 function recognitionCanvas(){
  const pts=canvasStrokes.filter(s=>s.length>1).flat();if(!pts.length)return null;
@@ -203,12 +207,12 @@ function next(){
 function endGame(){
  if(!game){show("play",false);show("home",true);return}
  const t=game.writeTimer,f=game.writeFallback;game.writeTimer=null;game.writeFallback=null;if(t)clearTimeout(t);if(f)clearTimeout(f);
- stopTimer();stopIdleWatch();musicStop();window.speechSynthesis?.cancel();window.GusMedia?.stop();game=null;show("play",false);show("home",true);render();
+ stopTimer();stopIdleWatch();game=null;stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("home",true);render();
 }
 function stopForDay(){
  // Atteinte de la limite : pas de nouveau jeu ni de question suivante.
  const t=game?.writeTimer,f=game?.writeFallback;if(t)clearTimeout(t);if(f)clearTimeout(f);
- game=null;stopTimer();stopIdleWatch();musicStop();window.speechSynthesis?.cancel();window.GusMedia?.stop();show("play",false);show("finish",false);show("home",true);render();
+ game=null;stopTimer();stopIdleWatch();stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("finish",false);show("home",true);render();
  $("dayStatus").textContent="30 minutes terminées : bravo, profite maintenant de tes vacances !";
 }
 function exportCSV(){
@@ -231,7 +235,7 @@ $("backBtn").addEventListener("click",endGame);$("finishHome").addEventListener(
 $("nextBtn").addEventListener("click",next);
 $("verifyWrite").addEventListener("click",compareWrite);
 $("gus-sound").addEventListener("click",()=>{const b=$("gus-sound"),on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",String(on));b.textContent=on?"🔔 Sons de Gus":"🔕 Sons coupés"});
-$("voiceToggle").addEventListener("click",()=>{audioSettings.voice=!audioSettings.voice;if(!audioSettings.voice)window.speechSynthesis?.cancel();saveAudioSettings();paintAudioSettings()});
+$("voiceToggle").addEventListener("click",()=>{audioSettings.voice=!audioSettings.voice;if(!audioSettings.voice)stopVoice(true);saveAudioSettings();paintAudioSettings()});
 $("musicToggle").addEventListener("click",()=>{audioSettings.music=!audioSettings.music;if(audioSettings.music)musicStart();else musicStop();saveAudioSettings();paintAudioSettings()});
 $("clearWrite").addEventListener("click",()=>{canvasStrokes=[];stroke=null;paintBoard()});
 const board=$("board");

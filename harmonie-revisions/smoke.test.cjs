@@ -48,10 +48,31 @@ test('limite de temps et références HTML',()=>{
  const htmlIds=new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]));
  for(const id of ids)assert.ok(htmlIds.has(id),'missing '+id);
 });
+test('les séances passées restent jouables avec leur propre compteur',()=>{
+ assert.match(app,/function available\(\)\{return chosen<=currentDay\(\)&&Boolean\(D\.schedule\[chosen\]\)\}/);
+ assert.match(app,/function seconds\(\)\{return Math\.min\(MAX,progress\.spent\[chosen\]\|\|0\)\}/);
+ assert.match(app,/Tu peux reprendre les missions de cette journée/);
+});
+test('relance taquine après 30 secondes sans activité, avec des variantes sans répétition immédiate',()=>{
+ assert.match(app,/Date\.now\(\)-lastActivity>=30000/);
+ assert.match(app,/function markActivity\(\)/);
+ assert.match(app,/function startIdleWatch\(\)/);
+ assert.match(app,/function stopIdleWatch\(\)/);
+ const block=app.match(/const encouragements=\[(.*?)\];/);
+ assert.ok(block);
+ const phrases=Array.from(block[1].matchAll(/"([^"]+)"/g),m=>m[1]);
+ assert.equal(phrases.length,5);
+ assert.equal(new Set(phrases).size,phrases.length);
+ assert.ok(phrases.some(x=>x.includes('tu dors ou quoi')));
+ assert.match(app,/i===lastEncouragement/);
+ assert.match(app,/stopIdleWatch\(\)/);
+});
 test('les fichiers servis par le projet Vercel restent synchronisés',()=>{
  const deployed=path.join(base,'..','ardoise-magique','harmonie-revisions');
  assert.equal(fs.readFileSync(path.join(deployed,'data.js'),'utf8'),src);
  assert.equal(fs.readFileSync(path.join(deployed,'app.js'),'utf8'),app);
+ assert.deepEqual(fs.readdirSync(path.join(deployed,'audio')).sort(),fs.readdirSync(path.join(base,'audio')).sort());
+ for(const file of fs.readdirSync(path.join(base,'audio')))assert.deepEqual(fs.readFileSync(path.join(deployed,'audio',file)),fs.readFileSync(path.join(base,'audio',file)),file);
  assert.match(fs.readFileSync(path.join(deployed,'index.html'),'utf8'),/Trois petites missions sont prévues chaque jour/);
 });
 test('JavaScript des deux modules chargé sans erreur de syntaxe',()=>{
@@ -103,17 +124,19 @@ test('ordre alphabétique : le mot attendu est bien le premier',()=>{
  }
 });
 
-test('les mots sont montrés trois secondes et lus par la voix réglée à l’ancienne',()=>{
+test('les mots restent visibles quatre secondes et la voix vient des fichiers de Lili',()=>{
  const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()', {D:data,Math});
  const qs=generator('spell-u',1);
  assert.ok(qs.length>0);
  assert.ok(qs.every(q=>q.mode==='write'));
  assert.match(app,/setTimeout\(\(\)=>\{/);
- assert.match(app,/},3000\)/);
- assert.match(app,/SpeechSynthesisUtterance\(q\.answer\)/);
- assert.match(app,/pitch=1\.55/);
- assert.match(app,/speechElapsed/);
+ assert.match(app,/},4000\)/);
+ assert.match(app,/function playVoice\(file,onend\)/);
+ assert.match(app,/\["lili-intro",\.\.\.\(type==="spell-u"\?/);
+ assert.match(app,/function encourage\(\).*playVoice\("lili-encourage-"\+\(i\+1\)\)/);
+ assert.doesNotMatch(app,/SpeechSynthesisUtterance|speechSynthesis/);
  assert.match(app,/AUDIO_KEY/);
+ for(const file of ['lili-intro.mp3','lili-u-marche1.mp3','lili-u-words.mp3',...Array.from({length:5},(_,i)=>`lili-encourage-${i+1}.mp3`)])assert.ok(fs.statSync(path.join(base,'audio',file)).size>5000,file);
 });
 test('ardoise scolaire, animations et médias Gus sont raccordés',()=>{
  assert.match(fs.readFileSync(path.join(base,'style.css'),'utf8'),/background:radial-gradient\(ellipse[^;]*#245344/);
