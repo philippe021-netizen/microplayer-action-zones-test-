@@ -177,22 +177,33 @@ function loadRecognitionLibrary(){
  if(window.Tesseract)return Promise.resolve(window.Tesseract);if(recognitionLoad)return recognitionLoad;
  recognitionLoad=new Promise((resolve,reject)=>{const script=document.createElement("script");script.async=true;let fallback=false;script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(Error("Moteur de lecture indisponible"));script.onerror=()=>{if(fallback){reject(Error("Moteur de lecture indisponible"));return}fallback=true;script.src="https://unpkg.com/tesseract.js@6.0.1/dist/tesseract.min.js"};script.src="https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js";document.head.append(script)});return recognitionLoad;
 }
-function offerWriteDecision(message){
+function offerWriteRetry(message,{countMistake=false}={}){
  const choices=$("choices");choices.replaceChildren();$("feedback").textContent=message;
- const accept=document.createElement("button");accept.textContent="J’ai comparé : c’est bien ça";accept.addEventListener("click",()=>{choices.replaceChildren();succeed("Bravo Harmonie ! Tu as bien écrit le mot. Continue comme ça !");say("Bravo Harmonie ! Tu as bien écrit le mot, je suis fière de toi !")});
- const retry=document.createElement("button");retry.textContent="Je corrige mon mot";retry.addEventListener("click",()=>{game.mistakes++;canvasStrokes=[];stroke=null;paintBoard();choices.replaceChildren();$("feedback").textContent="Regarde bien le modèle et réessaie tranquillement.";$("memory").textContent="Regarde bien le mot…";$("memory").classList.remove("hide");show("boardBox",false);showWrite();say("On recommence doucement, tu vas y arriver !")});choices.append(accept,retry);
+ const retry=document.createElement("button");retry.textContent="Réécrire le mot";retry.addEventListener("click",()=>{
+  if(!game)return;
+  if(countMistake){game.mistakes++;game.wrongOnCurrent=true;markActivity()}
+  renderQuestion();
+  if(countMistake)game.wrongOnCurrent=true;
+  say(countMistake?"Regarde bien le modèle. Il y a une lettre à corriger, puis tu réessaies !":"Je n’arrive pas bien à lire ton écriture. Écris le mot un peu plus grand, puis réessaie !");
+ });choices.append(retry);
+}
+function handwritingDecision(expected,actual,confidence){
+ const normalize=s=>clean(s).replace(/[^\p{L}\p{N}]/gu,"");
+ const read=String(actual||"").trim();
+ if(Number(confidence)>=70&&normalize(read)===normalize(expected))return {status:"correct",read};
+ if(Number(confidence)>=55&&read)return {status:"incorrect",read};
+ return {status:"unreadable",read};
 }
 async function compareWrite(){
  if(!game||!canvasStrokes.length){$("feedback").textContent="Essaie d’écrire au moins une lettre avant de comparer.";return}
  const q=game.questions[game.pos];$("memory").textContent=q.answer;$("memory").classList.remove("hide");show("clearWrite",false);show("verifyWrite",false);$("verifyWrite").disabled=true;$("feedback").textContent="Je regarde ton écriture…";
  try{
   const canvas=recognitionCanvas();if(!canvas)throw Error("Écriture trop courte");const engine=await loadRecognitionLibrary();const result=await engine.recognize(canvas,"fra");if(!game)return;
-  const actual=String(result.data?.text||"").trim(),confidence=Number(result.data?.confidence)||0;
-  const normalize=s=>clean(s).replace(/[^\p{L}\p{N}]/gu,"");
-  if(confidence>=70&&normalize(actual)===normalize(q.answer)){succeed("Bravo ! J’ai reconnu « "+actual+" » : c’est le bon mot !");say("Bravo Harmonie ! J’ai reconnu le bon mot. Continue comme ça !");return}
-  if(confidence>=55&&actual)offerWriteDecision("J’ai lu « "+actual+" ». Compare avec le modèle : si une lettre est différente, tu peux corriger ton mot.");
-  else offerWriteDecision("Je ne suis pas tout à fait sûre de ma lecture. Compare ton écriture avec le modèle, puis choisis si tu veux valider ou recommencer.");
- }catch{if(!game)return;offerWriteDecision("La lecture automatique n’a pas pu démarrer. Compare ton écriture avec le modèle, puis valide ou recommence.")}
+  const decision=handwritingDecision(q.answer,result.data?.text,result.data?.confidence);
+  if(decision.status==="correct"){succeed("Bravo ! Le correcteur a reconnu « "+decision.read+" » : le mot est juste !");say("Bravo Harmonie ! Le correcteur a reconnu le bon mot. Continue comme ça !");return}
+  if(decision.status==="incorrect")offerWriteRetry("Le correcteur a lu « "+decision.read+" ». Le mot attendu est « "+q.answer+" ». Regarde la différence et réessaie.",{countMistake:true});
+  else offerWriteRetry("Le correcteur n’arrive pas à lire assez clairement ce mot. Écris-le un peu plus grand, puis réessaie.");
+ }catch{if(!game)return;offerWriteRetry("Le correcteur automatique est momentanément indisponible. Réessaie dans un instant.")}
  finally{if($("verifyWrite"))$("verifyWrite").disabled=false}
 }
 function next(){

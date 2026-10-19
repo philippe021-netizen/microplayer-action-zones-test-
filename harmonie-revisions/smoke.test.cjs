@@ -162,12 +162,20 @@ test('ardoise scolaire, animations et médias Gus sont raccordés',()=>{
  assert.match(app,/GusMedia\?\.playCorrect\(\)/);
  assert.match(app,/GusMedia\?\.play\("04_Oups"\)/);
 });
-test('ardoise : lecture automatique prudente avec validation humaine de secours',()=>{
+test('ardoise : le correcteur valide les réponses reconnues et interdit l’auto-validation',()=>{
  assert.match(app,/loadRecognitionLibrary/);
  assert.match(app,/engine\.recognize\(canvas,"fra"\)/);
- assert.match(app,/confidence>=70/);
- assert.match(app,/const accept=document\.createElement\("button"\)/);
- assert.match(app,/lecture automatique n’a pas pu démarrer/);
+ assert.match(app,/function handwritingDecision\(expected,actual,confidence\)/);
+ const checker=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function handwritingDecision'),app.indexOf('async function compareWrite'))+';return handwritingDecision})()',{clean:s=>String(s).normalize('NFC').trim().toLocaleLowerCase('fr')});
+ assert.deepEqual(JSON.parse(JSON.stringify(checker('la rue','La rue',82))),{status:'correct',read:'La rue'});
+ assert.deepEqual(JSON.parse(JSON.stringify(checker('la rue','la roue',84))),{status:'incorrect',read:'la roue'});
+ assert.deepEqual(JSON.parse(JSON.stringify(checker('la rue','la rue',41))),{status:'unreadable',read:'la rue'});
+ assert.match(app,/function offerWriteRetry\(message,\{countMistake=false\}=\{\}\)/);
+ assert.match(app,/correcteur a reconnu « /);
+ assert.match(app,/correcteur a lu « /);
+ assert.match(app,/correcteur n’arrive pas à lire assez clairement/);
+ assert.match(app,/Réessaie dans un instant/);
+ assert.doesNotMatch(app,/J’ai comparé : c’est bien ça|function offerWriteDecision/);
  assert.match(html,/id="voiceToggle"/);
  assert.match(html,/id="musicToggle"/);
 });
