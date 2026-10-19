@@ -10,7 +10,7 @@ const AUDIO_KEY="harmonie-audio-v1";
 let audioSettings=readAudioSettings(),audioContext=null,musicTimer=null,musicStep=0,recognitionLoad=null;
 function readAudioSettings(){try{const s=JSON.parse(localStorage.getItem(AUDIO_KEY)||"{}");return {voice:s.voice!==false,music:s.music!==false}}catch{return {voice:true,music:true}}}
 function saveAudioSettings(){try{localStorage.setItem(AUDIO_KEY,JSON.stringify(audioSettings))}catch{}}
-function paintAudioSettings(){for(const [id,key,label,on,off] of [["voiceToggle","voice","🗣️ Voix","🗣️ Voix","🤐 Voix coupée"],["musicToggle","music","🎵 Musique","🎵 Musique","🔇 Musique coupée"]]){const b=$(id),active=audioSettings[key];b.textContent=active?on:off;b.setAttribute("aria-pressed",String(active))}}
+function paintAudioSettings(){for(const [id,key,on,off] of [["voiceToggle","voice","🗣️ Voix","🤐 Voix coupée"],["musicToggle","music","🎵 Musique","🔇 Musique coupée"]]){const b=$(id),active=audioSettings[key];b.textContent=active?on:off;b.setAttribute("aria-pressed",String(active))}}
 function getAudio(){if(!audioContext){const C=window.AudioContext||window.webkitAudioContext;if(C)audioContext=new C()}if(audioContext?.state==="suspended")audioContext.resume();return audioContext}
 function tone(freq,duration,volume,type){const c=getAudio();if(!c)return;const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(volume,c.currentTime);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+duration);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+duration)}
 const riff=[[[659,784],.18],[[784],.12],[[988,784],.2],[[659],.15],[[587,698],.2],[[880],.12],[[784,659],.24],[[523],.28],[[659,784],.14],[[1047],.18],[[880,698],.2],[[587],.16],[[784,988],.24],[[659],.2],[[523,659],.18],[[784],.3]];
@@ -195,12 +195,12 @@ function next(){
 function endGame(){
  if(!game){show("play",false);show("home",true);return}
  const t=game.writeTimer;game.writeTimer=null;if(t)clearTimeout(t);
- stopTimer();window.GusMedia?.stop();game=null;show("play",false);show("home",true);render();
+ stopTimer();musicStop();window.speechSynthesis?.cancel();window.GusMedia?.stop();game=null;show("play",false);show("home",true);render();
 }
 function stopForDay(){
  // Atteinte de la limite : pas de nouveau jeu ni de question suivante.
  const t=game?.writeTimer;if(t)clearTimeout(t);
- game=null;stopTimer();window.GusMedia?.stop();show("play",false);show("finish",false);show("home",true);render();
+ game=null;stopTimer();musicStop();window.speechSynthesis?.cancel();window.GusMedia?.stop();show("play",false);show("finish",false);show("home",true);render();
  $("dayStatus").textContent="30 minutes terminées : bravo, profite maintenant de tes vacances !";
 }
 function exportCSV(){
