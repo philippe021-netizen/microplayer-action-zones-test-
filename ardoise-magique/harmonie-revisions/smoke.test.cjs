@@ -49,13 +49,13 @@ test('limite de temps et références HTML',()=>{
  const htmlIds=new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]));
  for(const id of ids)assert.ok(htmlIds.has(id),'missing '+id);
 });
-test('les séances passées restent jouables et leur reprise utilise le quota du jour réel',()=>{
- assert.match(app,/function available\(\)\{return chosen<=currentDay\(\)&&Boolean\(D\.schedule\[chosen\]\)\}/);
+test('tous les jours prévus sont jouables et la reprise utilise le quota du jour réel',()=>{
+ assert.match(app,/function available\(\)\{return Boolean\(D\.schedule\[chosen\]\)\}/);
  assert.match(app,/function seconds\(\)\{return Math\.min\(MAX,progress\.spent\[currentDay\(\)\]\|\|0\)\}/);
  assert.match(app,/const day=currentDay\(\);progress\.spent\[day\]/);
  assert.match(app,/Tu peux reprendre les missions de cette journée/);
  const available=app.match(/function available\(\)\{[^\n]*\}/)[0];
- for(const [day,expected] of [['2026-10-18',true],['2026-10-19',true],['2026-10-20',false]]){
+ for(const [day,expected] of [['2026-10-18',true],['2026-10-19',true],['2026-10-20',true],['2099-01-01',false]]){
    assert.equal(vm.runInNewContext('(()=>{'+available+';return available()})()',{D:data,chosen:day,currentDay:()=>'2026-10-19'}),expected,day);
  }
  const seconds=app.match(/function seconds\(\)\{[^\n]*\}/)[0];

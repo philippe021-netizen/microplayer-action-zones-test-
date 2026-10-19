@@ -31,7 +31,7 @@ function readProgress(){try {const x=JSON.parse(localStorage.getItem(KEY)||"{}")
 function save(){try{localStorage.setItem(KEY,JSON.stringify(progress))}catch{}}
 function currentDay(){const p=Object.fromEntries(new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Paris",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()).map(x=>[x.type,x.value]));return p.year+"-"+p.month+"-"+p.day}
 const frDay=d=>new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
-function available(){return chosen<=currentDay()&&Boolean(D.schedule[chosen])}
+function available(){return Boolean(D.schedule[chosen])}
 function seconds(){return Math.min(MAX,progress.spent[currentDay()]||0)}
 function addSeconds(s){if(!available()||s<=0)return;const day=currentDay();progress.spent[day]=Math.min(MAX,(progress.spent[day]||0)+s);save();paintClock();if(seconds()>=MAX&&game)stopForDay()}
 function startTimer(){stopTimer();lastTick=Date.now();ticker=setInterval(()=>{if(document.hidden)return;if(!available()){endGame();return}const now=Date.now(),delta=Math.min(2,Math.max(0,Math.floor((now-lastTick)/1000)));if(delta){lastTick=now;addSeconds(delta)}},1000)}
@@ -49,7 +49,7 @@ function render(){
  paintClock();renderDays();
  $("dayDisplay").textContent=frDay(chosen).replace(/^./,c=>c.toUpperCase());
  const isToday=chosen===currentDay(),isFuture=chosen>currentDay();
- $("dayStatus").textContent=isFuture?"Ces devoirs seront disponibles le jour prévu.":available()?seconds()>=MAX?"30 minutes d’activité atteintes aujourd’hui : place au repos !":isToday?"Tes missions du jour sont prêtes !":"Tu peux reprendre les missions de cette journée.":"Aucune mission n’est prévue ce jour.";
+ $("dayStatus").textContent=!D.schedule[chosen]?"Aucune mission n’est prévue ce jour.":seconds()>=MAX?"30 minutes d’activité atteintes aujourd’hui : place au repos !":isToday?"Tes missions du jour sont prêtes !":isFuture?"Tu peux déjà faire les exercices de ce jour.":"Tu peux reprendre les missions de cette journée.";
  const host=$("missions");host.replaceChildren();const list=D.schedule[chosen]||[];
  $("doneLabel").textContent=(progress.done[chosen]||[]).length+" / "+list.length+" réussies";
  list.forEach(([title,type,level],i)=>{const c=document.createElement("article");c.className="mission"+(isDone(i)?" done":"");
