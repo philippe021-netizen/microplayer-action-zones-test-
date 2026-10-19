@@ -187,10 +187,10 @@ function next(){
  if(!game||!game.solved)return;
  progress.results.push({date:chosen,mission:game.title,answer:game.questions[game.pos].answer,errors:Number(game.wrongOnCurrent),type:game.questions[game.pos].mode});
  save();game.pos++;
- if(game.pos<game.questions.length){renderQuestion();return}
+ if(game.pos<game.questions.length){renderQuestion();const q=game.questions[game.pos];if(q.mode==="choice")say(q.prompt+" "+q.hint);return}
  const done=game;complete(done.id);endGame();
  $("finishText").textContent="Tu as terminé "+done.questions.length+" défis avec "+done.correct+" réponses validées. Les erreurs sont normales : chaque essai compte !";
- show("home",false);show("finish",true);
+ show("home",false);show("finish",true);say("Bravo Harmonie ! Tu as terminé ta mission. Chaque essai t’a aidée à apprendre, je suis fière de toi !");
 }
 function endGame(){
  if(!game){show("play",false);show("home",true);return}
@@ -233,7 +233,6 @@ board.addEventListener("pointermove",e=>{if(!stroke)return;e.preventDefault();st
 function endStroke(){if(!stroke)return;const s=stroke;stroke=null;if(s.length===1)s.push({x:s[0].x+.1,y:s[0].y+.1});canvasStrokes.push(s);paintBoard()}
 board.addEventListener("pointerup",endStroke);board.addEventListener("pointercancel",endStroke);
 window.addEventListener("pagehide",()=>{if(game)stopTimer()});
-$("nextBtn").addEventListener("click",()=>{if(game&&game.solved&&game.pos+1<game.questions.length)say("Très bien ! Voici le défi suivant.")});
 paintAudioSettings();
 if(!D.schedule[chosen]){const days=Object.keys(D.schedule).sort();chosen=days.find(d=>d>=chosen)||days[days.length-1]}
 render();
