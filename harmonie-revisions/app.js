@@ -7,7 +7,7 @@ const MAX=D.maxMinutes*60;
 let progress=readProgress(),chosen=currentDay(),game=null,ticker=null,lastTick=0,lastActivity=0,idleTimer=null,lastEncouragement=-1;
 let canvasStrokes=[],stroke=null,ctx=null,canvasWidth=1,canvasHeight=1;
 const AUDIO_KEY="harmonie-audio-v1";
-let audioSettings=readAudioSettings(),recognitionLoad=null,voicePlayer=null,backgroundPlayer=$("gus-music-player");
+let audioSettings=readAudioSettings(),voicePlayer=null,backgroundPlayer=$("gus-music-player");
 if(backgroundPlayer){backgroundPlayer.src="./audio/harmonie-background.mp3";backgroundPlayer.loop=true;backgroundPlayer.volume=.16}
 function readAudioSettings(){try{const s=JSON.parse(localStorage.getItem(AUDIO_KEY)||"{}");return {voice:s.voice!==false,music:s.music!==false}}catch{return {voice:true,music:true}}}
 function saveAudioSettings(){try{localStorage.setItem(AUDIO_KEY,JSON.stringify(audioSettings))}catch{}}
@@ -173,9 +173,12 @@ function recognitionCanvas(){
  const c=out.getContext("2d");c.fillStyle="#fff";c.fillRect(0,0,out.width,out.height);c.strokeStyle="#29283c";c.lineWidth=Math.max(4,5*scale);c.lineCap="round";c.lineJoin="round";
  for(const s of canvasStrokes){if(s.length<2)continue;c.beginPath();c.moveTo(pad+(s[0].x-minX)*scale,pad+(s[0].y-minY)*scale);for(const p of s.slice(1))c.lineTo(pad+(p.x-minX)*scale,pad+(p.y-minY)*scale);c.stroke()}return out;
 }
-function loadRecognitionLibrary(){
- if(window.Tesseract)return Promise.resolve(window.Tesseract);if(recognitionLoad)return recognitionLoad;
- recognitionLoad=new Promise((resolve,reject)=>{const script=document.createElement("script");script.async=true;let fallback=false;script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(Error("Moteur de lecture indisponible"));script.onerror=()=>{if(fallback){reject(Error("Moteur de lecture indisponible"));return}fallback=true;script.src="https://unpkg.com/tesseract.js@6.0.1/dist/tesseract.min.js"};script.src="https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js";document.head.append(script)});return recognitionLoad;
+async function recognizeHandwriting(canvas){
+ const imageBase64=canvas.toDataURL("image/png").split(",")[1];
+ const response=await fetch("/api/recognize-handwriting",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({imageBase64})});
+ const result=await response.json().catch(()=>({}));
+ if(!response.ok||!result.ok)throw Error(result.message||"La reconnaissance manuscrite est indisponible.");
+ return result;
 }
 function letterAlignment(expected,actual){
  const normalize=s=>clean(s).replace(/[^\p{L}\p{N} ]/gu," ").replace(/\s+/g," ").trim();
@@ -217,8 +220,8 @@ async function compareWrite(){
  if(!game||!canvasStrokes.length){$("feedback").textContent="Essaie d’écrire au moins une lettre avant de comparer.";return}
  const q=game.questions[game.pos];$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");show("clearWrite",false);show("verifyWrite",false);$("verifyWrite").disabled=true;$("feedback").textContent="Je regarde ton écriture…";
  try{
-  const canvas=recognitionCanvas();if(!canvas)throw Error("Écriture trop courte");const engine=await loadRecognitionLibrary();const result=await engine.recognize(canvas,"fra");if(!game)return;
-  const decision=handwritingDecision(q.answer,result.data?.text,result.data?.confidence);
+  const canvas=recognitionCanvas();if(!canvas)throw Error("Écriture trop courte");const result=await recognizeHandwriting(canvas);if(!game)return;
+  const decision=handwritingDecision(q.answer,result.text,result.confidence);
   if(decision.status==="correct"){succeed("Bravo ! Le correcteur a reconnu « "+decision.read+" » : le mot est juste !");say("Bravo Harmonie ! Le correcteur a reconnu le bon mot. Continue comme ça !");return}
   if(decision.status==="incorrect")offerWriteRetry("Le comparateur a lu « "+decision.read+" ». Les lettres en rouge sont celles qui diffèrent du modèle. Réessaie tranquillement.",{countMistake:true,expected:q.answer,actual:decision.read});
   else offerWriteRetry("Le comparateur n’arrive pas encore à déchiffrer l’écriture cursive. Appuie sur « Réécrire le mot » et réessaie tranquillement.");

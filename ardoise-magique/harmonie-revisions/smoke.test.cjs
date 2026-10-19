@@ -163,8 +163,9 @@ test('ardoise scolaire, animations et médias Gus sont raccordés',()=>{
  assert.match(app,/GusMedia\?\.play\("04_Oups"\)/);
 });
 test('ardoise : le correcteur valide les réponses reconnues et interdit l’auto-validation',()=>{
- assert.match(app,/loadRecognitionLibrary/);
- assert.match(app,/engine\.recognize\(canvas,"fra"\)/);
+ assert.match(app,/recognizeHandwriting\(canvas\)/);
+ assert.match(app,/fetch\("\/api\/recognize-handwriting"/);
+ assert.doesNotMatch(app,/Tesseract|tesseract/i,'le navigateur ne doit plus tenter de lire la cursive avec l’OCR générique');
  assert.match(app,/function handwritingDecision\(expected,actual,confidence\)/);
  const checker=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function handwritingDecision'),app.indexOf('async function compareWrite'))+';return handwritingDecision})()',{clean:s=>String(s).normalize('NFC').trim().toLocaleLowerCase('fr')});
  assert.deepEqual(JSON.parse(JSON.stringify(checker('la rue','La rue',82))),{status:'correct',read:'La rue'});
