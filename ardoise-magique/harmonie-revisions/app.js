@@ -202,7 +202,7 @@ async function compareWrite(){
   const decision=handwritingDecision(q.answer,result.data?.text,result.data?.confidence);
   if(decision.status==="correct"){succeed("Bravo ! Le correcteur a reconnu « "+decision.read+" » : le mot est juste !");say("Bravo Harmonie ! Le correcteur a reconnu le bon mot. Continue comme ça !");return}
   if(decision.status==="incorrect")offerWriteRetry("Le correcteur a lu « "+decision.read+" ». Le mot attendu est « "+q.answer+" ». Regarde la différence et réessaie.",{countMistake:true});
-  else offerWriteRetry("Le correcteur n’arrive pas à lire assez clairement ce mot. Écris-le un peu plus grand, puis réessaie.");
+  else offerWriteRetry("Le comparateur ne déchiffre pas le mot sur l’ardoise. Écris-le plus grand et plus lentement, puis réessaie.");
  }catch{if(!game)return;offerWriteRetry("Le correcteur automatique est momentanément indisponible. Réessaie dans un instant.")}
  finally{if($("verifyWrite"))$("verifyWrite").disabled=false}
 }

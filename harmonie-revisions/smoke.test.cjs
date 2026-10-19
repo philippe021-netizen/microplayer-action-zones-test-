@@ -173,7 +173,7 @@ test('ardoise : le correcteur valide les réponses reconnues et interdit l’aut
  assert.match(app,/function offerWriteRetry\(message,\{countMistake=false\}=\{\}\)/);
  assert.match(app,/correcteur a reconnu « /);
  assert.match(app,/correcteur a lu « /);
- assert.match(app,/correcteur n’arrive pas à lire assez clairement/);
+ assert.match(app,/comparateur ne déchiffre pas le mot sur l’ardoise/);
  assert.match(app,/Réessaie dans un instant/);
  const compare=app.slice(app.indexOf('async function compareWrite'),app.indexOf('function next()'));
  assert.match(compare,/\$\("memory"\)\.classList\.add\("hide"\)/,'le modèle reste caché pendant le contrôle et après une erreur');
