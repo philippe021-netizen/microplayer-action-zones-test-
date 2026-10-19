@@ -57,6 +57,7 @@ function play(name){
  return true;
 }
 function playCorrect(){
+ if(Math.random()<.12)return play("01_Prout");
  const options=["02_Bravo","03_Danse","06_Rires","10_Bravo_bis"];
  return play(options[Math.floor(Math.random()*options.length)]);
 }

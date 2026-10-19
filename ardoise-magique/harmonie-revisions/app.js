@@ -110,21 +110,21 @@ function startGame(id,title,type,level){
  if(!available()||seconds()>=MAX)return;
  const questions=generate(type,level);
  if(!questions.length)return;
- game={id,title,type,questions,pos:0,mistakes:0,correct:0,wrongOnCurrent:false,solved:false,writeTimer:null};
+ game={id,title,type,questions,pos:0,mistakes:0,correct:0,wrongOnCurrent:false,solved:false,writeTimer:null,hintLevel:0,hintTimer:null};
  document.body.classList.add("playing");$("gameName").textContent=title;show("home",false);show("finish",false);show("play",true);window.scrollTo({top:0,behavior:"smooth"});
  startTimer();musicStart();window.GusMedia?.play("05_Presentation");
  if(type.startsWith("spell-")||type.startsWith("write-")){
   $("question").textContent="Lili t’explique le jeu…";$("promptType").textContent=title;$("hint").textContent="Écoute bien, puis écris les mots sur l’ardoise.";
-  const sequence=["lili-intro",...(type==="spell-u"?[level===1?"lili-u-marche1":"lili-u-words"]:[])];
+  const sequence=["lili-intro"];
   const speakNext=i=>{if(!game)return;if(i>=sequence.length){renderQuestion();startIdleWatch();return}playVoice(sequence[i],()=>speakNext(i+1))};speakNext(0);
  }else{renderQuestion();startIdleWatch()}
 }
 function renderQuestion(){
  if(!game)return;const q=game.questions[game.pos];
- clearTimeout(game.writeTimer);clearTimeout(game.writeFallback);game.writeTimer=null;game.writeFallback=null;
+ clearTimeout(game.writeTimer);clearTimeout(game.writeFallback);clearTimeout(game.hintTimer);game.writeTimer=null;game.writeFallback=null;game.hintTimer=null;game.hintLevel=0;
  game.solved=false;game.wrongOnCurrent=false;$("promptType").textContent=q.label;
  $("question").textContent=q.prompt;$("hint").textContent=q.hint;$("feedback").textContent="";
- $("boardBox").classList.remove("wrong-answer");show("retryWrite",false);
+ $("boardBox").classList.remove("wrong-answer");show("retryWrite",false);show("hintWrite",false);show("writeHint",false);$("writeHint").textContent="";
  $("bar").style.width=(game.pos/game.questions.length*100)+"%";$("count").textContent=(game.pos+1)+" / "+game.questions.length;
  show("nextBtn",false);show("handwrite",q.mode==="write");
  $("choices").replaceChildren();
@@ -164,7 +164,7 @@ function showWrite(){
  const session=game,position=game.pos;
  $("memory").textContent=q.answer;$("memory").classList.remove("hide");
  show("boardBox",false);
- let minimumElapsed=false;const revealBoard=()=>{if(!minimumElapsed||!game||game!==session||game.pos!==position)return;$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");show("boardBox",true);show("clearWrite",true);show("verifyWrite",true);requestAnimationFrame(initCanvas);game.writeTimer=null};
+ let minimumElapsed=false;const revealBoard=()=>{if(!minimumElapsed||!game||game!==session||game.pos!==position)return;$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");show("boardBox",true);show("hintWrite",true);show("clearWrite",true);show("verifyWrite",true);requestAnimationFrame(initCanvas);game.writeTimer=null};
  game.writeTimer=setTimeout(()=>{minimumElapsed=true;revealBoard()},3000);
 }
 function recognitionCanvas(){
@@ -203,6 +203,17 @@ function animateWrongAnswer(){
  const board=$("boardBox");board.classList.remove("wrong-answer");void board.offsetWidth;board.classList.add("wrong-answer");
  board.addEventListener("animationend",()=>board.classList.remove("wrong-answer"),{once:true});
 }
+function giveWriteHint(){
+ if(!game||game.solved)return;
+ markActivity();const q=game.questions[game.pos];if(!q||q.mode!=="write")return;
+ const target=String(q.answer).replace(/^(?:un|une|le|la|les|des|du|de la)\s+/i,"").split(/\s+/).at(-1)||String(q.answer);
+ const letters=Array.from(target);game.hintLevel=Math.min(3,(game.hintLevel||0)+1);
+ const message=game.hintLevel===1?"Indice : le mot commence par « "+(letters[0]||"").toLocaleUpperCase("fr")+" »."
+  :game.hintLevel===2?"Encore un indice : « "+letters.slice(0,2).join("").toLocaleLowerCase("fr")+"… », "+letters.length+" lettres."
+  :"Dernier indice : regarde bien le mot, puis il disparaît.";
+ $("writeHint").textContent=message;show("writeHint",true);
+ if(game.hintLevel===3){const session=game,position=game.pos;$("memory").textContent=q.answer;$("memory").classList.remove("hide");clearTimeout(game.hintTimer);game.hintTimer=setTimeout(()=>{if(game===session&&game.pos===position){$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");game.hintTimer=null}},1400)}
+}
 function offerWriteRetry(message,{countMistake=false,expected=null,actual=null}={}){
  const choices=$("choices");choices.replaceChildren();$("feedback").textContent=message;
  if(expected&&actual)showLetterComparison(expected,actual);
@@ -227,7 +238,7 @@ function handwritingDecision(expected,actual,confidence){
 }
 async function compareWrite(){
  if(!game||!canvasStrokes.length){$("feedback").textContent="Essaie d’écrire au moins une lettre avant de comparer.";return}
- const q=game.questions[game.pos];$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");show("clearWrite",false);show("verifyWrite",false);$("verifyWrite").disabled=true;$("feedback").textContent="Je regarde ton écriture…";
+ const q=game.questions[game.pos];$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");show("hintWrite",false);show("writeHint",false);show("clearWrite",false);show("verifyWrite",false);$("verifyWrite").disabled=true;$("feedback").textContent="Je regarde ton écriture…";
  try{
   const canvas=recognitionCanvas();if(!canvas)throw Error("Écriture trop courte");const result=await recognizeHandwriting(canvas);if(!game)return;
   const decision=handwritingDecision(q.answer,result.text,result.confidence);
@@ -249,12 +260,12 @@ function next(){
 function endGame(){
  document.body.classList.remove("playing");
  if(!game){show("play",false);show("home",true);return}
- const t=game.writeTimer,f=game.writeFallback;game.writeTimer=null;game.writeFallback=null;if(t)clearTimeout(t);if(f)clearTimeout(f);
+ const t=game.writeTimer,f=game.writeFallback,h=game.hintTimer;game.writeTimer=null;game.writeFallback=null;game.hintTimer=null;if(t)clearTimeout(t);if(f)clearTimeout(f);if(h)clearTimeout(h);
  stopTimer();stopIdleWatch();game=null;stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("home",true);render();
 }
 function stopForDay(){
  // Atteinte de la limite : pas de nouveau jeu ni de question suivante.
- const t=game?.writeTimer,f=game?.writeFallback;if(t)clearTimeout(t);if(f)clearTimeout(f);
+ const t=game?.writeTimer,f=game?.writeFallback,h=game?.hintTimer;if(t)clearTimeout(t);if(f)clearTimeout(f);if(h)clearTimeout(h);
  game=null;document.body.classList.remove("playing");stopTimer();stopIdleWatch();stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("finish",false);show("home",true);render();
  $("dayStatus").textContent="30 minutes terminées : bravo, profite maintenant de tes vacances !";
 }
@@ -277,6 +288,7 @@ $("resetDay").addEventListener("click",()=>{if(confirm("Recommencer les missions
 $("backBtn").addEventListener("click",endGame);$("finishHome").addEventListener("click",()=>{show("finish",false);show("home",true);render()});
 $("nextBtn").addEventListener("click",next);
 $("verifyWrite").addEventListener("click",compareWrite);
+$("hintWrite").addEventListener("click",giveWriteHint);
 $("retryWrite").addEventListener("click",retryWrite);
 $("gus-sound").addEventListener("click",()=>{const b=$("gus-sound"),on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",String(on));b.textContent=on?"🔔 Sons de Gus":"🔕 Sons coupés"});
 $("voiceToggle").addEventListener("click",()=>{audioSettings.voice=!audioSettings.voice;if(!audioSettings.voice)stopVoice(true);saveAudioSettings();paintAudioSettings()});

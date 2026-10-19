@@ -139,7 +139,8 @@ test('les mots restent visibles trois secondes et Lili utilise des audios ralent
  assert.match(app,/setTimeout\(\(\)=>\{/);
  assert.match(app,/},3000\)/);
  assert.match(app,/function playVoice\(file,onend\)/);
- assert.match(app,/\["lili-intro",\.\.\.\(type==="spell-u"\?/);
+ assert.match(app,/const sequence=\["lili-intro"\]/,'l’introduction ne récite pas la liste des mots');
+ assert.doesNotMatch(app,/sequence=.*lili-u-(?:marche1|words)/,'les enregistrements qui récitent toute la liste ne sont pas joués au démarrage');
  assert.match(app,/function encourage\(\).*playVoice\("lili-encourage-"\+\(i\+1\)\)/);
  assert.doesNotMatch(app,/SpeechSynthesisUtterance|speechSynthesis/);
  const voiceBlock=app.slice(app.indexOf('function playVoice'),app.indexOf('function say'));
@@ -213,4 +214,27 @@ test('ardoise : réécriture sous le tableau, animation d’erreur et écran rec
  assert.match(css,/body\.playing #boardBox\{height:clamp\(/);
  assert.match(css,/@keyframes wrong-wiggle/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)\{#boardBox\.wrong-answer\{animation:none\}\}/);
+});
+
+test('ardoise : ampoule d’indices progressifs pour retrouver un mot oublié',()=>{
+ assert.ok(html.indexOf('id="hintWrite"')>html.indexOf('id="boardBox"'),'l’ampoule se trouve sous le tableau');
+ assert.match(html,/💡 Un indice/);
+ assert.match(app,/function giveWriteHint\(\)/);
+ const fn=app.slice(app.indexOf('function giveWriteHint'),app.indexOf('function offerWriteRetry'));
+ const memory={textContent:'',classList:{add(){this.hidden=true},remove(){this.hidden=false}}};
+ const hint={textContent:''};let shown=false;
+ const scope={game:{pos:0,questions:[{mode:'write',answer:'un fruit'}],hintLevel:0},markActivity(){},$:id=>id==='memory'?memory:hint,show(id,value){if(id==='writeHint')shown=value},setTimeout:()=>1,clearTimeout(){}};
+ vm.runInNewContext(fn+';giveWriteHint();',scope);
+ assert.match(hint.textContent,/commence par « F »/);assert.equal(scope.game.hintLevel,1);
+ vm.runInNewContext(fn+';giveWriteHint();',scope);
+ assert.match(hint.textContent,/« fr… », 5 lettres/);assert.equal(scope.game.hintLevel,2);
+ vm.runInNewContext(fn+';giveWriteHint();',scope);
+ assert.equal(memory.textContent,'un fruit');assert.equal(memory.classList.hidden,false);assert.equal(shown,true);
+});
+
+test('Gus : le prout original peut apparaître rarement après une bonne réponse',()=>{
+ const gus=fs.readFileSync(path.join(base,'..','gus_media','integration.js'),'utf8');
+ assert.match(gus,/Math\.random\(\)<\.12\)return play\("01_Prout"\)/);
+ assert.ok(fs.statSync(path.join(base,'..','gus_media','01_Prout.m4a')).size>50000);
+ assert.ok(fs.statSync(path.join(base,'..','gus_media','01_Prout.webp')).size>500000);
 });

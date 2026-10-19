@@ -27,6 +27,8 @@ body.playing #handwrite .memory{min-height:0;margin:2px auto 5px;font-size:clamp
 body.playing #boardBox{height:clamp(180px,35svh,340px);flex:none;margin:0 auto}
 body.playing .writing-actions{margin-top:8px;gap:8px}
 #retryWrite{background:#f4efff;border:2px solid #cfc2f3;color:#514388;font-weight:850}
+#hintWrite{background:#fff6d5;border:2px solid #f2d77c;color:#725616;font-weight:850}
+.write-hint{margin:5px auto 0;color:#665528;font-size:15px;font-weight:800;line-height:1.25}
 body.playing .feedback{flex:none;min-height:0;margin-top:6px}
 body.playing #play>.fine{flex:none;margin:5px 0 0}
 #boardBox.wrong-answer{animation:wrong-wiggle .48s ease-in-out;box-shadow:inset 0 0 0 3px #c49868,inset 0 0 26px #071d18,0 0 0 4px #ef879455,0 8px 18px #291d2440}
