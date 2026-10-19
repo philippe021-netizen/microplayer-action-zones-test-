@@ -1,4 +1,4 @@
-const PREVIEW_TEXT = 'Coucou Harmonie ! Pour une addition, sépare les dizaines et les unités. Calcule chaque partie, puis rassemble le résultat. Pour une soustraction, descends d’abord jusqu’à la dizaine, puis enlève ce qu’il reste. Allez, on essaie ensemble !';
+const PREVIEW_TEXT = 'Coucou Harmonie ! Prête pour le défi des maths ? Hop, on sépare les dizaines et les unités. On calcule chaque partie, puis on assemble tout ! Pour une soustraction, on fait un petit détour par la dizaine : on descend jusqu’à elle, puis on enlève ce qu’il reste. Et voilà ! À toi de jouer !';
 
 module.exports = async function ttsPreview(req, res) {
   if (req.method !== 'GET') {
@@ -22,7 +22,7 @@ module.exports = async function ttsPreview(req, res) {
           audioConfig: {
             audioEncoding: 'MP3',
             speakingRate: 0.8,
-            pitch: 2,
+            pitch: 8,
           },
         }),
       },

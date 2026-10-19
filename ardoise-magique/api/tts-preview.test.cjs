@@ -35,6 +35,8 @@ test('serves a cached MP3 preview from Google TTS without exposing the API key',
     const payload = JSON.parse(request.options.body);
     assert.equal(payload.voice.name, 'fr-FR-Neural2-F');
     assert.equal(payload.audioConfig.speakingRate, 0.8);
+    assert.equal(payload.audioConfig.pitch, 8);
+    assert.match(payload.input.text, /Prête pour le défi des maths/);
   } finally {
     global.fetch = previousFetch;
     if (previousKey === undefined) delete process.env.GOOGLE_TTS_API_KEY;
