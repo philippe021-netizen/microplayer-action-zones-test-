@@ -218,7 +218,7 @@ function offerWriteRetry(message,{countMistake=false,expected=null,actual=null}=
  const choices=$("choices");choices.replaceChildren();$("feedback").textContent=message;
  if(expected&&actual)showLetterComparison(expected,actual);
  game.retryCountsMistake=countMistake;
- if(countMistake)animateWrongAnswer();
+ if(countMistake){animateWrongAnswer();window.GusMedia?.play("04_Oups")}
  show("retryWrite",true);
 }
 function retryWrite(){

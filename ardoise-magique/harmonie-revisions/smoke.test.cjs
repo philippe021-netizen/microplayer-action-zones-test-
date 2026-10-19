@@ -205,7 +205,7 @@ test('ardoise : réécriture sous le tableau, animation d’erreur et écran rec
  assert.ok(boardAt>=0&&retryAt>boardAt,'le bouton de réécriture doit apparaître après l’ardoise dans le HTML');
  assert.match(app,/show\("retryWrite",true\)/);
  assert.match(app,/function retryWrite\(\)/);
- assert.match(app,/if\(countMistake\)animateWrongAnswer\(\)/,'l’animation ne se déclenche que si le mot est reconnu incorrect');
+ assert.match(app,/if\(countMistake\)\{animateWrongAnswer\(\);window\.GusMedia\?\.play\("04_Oups"\)\}/,'l’animation douce et le Oups de Gus se déclenchent quand le mot est reconnu incorrect');
  assert.match(app,/function animateWrongAnswer\(\)/);
  assert.match(app,/document\.body\.classList\.add\("playing"\)/);
  assert.match(app,/document\.body\.classList\.remove\("playing"\)/);
