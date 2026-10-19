@@ -103,14 +103,17 @@ test('ordre alphabétique : le mot attendu est bien le premier',()=>{
  }
 });
 
-test('mots des sons à mémoriser passent par l’ardoise sans synthèse vocale',()=>{
+test('les mots sont montrés trois secondes et lus par la voix réglée à l’ancienne',()=>{
  const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()', {D:data,Math});
  const qs=generator('spell-u',1);
  assert.ok(qs.length>0);
  assert.ok(qs.every(q=>q.mode==='write'));
  assert.match(app,/setTimeout\(\(\)=>\{/);
  assert.match(app,/},3000\)/);
- assert.doesNotMatch(app,/speechSynthesis|SpeechSynthesisUtterance/);
+ assert.match(app,/SpeechSynthesisUtterance\(q\.answer\)/);
+ assert.match(app,/pitch=1\.55/);
+ assert.match(app,/speechElapsed/);
+ assert.match(app,/AUDIO_KEY/);
 });
 test('ardoise scolaire, animations et médias Gus sont raccordés',()=>{
  assert.match(fs.readFileSync(path.join(base,'style.css'),'utf8'),/background:radial-gradient\(ellipse[^;]*#245344/);
@@ -123,7 +126,12 @@ test('ardoise scolaire, animations et médias Gus sont raccordés',()=>{
  assert.match(app,/GusMedia\?\.playCorrect\(\)/);
  assert.match(app,/GusMedia\?\.play\("04_Oups"\)/);
 });
-test('ardoise : validation humaine avant de compter le mot comme réussi',()=>{
+test('ardoise : lecture automatique prudente avec validation humaine de secours',()=>{
+ assert.match(app,/loadRecognitionLibrary/);
+ assert.match(app,/engine\.recognize\(canvas,"fra"\)/);
+ assert.match(app,/confidence>=70/);
  assert.match(app,/const accept=document\.createElement\("button"\)/);
- assert.match(app,/Le jeu ne reconnaît pas automatiquement|le jeu ne reconnaît pas automatiquement/);
+ assert.match(app,/lecture automatique n’a pas pu démarrer/);
+ assert.match(html,/id="voiceToggle"/);
+ assert.match(html,/id="musicToggle"/);
 });
