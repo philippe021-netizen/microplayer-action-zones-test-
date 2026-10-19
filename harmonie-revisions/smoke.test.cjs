@@ -146,15 +146,16 @@ test('les révisions de nombres reprennent les quatre exercices de la fiche jusq
  for(const q of qs){assert.ok(q.answer);assert.ok(q.options.includes(q.answer));}
 });
 
-test('additions et soustractions montrent les étapes exactes des méthodes du cahier',()=>{
+test('les indices de calcul expliquent la méthode sans dévoiler la réponse',()=>{
  const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()', {D:data,Math});
  const additions=generator('add',1),subtractions=generator('subtract',1);
  assert.ok(additions.some(q=>q.prompt.startsWith('63 + 22')));
  assert.ok(additions.some(q=>q.prompt.startsWith('43 + 54')));
- assert.match(additions.find(q=>q.prompt.startsWith('63 + 22')).hint,/60 \+ 3 \+ 20 \+ 2.*60 \+ 20 \+ 3 \+ 2.*80 \+ 5.*85/);
+ assert.match(additions.find(q=>q.prompt.startsWith('63 + 22')).hint,/Décompose chaque nombre en dizaines et unités/);
  assert.ok(subtractions.some(q=>q.prompt.startsWith('36 − 7')));
  assert.ok(subtractions.some(q=>q.prompt.startsWith('66 − 9')));
- assert.match(subtractions.find(q=>q.prompt.startsWith('36 − 7')).hint,/36 − 6 = 30.*30 − 1 = 29/);
+ assert.match(subtractions.find(q=>q.prompt.startsWith('36 − 7')).hint,/atteindre la dizaine inférieure/);
+ for(const q of [...additions,...subtractions])assert.doesNotMatch(q.hint,new RegExp('(?:=\\s*)'+q.answer+'(?:\\D|$)'),'l’indice ne doit pas dévoiler la réponse');
 });
 test('les additions et soustractions proposent une ardoise de calcul libre, effaçable',()=>{
  const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()', {D:data,Math});
