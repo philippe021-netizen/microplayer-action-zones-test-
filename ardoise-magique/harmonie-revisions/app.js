@@ -60,13 +60,13 @@ function render(){
 function shuffled(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 const clean=s=>String(s).normalize("NFC").trim().toLocaleLowerCase("fr").replace(/[’‘]/g,"'").replace(/\s+/g," ");
 function cumulativeWords(graph,level){return [...new Set(Array.from({length:level},(_,i)=>D.words[graph]?.[i+1]||[]).flat())]}
-function alphabetKey(word){return clean(word).replace(/^(?:un|une|le|la|les|des|du)\s+/,"").replace(/^l'/,"")}
+function alphabetKey(word){return clean(word).replace(/^(?:un|une|le|la|les|des|du|de la)\s+/,"").replace(/^l'/,"")}
 function item(prompt,answer,options,hint,label="Choisis la bonne réponse"){return {mode:"choice",prompt,answer:String(answer),options:shuffled([...new Set(options.map(String))]),hint,label}}
 function generate(type,level){
  if(type.startsWith("read-")){
- const graph=type.slice(5),words=cumulativeWords(graph,level),targets=words.slice(0,6);
- const targetKeys=new Set(words.map(clean));
- const others=[...new Set(Object.values(D.words).flatMap(m=>Object.values(m).flat()))].filter(w=>!targetKeys.has(clean(w)));
+ const graph=type.slice(5),words=cumulativeWords(graph,level),seenTargets=new Set(),targets=words.filter(w=>{const key=alphabetKey(w);if(seenTargets.has(key))return false;seenTargets.add(key);return true}).slice(0,6);
+ const targetKeys=new Set(words.map(alphabetKey)),seenOthers=new Set();
+ const others=Object.values(D.words).flatMap(m=>Object.values(m).flat()).filter(w=>{const key=alphabetKey(w);if(targetKeys.has(key)||seenOthers.has(key))return false;seenOthers.add(key);return true});
  return targets.map((correct,i)=>{const start=(i*2)%Math.max(1,others.length),distractors=[others[start%others.length],others[(start+1)%others.length]];return item("Quel mot appartient à la liste du son « "+graph+" » ?",correct,[correct,...distractors],"Cherche un mot que tu as appris dans la liste de ce son.","Lecture — son "+graph)});
  }
  if(type.startsWith("spell-")){

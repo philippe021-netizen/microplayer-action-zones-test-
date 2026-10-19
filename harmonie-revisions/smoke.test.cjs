@@ -112,13 +112,16 @@ test('chaque mini-jeu a des questions solvables, avec une réponse unique',()=>{
 });
 
 test('lecture des graphies : choix orthographiques non ambigus',()=>{
- const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()',{D:data,Math});
+ const helpers=app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'));
+ const generator=vm.runInNewContext('(()=>{'+helpers+';return {generate,alphabetKey}})()', {D:data,Math});
  for(const [type,graph] of ['r','u','ou','eu','o','p','t'].map(sound=>['read-'+sound,sound])){
-   const qs=generator(type,1);
-   const targets=new Set(data.words[graph][1].map(x=>x.toLocaleLowerCase('fr')));
+   const qs=generator.generate(type,1);
+   const targets=new Set(data.words[graph][1].map(generator.alphabetKey));
    for(const q of qs){
-     assert.ok(targets.has(q.answer.toLocaleLowerCase('fr')),'réponse doit être dans la marche du son '+graph);
-     for(const d of q.options.filter(x=>x!==q.answer))assert.ok(!targets.has(d.toLocaleLowerCase('fr')),'distracteur dans la même liste '+graph);
+     assert.ok(targets.has(generator.alphabetKey(q.answer)),'réponse doit être dans la marche du son '+graph);
+     const optionKeys=q.options.map(generator.alphabetKey);
+     assert.equal(new Set(optionKeys).size,optionKeys.length,'doublon lexical pour le son '+graph+': '+q.options.join(' / '));
+     for(const d of q.options.filter(x=>generator.alphabetKey(x)!==generator.alphabetKey(q.answer)))assert.ok(!targets.has(generator.alphabetKey(d)),'distracteur dans la même liste '+graph);
    }
  }
 });
