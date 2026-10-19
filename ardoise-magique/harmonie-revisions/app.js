@@ -193,7 +193,16 @@ function renderQuestion(){
 }
 function renderScratchGuide(q){
  const host=$("scratchGuide");host.replaceChildren();
- for(const row of q.scratchRows||[]){const line=document.createElement("div");line.className="scratch-row";line.textContent=row;host.appendChild(line)}
+ for(const row of q.scratchRows||[]){
+  const line=document.createElement("div");line.className="scratch-row";
+  for(const token of String(row).match(/\d+|____|[+−=]/g)||[]){
+   const part=document.createElement("span");
+   if(token==="____"){part.className="scratch-slot";part.setAttribute("aria-hidden","true")}
+   else{part.className="scratch-fixed";part.textContent=token}
+   line.appendChild(part)
+  }
+  host.appendChild(line)
+ }
  host.hidden=!q.scratchpad;
 }
 function drawNumberLine({min,max}){

@@ -42,8 +42,9 @@ body.playing #handwrite .memory{min-height:0;margin:2px auto 5px;font-size:clamp
 body.playing #boardBox{height:clamp(180px,35svh,340px);flex:none;margin:0 auto}
 body.playing #handwrite.scratch-active #boardBox{height:clamp(230px,34svh,370px)}
 body.playing #handwrite.scratch-active #boardBox .lines{opacity:.12}
-.scratch-guide{position:absolute;z-index:1;inset:8px 14px;display:flex;flex-direction:column;justify-content:space-evenly;pointer-events:none;color:#fff6d7;opacity:.78;text-align:left}
-.scratch-row{min-height:0;font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif;font-size:clamp(16px,3.2vw,32px);font-weight:750;line-height:1.2;letter-spacing:.035em;white-space:nowrap}
+.scratch-guide{position:absolute;z-index:1;inset:10px 18px;display:flex;flex-direction:column;justify-content:space-evenly;pointer-events:none;color:#fff6d7;opacity:.78}
+.scratch-row{display:flex;align-items:flex-end;gap:clamp(8px,1.6vw,22px);width:100%;min-height:0;font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif;font-size:clamp(16px,3.2vw,32px);font-weight:750;line-height:1.2;letter-spacing:.035em;white-space:nowrap}
+.scratch-fixed{flex:none}.scratch-slot{flex:1 1 0;min-width:24px;height:1.15em;border-bottom:2px dashed #fff6d7;margin-bottom:.08em}
 #board{z-index:2}
 body.playing .writing-actions{margin-top:8px;gap:8px}
 #retryWrite{background:#f4efff;border:2px solid #cfc2f3;color:#514388;font-weight:850}

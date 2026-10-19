@@ -169,6 +169,9 @@ test('les additions et soustractions proposent une ardoise de calcul libre, effa
  assert.match(html,/id="clearWrite"[^>]*>🧽 Effacer l’ardoise/);
  assert.match(html,/id="scratchGuide"/);
  assert.match(app,/function renderScratchGuide\(q\)/);
+ assert.match(app,/match\(\/\\d\+\|____\|\[\+−=\]\/g\)/);
+ assert.match(css,/\.scratch-row\{display:flex;align-items:flex-end;gap:[^}]*width:100%/);
+ assert.match(css,/\.scratch-slot\{flex:1 1 0/);
  assert.match(css,/body\.playing #handwrite\.scratch-active #boardBox\{height:clamp\(230px,34svh,370px\)\}/);
  const subtract=generator('subtract',1).find(q=>q.prompt.startsWith('36 − 7'));
  const add=generator('add',1).find(q=>q.prompt.startsWith('63 + 22'));
