@@ -170,9 +170,9 @@ test('ardoise : le correcteur valide les réponses reconnues et interdit l’aut
  assert.deepEqual(JSON.parse(JSON.stringify(checker('la rue','La rue',82))),{status:'correct',read:'La rue'});
  assert.deepEqual(JSON.parse(JSON.stringify(checker('la rue','la roue',84))),{status:'incorrect',read:'la roue'});
  assert.deepEqual(JSON.parse(JSON.stringify(checker('la rue','la rue',41))),{status:'unreadable',read:'la rue'});
- assert.match(app,/function offerWriteRetry\(message,\{countMistake=false\}=\{\}\)/);
+ assert.match(app,/function offerWriteRetry\(message,\{countMistake=false,expected=null,actual=null\}=\{\}\)/);
  assert.match(app,/correcteur a reconnu « /);
- assert.match(app,/correcteur a lu « /);
+ assert.match(app,/comparateur a lu « /);
  assert.match(app,/comparateur n’arrive pas encore à déchiffrer l’écriture cursive/);
  assert.doesNotMatch(app,/Écris-le plus grand/,'ne pas prétendre que l’écriture est trop petite si le moteur OCR échoue');
  assert.match(app,/Réessaie dans un instant/);
@@ -182,4 +182,18 @@ test('ardoise : le correcteur valide les réponses reconnues et interdit l’aut
  assert.doesNotMatch(app,/J’ai comparé : c’est bien ça|function offerWriteDecision/);
  assert.match(html,/id="voiceToggle"/);
  assert.match(html,/id="musicToggle"/);
+});
+
+test('comparateur : les lettres lues de travers ou oubliées sont repérées sans inventer de faute',()=>{
+ const align=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function letterAlignment'),app.indexOf('function showLetterComparison'))+';return letterAlignment})()',{clean:s=>String(s).normalize('NFC').trim().toLocaleLowerCase('fr')});
+ const missing=align('un fruit','un frut');
+ assert.equal(missing.expected.filter(x=>x.wrong).map(x=>x.char).join(''),'i');
+ const extra=align('la rue','la roue');
+ assert.equal(extra.actual.filter(x=>x.wrong).map(x=>x.char).join(''),'o');
+ const exact=align('un fruit','un fruit');
+ assert.equal(exact.expected.some(x=>x.wrong),false);
+ assert.equal(exact.actual.some(x=>x.wrong),false);
+ assert.match(app,/function showLetterComparison\(expected,actual\)/);
+ assert.match(app,/className="letter-check-wrong"/);
+ assert.match(app,/{countMistake:true,expected:q.answer,actual:decision.read}/);
 });
