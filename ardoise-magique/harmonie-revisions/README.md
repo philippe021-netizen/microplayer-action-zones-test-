@@ -11,10 +11,11 @@ Entrée de l'application : [index.html](./index.html), prévue pour Safari sur i
 
 ## Fonctionnement
 
-- Trois mini-jeux par jour ; les séances d’aujourd’hui et des jours précédents restent jouables. Les journées futures sont consultables et se débloquent à leur date. La limite de 30 minutes est suivie séparément pour chaque journée.
+- Trois mini-jeux par jour ; les séances d’aujourd’hui et des jours précédents restent jouables. Les journées futures sont consultables et se débloquent à leur date. Le quota de 30 minutes est suivi par date réelle de séance, y compris lorsqu’on reprend un devoir d’un jour précédent.
 - Limite de 30 minutes d'activité par jour, avec arrêt automatique.
-- Les mots à écrire restent visibles quatre secondes avant l’ouverture de l’ardoise. Lili, une voix originale enregistrée pour Harmonie, présente les jeux d’écriture ; les mots en « u » sont joués en audio avant la première question. Après 30 secondes sans activité, une phrase taquine enregistrée est choisie au hasard, sans répétition immédiate. La synthèse vocale du navigateur n’est pas utilisée.
-- La mélodie d’origine est rejouée en boucle pendant les missions ; la voix et la musique peuvent chacune être coupées depuis les boutons en haut de page. Les animations et sons d’encouragement de Gus utilisent les médias originaux dans `gus_media/`; leurs sons ont leur propre bouton.
+- Les mots à écrire restent visibles trois secondes avant l’ouverture de l’ardoise. Lili, une voix originale enregistrée pour Harmonie et ralentie pour être plus claire, présente les jeux d’écriture ; les mots en « u » sont joués en audio avant la première question. Après 30 secondes sans activité, une phrase taquine enregistrée est choisie au hasard, sans répétition immédiate. La synthèse vocale du navigateur n’est pas utilisée.
+- Le morceau original « Claves de la mañana » joue en boucle pendant les missions ; son volume baisse quand Lili ou Gus parle pour que leurs voix restent compréhensibles. La voix et la musique peuvent chacune être coupées depuis les boutons en haut de page. Les animations et sons originaux de Gus dans `gus_media/` ne sont pas interrompus par la narration.
+- Les séances anciennes restent rejouables. Leur temps de reprise est décompté du quota quotidien de 30 minutes du jour réel, afin de pouvoir reprendre dimanche puis continuer les devoirs d’aujourd’hui sans contourner la limite journalière.
 - Tableau de bord parent, sauvegarde locale dans `localStorage` et export CSV. Il n'y a ni compte ni serveur.
 - Liens vers les deux jeux préexistants.
 

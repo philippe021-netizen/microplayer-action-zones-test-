@@ -48,10 +48,17 @@ test('limite de temps et références HTML',()=>{
  const htmlIds=new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]));
  for(const id of ids)assert.ok(htmlIds.has(id),'missing '+id);
 });
-test('les séances passées restent jouables avec leur propre compteur',()=>{
+test('les séances passées restent jouables et leur reprise utilise le quota du jour réel',()=>{
  assert.match(app,/function available\(\)\{return chosen<=currentDay\(\)&&Boolean\(D\.schedule\[chosen\]\)\}/);
- assert.match(app,/function seconds\(\)\{return Math\.min\(MAX,progress\.spent\[chosen\]\|\|0\)\}/);
+ assert.match(app,/function seconds\(\)\{return Math\.min\(MAX,progress\.spent\[currentDay\(\)\]\|\|0\)\}/);
+ assert.match(app,/const day=currentDay\(\);progress\.spent\[day\]/);
  assert.match(app,/Tu peux reprendre les missions de cette journée/);
+ const available=app.match(/function available\(\)\{[^\n]*\}/)[0];
+ for(const [day,expected] of [['2026-10-18',true],['2026-10-19',true],['2026-10-20',false]]){
+   assert.equal(vm.runInNewContext('(()=>{'+available+';return available()})()',{D:data,chosen:day,currentDay:()=>'2026-10-19'}),expected,day);
+ }
+ const seconds=app.match(/function seconds\(\)\{[^\n]*\}/)[0];
+ assert.equal(vm.runInNewContext('(()=>{'+seconds+';return seconds()})()',{MAX:1800,progress:{spent:{'2026-10-18':900,'2026-10-19':120}},currentDay:()=>'2026-10-19'}),120);
 });
 test('relance taquine après 30 secondes sans activité, avec des variantes sans répétition immédiate',()=>{
  assert.match(app,/Date\.now\(\)-lastActivity>=30000/);
@@ -124,19 +131,24 @@ test('ordre alphabétique : le mot attendu est bien le premier',()=>{
  }
 });
 
-test('les mots restent visibles quatre secondes et la voix vient des fichiers de Lili',()=>{
+test('les mots restent visibles trois secondes et Lili utilise des audios ralentis',()=>{
  const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()', {D:data,Math});
  const qs=generator('spell-u',1);
  assert.ok(qs.length>0);
  assert.ok(qs.every(q=>q.mode==='write'));
  assert.match(app,/setTimeout\(\(\)=>\{/);
- assert.match(app,/},4000\)/);
+ assert.match(app,/},3000\)/);
  assert.match(app,/function playVoice\(file,onend\)/);
  assert.match(app,/\["lili-intro",\.\.\.\(type==="spell-u"\?/);
  assert.match(app,/function encourage\(\).*playVoice\("lili-encourage-"\+\(i\+1\)\)/);
  assert.doesNotMatch(app,/SpeechSynthesisUtterance|speechSynthesis/);
+ const voiceBlock=app.slice(app.indexOf('function playVoice'),app.indexOf('function say'));
+ assert.doesNotMatch(voiceBlock,/GusMedia\?\.stop/);
  assert.match(app,/AUDIO_KEY/);
  for(const file of ['lili-intro.mp3','lili-u-marche1.mp3','lili-u-words.mp3',...Array.from({length:5},(_,i)=>`lili-encourage-${i+1}.mp3`)])assert.ok(fs.statSync(path.join(base,'audio',file)).size>5000,file);
+ assert.ok(fs.statSync(path.join(base,'audio','harmonie-background.mp3')).size>1000000);
+ assert.match(app,/harmonie-background\.mp3/);
+ assert.match(html,/id="gus-music-player"/);
 });
 test('ardoise scolaire, animations et médias Gus sont raccordés',()=>{
  assert.match(fs.readFileSync(path.join(base,'style.css'),'utf8'),/background:radial-gradient\(ellipse[^;]*#245344/);
@@ -146,6 +158,7 @@ test('ardoise scolaire, animations et médias Gus sont raccordés',()=>{
  const deployedGus=path.join(base,'..','ardoise-magique','gus_media');
  assert.deepEqual(fs.readdirSync(deployedGus).sort(),fs.readdirSync(gusDir).sort());
  assert.equal(fs.readFileSync(path.join(deployedGus,'integration.js'),'utf8'),gus);
+ assert.match(gus,/HarmonieMusicVolume/);
  assert.match(app,/GusMedia\?\.playCorrect\(\)/);
  assert.match(app,/GusMedia\?\.play\("04_Oups"\)/);
 });

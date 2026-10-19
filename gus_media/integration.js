@@ -26,9 +26,14 @@ const picture=document.createElement("img");picture.alt="";picture.decoding="asy
 const sound=document.createElement("audio");sound.preload="none";sound.setAttribute("playsinline","");document.body.append(sound);document.body.append(stage);
 const bgMusic=document.getElementById("gus-music-player");
 let counter=0,timer=0,active="";
+function setBackgroundVolume(level){
+ if(!bgMusic)return;
+ const adjusted=typeof window.HarmonieMusicVolume==="function"?window.HarmonieMusicVolume(level):level;
+ bgMusic.volume=Number.isFinite(adjusted)?adjusted:level;
+}
 function stop(){
  clearTimeout(timer);stage.classList.remove("show");sound.pause();active="";
- if(bgMusic&&bgMusic.volume<.12)bgMusic.volume=.16;
+ if(bgMusic&&bgMusic.volume<.12)setBackgroundVolume(.16);
 }
 function play(name){
  if(!CHOICES.some(x=>x[0]===name))return false;
@@ -44,7 +49,7 @@ function play(name){
    const notice=document.getElementById("gus-notice");if(notice)notice.textContent="Le son de Gus est bloqué par Safari. Touche une animation pour réessayer.";
   });
  }
- if(bgMusic&&!bgMusic.paused)bgMusic.volume=.035;
+ if(bgMusic&&!bgMusic.paused)setBackgroundVolume(.035);
  picture.onload=()=>{if(nonce!==counter)return;stage.classList.add("show")};
  picture.onerror=()=>{if(nonce!==counter)return;stage.classList.remove("show")};
  stage.classList.remove("show");picture.src=BASE+name+".webp?cycle="+nonce;
