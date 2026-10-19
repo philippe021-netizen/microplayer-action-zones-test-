@@ -175,6 +175,9 @@ test('ardoise : le correcteur valide les réponses reconnues et interdit l’aut
  assert.match(app,/correcteur a lu « /);
  assert.match(app,/correcteur n’arrive pas à lire assez clairement/);
  assert.match(app,/Réessaie dans un instant/);
+ const compare=app.slice(app.indexOf('async function compareWrite'),app.indexOf('function next()'));
+ assert.match(compare,/\$\("memory"\)\.classList\.add\("hide"\)/,'le modèle reste caché pendant le contrôle et après une erreur');
+ assert.doesNotMatch(compare,/\$\("memory"\)\.classList\.remove\("hide"\)/,'le correcteur ne doit pas réafficher le modèle avant la prochaine tentative');
  assert.doesNotMatch(app,/J’ai comparé : c’est bien ça|function offerWriteDecision/);
  assert.match(html,/id="voiceToggle"/);
  assert.match(html,/id="musicToggle"/);

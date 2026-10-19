@@ -196,7 +196,7 @@ function handwritingDecision(expected,actual,confidence){
 }
 async function compareWrite(){
  if(!game||!canvasStrokes.length){$("feedback").textContent="Essaie d’écrire au moins une lettre avant de comparer.";return}
- const q=game.questions[game.pos];$("memory").textContent=q.answer;$("memory").classList.remove("hide");show("clearWrite",false);show("verifyWrite",false);$("verifyWrite").disabled=true;$("feedback").textContent="Je regarde ton écriture…";
+ const q=game.questions[game.pos];$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");show("clearWrite",false);show("verifyWrite",false);$("verifyWrite").disabled=true;$("feedback").textContent="Je regarde ton écriture…";
  try{
   const canvas=recognitionCanvas();if(!canvas)throw Error("Écriture trop courte");const engine=await loadRecognitionLibrary();const result=await engine.recognize(canvas,"fra");if(!game)return;
   const decision=handwritingDecision(q.answer,result.data?.text,result.data?.confidence);
