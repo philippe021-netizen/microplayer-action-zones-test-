@@ -40,7 +40,11 @@ body.playing #handwrite.scratch-active{gap:4px}
 body.playing #handwrite.scratch-active .scratch-help{margin:0 auto 3px;font-size:clamp(13px,1.8vw,17px);font-weight:800;color:#665d83}
 body.playing #handwrite .memory{min-height:0;margin:2px auto 5px;font-size:clamp(30px,5vw,52px)}
 body.playing #boardBox{height:clamp(180px,35svh,340px);flex:none;margin:0 auto}
-body.playing #handwrite.scratch-active #boardBox{height:clamp(125px,23svh,240px)}
+body.playing #handwrite.scratch-active #boardBox{height:clamp(230px,34svh,370px)}
+body.playing #handwrite.scratch-active #boardBox .lines{opacity:.12}
+.scratch-guide{position:absolute;z-index:1;inset:8px 14px;display:flex;flex-direction:column;justify-content:space-evenly;pointer-events:none;color:#fff6d7;opacity:.78;text-align:left}
+.scratch-row{min-height:0;font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif;font-size:clamp(16px,3.2vw,32px);font-weight:750;line-height:1.2;letter-spacing:.035em;white-space:nowrap}
+#board{z-index:2}
 body.playing .writing-actions{margin-top:8px;gap:8px}
 #retryWrite{background:#f4efff;border:2px solid #cfc2f3;color:#514388;font-weight:850}
 #hintWrite{background:#fff6d5;border:2px solid #f2d77c;color:#725616;font-weight:850}

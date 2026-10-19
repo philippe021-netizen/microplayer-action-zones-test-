@@ -7,6 +7,7 @@ const base=__dirname;
 const src=fs.readFileSync(path.join(base,'data.js'),'utf8');
 const app=fs.readFileSync(path.join(base,'app.js'),'utf8');
 const html=fs.readFileSync(path.join(base,'index.html'),'utf8');
+const css=fs.readFileSync(path.join(base,'style.css'),'utf8');
 const win={};
 vm.runInNewContext(src,{window:win});
 const data=win.HARMONIE_DATA;
@@ -166,6 +167,13 @@ test('les additions et soustractions proposent une ardoise de calcul libre, effa
  assert.match(app,/show\("handwrite",q\.mode==="write"\|\|Boolean\(q\.scratchpad\)\)/);
  assert.match(app,/if\(q\.mode==="choice"\)[\s\S]*if\(q\.scratchpad\)\{[\s\S]*show\("boardBox",true\);show\("clearWrite",true\)/);
  assert.match(html,/id="clearWrite"[^>]*>🧽 Effacer l’ardoise/);
+ assert.match(html,/id="scratchGuide"/);
+ assert.match(app,/function renderScratchGuide\(q\)/);
+ assert.match(css,/body\.playing #handwrite\.scratch-active #boardBox\{height:clamp\(230px,34svh,370px\)\}/);
+ const subtract=generator('subtract',1).find(q=>q.prompt.startsWith('36 − 7'));
+ const add=generator('add',1).find(q=>q.prompt.startsWith('63 + 22'));
+ assert.deepEqual(Array.from(subtract.scratchRows),['36 − ____ = ____','____ − ____ = ____']);
+ assert.deepEqual(Array.from(add.scratchRows),['63 + 22 = ____','____ + ____ + ____ + ____ = ____','____ + ____ = ____']);
 });
 
 test('chaque jeu de maths choisit une explication orale Lili adaptée avant la première question',()=>{

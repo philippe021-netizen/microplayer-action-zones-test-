@@ -97,11 +97,11 @@ function generate(type,level){
  }
  if(type==="subtract"){
  const pairs=level===1?[[36,7],[44,8],[52,4],[66,9],[36,7],[52,4]]:level===2?[[46,8],[64,7],[83,6],[51,9],[72,5],[66,9]]:[[35,7],[62,8],[74,6],[91,7],[43,9],[80,5]];
- return pairs.map(([a,b])=>{const toTen=a%10||10,first=Math.min(b,toTen),rest=b-first,answer=a-b;return {...item(a+" − "+b+" = ?",answer,[answer,answer+10,answer-2,answer+2],"On enlève d’abord "+first+" pour arriver à la dizaine : "+a+" − "+first+" = "+(a-first)+(rest?". Il reste "+rest+" à enlever : "+(a-first)+" − "+rest+" = "+answer:"."),"Soustraire en passant par la dizaine"),scratchpad:true}});
+ return pairs.map(([a,b])=>{const toTen=a%10||10,first=Math.min(b,toTen),rest=b-first,answer=a-b;return {...item(a+" − "+b+" = ?",answer,[answer,answer+10,answer-2,answer+2],"On enlève d’abord "+first+" pour arriver à la dizaine : "+a+" − "+first+" = "+(a-first)+(rest?". Il reste "+rest+" à enlever : "+(a-first)+" − "+rest+" = "+answer:"."),"Soustraire en passant par la dizaine"),scratchpad:true,scratchRows:[a+" − ____ = ____","____ − ____ = ____"]}});
  }
  if(type==="add"){
  const pairs=level===1?[[63,22],[27,42],[43,54],[32,46],[25,42],[20,35]]:level===2?[[26,47],[35,28],[48,16],[57,25],[38,26],[17,45]]:[[25,42],[53,29],[36,47],[44,38],[19,63],[56,27]];
- return pairs.map(([a,b])=>{const n=a+b,tensA=Math.floor(a/10)*10,tensB=Math.floor(b/10)*10,unitsA=a%10,unitsB=b%10,units=unitsA+unitsB,base=tensA+" + "+unitsA+" + "+tensB+" + "+unitsB+" = "+tensA+" + "+tensB+" + "+unitsA+" + "+unitsB+" = "+(tensA+tensB)+" + "+units;const method=units>=10?base+" = "+(tensA+tensB+10)+" + "+(units-10)+" = "+n:base+" = "+n;return {...item(a+" + "+b+" = ?",n,[n,n-10,n+10,n-2],method,"Addition par décomposition des dizaines et des unités"),scratchpad:true}});
+ return pairs.map(([a,b])=>{const n=a+b,tensA=Math.floor(a/10)*10,tensB=Math.floor(b/10)*10,unitsA=a%10,unitsB=b%10,units=unitsA+unitsB,base=tensA+" + "+unitsA+" + "+tensB+" + "+unitsB+" = "+tensA+" + "+tensB+" + "+unitsA+" + "+unitsB+" = "+(tensA+tensB)+" + "+units;const method=units>=10?base+" = "+(tensA+tensB+10)+" + "+(units-10)+" = "+n:base+" = "+n;return {...item(a+" + "+b+" = ?",n,[n,n-10,n+10,n-2],method,"Addition par décomposition des dizaines et des unités"),scratchpad:true,scratchRows:[a+" + "+b+" = ____","____ + ____ + ____ + ____ = ____","____ + ____ = ____"]}});
  }
  if(type==="negative"){
  const all=D.questions.negative;const start=level===1?0:level===2?2:level===3?1:0;
@@ -175,6 +175,7 @@ function renderQuestion(){
  $("bar").style.width=(game.pos/game.questions.length*100)+"%";$("count").textContent=(game.pos+1)+" / "+game.questions.length;
  show("nextBtn",false);show("handwrite",q.mode==="write"||Boolean(q.scratchpad));
  $("handwrite").classList.toggle("scratch-active",Boolean(q.scratchpad));show("scratchHelp",Boolean(q.scratchpad));
+ renderScratchGuide(q);
  show("numberLine",Boolean(q.numberLine));if(q.numberLine)drawNumberLine(q.numberLine);
  $("choices").replaceChildren();
  if(q.mode==="choice"){
@@ -189,6 +190,11 @@ function renderQuestion(){
  show("boardBox",false);show("clearWrite",false);show("verifyWrite",false);
  canvasStrokes=[];paintBoard();showWrite();
  }
+}
+function renderScratchGuide(q){
+ const host=$("scratchGuide");host.replaceChildren();
+ for(const row of q.scratchRows||[]){const line=document.createElement("div");line.className="scratch-row";line.textContent=row;host.appendChild(line)}
+ host.hidden=!q.scratchpad;
 }
 function drawNumberLine({min,max}){
  const line=$("numberLine");line.replaceChildren();line.setAttribute("aria-label","Droite graduée de "+min+" à "+max+", avec une graduation par nombre");
