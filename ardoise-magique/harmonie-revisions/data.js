@@ -13,7 +13,7 @@ window.HARMONIE_DATA = Object.freeze({
       3: ["la nature","plus","surtout","sur","dessus","aujourd’hui"]
     },
     ou: {
-      1: ["un loup","une souris","rouge","la route","une journée","la soupe"],
+      1: ["un loup","une souris","rouge","la route","une journée","la soupe","toujours"],
       2: ["oui","une couleur","bonjour","beaucoup","aujourd’hui","pour"],
       3: ["la cour","autour","sous","dessous","tout","surtout","douze"]
     },

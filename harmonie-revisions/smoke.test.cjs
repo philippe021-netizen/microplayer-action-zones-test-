@@ -25,10 +25,11 @@ test('un programme quotidien continu du 18 octobre au 3 novembre',()=>{
 });
 test('mots des sons u et ou correctement rangés par marche',()=>{
  assert.deepEqual(Array.from(data.words.u[1]),['la rue','un fruit','une voiture','du sucre','de la confiture','un nuage']);
- assert.deepEqual(Array.from(data.words.ou[1]),['un loup','une souris','rouge','la route','une journée','la soupe']);
+ assert.deepEqual(Array.from(data.words.ou[1]),['un loup','une souris','rouge','la route','une journée','la soupe','toujours']);
  assert.equal(data.words.ou[2].includes('beaucoup'),true);
  assert.equal(data.words.ou[3].includes('douze'),true);
  assert.equal(data.words.t[3].includes('toujours'),true);
+ assert.equal(data.words.ou[1].includes('toujours'),true,'mot toujours visible dans les deux marches de la fiche');
 });
 test('les sept sons photographiés sont intégrés en trois marches',()=>{
  for(const sound of ['r','u','ou','eu','o','p','t']){
