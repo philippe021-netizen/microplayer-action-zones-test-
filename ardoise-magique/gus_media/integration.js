@@ -16,8 +16,8 @@ style.textContent="#gus-video-tray{display:flex;gap:7px;overflow-x:auto;padding:
 "#gus-video-tray button:focus-visible{outline:3px solid #875bdc}"+
 "#gus-video-stage{position:fixed;z-index:60;left:max(5px,env(safe-area-inset-left));bottom:max(3px,env(safe-area-inset-bottom));pointer-events:none;width:clamp(105px,21vw,230px);height:clamp(170px,34vw,340px);overflow:hidden;opacity:0;transition:opacity .14s ease}"+
 "#gus-video-stage.show{opacity:1}#gus-video-stage img{width:100%;height:100%;object-fit:contain;object-position:bottom left}"+
-"#gus-video-stage.presenter{left:auto;right:max(8px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));width:clamp(90px,14vw,150px);height:clamp(145px,26vw,220px);z-index:61}"+
-"@media(max-width:560px){#gus-video-stage{width:118px;height:182px}#gus-video-tray button{font-size:12px;padding:7px 9px}}"+
+"#gus-video-stage.presenter{left:max(4px,env(safe-area-inset-left));right:auto;bottom:max(8px,env(safe-area-inset-bottom));width:clamp(160px,24vw,280px);height:clamp(235px,40vw,410px);z-index:61}"+
+"@media(max-width:560px){#gus-video-stage{width:118px;height:182px}#gus-video-stage.presenter{width:clamp(140px,37vw,190px);height:clamp(210px,56vw,300px)}#gus-video-tray button{font-size:12px;padding:7px 9px}}"+
 "@media(prefers-reduced-motion:reduce){#gus-video-stage{transition:none}}";
 document.head.append(style);
 const panel=document.getElementById("gus-panel");

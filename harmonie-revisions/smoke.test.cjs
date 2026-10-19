@@ -223,6 +223,8 @@ test('ardoise scolaire, animations et médias Gus sont raccordés',()=>{
  assert.equal(fs.readFileSync(path.join(deployedGus,'integration.js'),'utf8'),gus);
  assert.match(gus,/HarmonieMusicVolume/);
  assert.match(gus,/function present\(\)/);
+ assert.match(gus,/#gus-video-stage\.presenter\{left:max\(4px/);
+ assert.match(gus,/width:clamp\(160px,24vw,280px\)/);
  assert.match(app,/GusMedia\?\.playCorrect\(\)/);
  assert.match(app,/GusMedia\?\.play\("04_Oups"\)/);
 });
