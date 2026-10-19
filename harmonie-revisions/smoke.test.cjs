@@ -164,7 +164,7 @@ test('les additions et soustractions proposent une ardoise de calcul libre, effa
  }
  assert.match(html,/id="scratchHelp"/);
  assert.match(app,/show\("handwrite",q\.mode==="write"\|\|Boolean\(q\.scratchpad\)\)/);
- assert.match(app,/if\(q\.scratchpad\)[\s\S]*show\("clearWrite",true\)/);
+ assert.match(app,/if\(q\.mode==="choice"\)[\s\S]*if\(q\.scratchpad\)\{[\s\S]*show\("boardBox",true\);show\("clearWrite",true\)/);
  assert.match(html,/id="clearWrite"[^>]*>🧽 Effacer l’ardoise/);
 });
 

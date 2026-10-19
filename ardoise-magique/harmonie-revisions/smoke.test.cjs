@@ -112,13 +112,16 @@ test('chaque mini-jeu a des questions solvables, avec une réponse unique',()=>{
 });
 
 test('lecture des graphies : choix orthographiques non ambigus',()=>{
- const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()',{D:data,Math});
+ const helpers=app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'));
+ const generator=vm.runInNewContext('(()=>{'+helpers+';return {generate,alphabetKey}})()', {D:data,Math});
  for(const [type,graph] of ['r','u','ou','eu','o','p','t'].map(sound=>['read-'+sound,sound])){
-   const qs=generator(type,1);
-   const targets=new Set(data.words[graph][1].map(x=>x.toLocaleLowerCase('fr')));
+   const qs=generator.generate(type,1);
+   const targets=new Set(data.words[graph][1].map(generator.alphabetKey));
    for(const q of qs){
-     assert.ok(targets.has(q.answer.toLocaleLowerCase('fr')),'réponse doit être dans la marche du son '+graph);
-     for(const d of q.options.filter(x=>x!==q.answer))assert.ok(!targets.has(d.toLocaleLowerCase('fr')),'distracteur dans la même liste '+graph);
+     assert.ok(targets.has(generator.alphabetKey(q.answer)),'réponse doit être dans la marche du son '+graph);
+     const optionKeys=q.options.map(generator.alphabetKey);
+     assert.equal(new Set(optionKeys).size,optionKeys.length,'doublon lexical pour le son '+graph+': '+q.options.join(' / '));
+     for(const d of q.options.filter(x=>generator.alphabetKey(x)!==generator.alphabetKey(q.answer)))assert.ok(!targets.has(generator.alphabetKey(d)),'distracteur dans la même liste '+graph);
    }
  }
 });
@@ -152,6 +155,18 @@ test('additions et soustractions montrent les étapes exactes des méthodes du c
  assert.ok(subtractions.some(q=>q.prompt.startsWith('66 − 9')));
  assert.match(subtractions.find(q=>q.prompt.startsWith('36 − 7')).hint,/36 − 6 = 30.*30 − 1 = 29/);
 });
+test('les additions et soustractions proposent une ardoise de calcul libre, effaçable',()=>{
+ const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()', {D:data,Math});
+ for(const type of ['add','subtract'])for(const level of [1,2,3]){
+   const questions=generator(type,level);
+   assert.ok(questions.length>0,type+' niveau '+level);
+   assert.ok(questions.every(q=>q.scratchpad===true),type+' doit afficher l’ardoise pour chaque calcul');
+ }
+ assert.match(html,/id="scratchHelp"/);
+ assert.match(app,/show\("handwrite",q\.mode==="write"\|\|Boolean\(q\.scratchpad\)\)/);
+ assert.match(app,/if\(q\.mode==="choice"\)[\s\S]*if\(q\.scratchpad\)\{[\s\S]*show\("boardBox",true\);show\("clearWrite",true\)/);
+ assert.match(html,/id="clearWrite"[^>]*>🧽 Effacer l’ardoise/);
+});
 
 test('chaque jeu de maths choisit une explication orale Lili adaptée avant la première question',()=>{
  assert.match(app,/function mathLesson\(type\)/);
@@ -160,8 +175,33 @@ test('chaque jeu de maths choisit une explication orale Lili adaptée avant la p
  assert.match(app,/lili-math-numbers/);
  assert.match(app,/lili-math-friends/);
  const start=app.slice(app.indexOf('function startGame'),app.indexOf('function renderQuestion'));
- assert.match(start,/mathLesson\(type\)/);
+ assert.match(start,/gameLesson\(type,level\)/);
+ assert.match(app,/const math=mathLesson\(type\)/);
  assert.match(start,/renderQuestion\(\);startIdleWatch\(\)/);
+});
+test('chaque type de mission quotidienne prépare une explication visuelle avant les questions',()=>{
+ const start=app.indexOf('function shuffled');
+ const end=app.indexOf('function startGame');
+ const lessonFor=vm.runInNewContext('(()=>{'+app.slice(start,end)+';return gameLesson})()', {D:data});
+ const seen=new Set();
+ for(const missions of Object.values(data.schedule))for(const [,type,level] of missions){
+   const lesson=lessonFor(type,level);
+   assert.ok(lesson,`explication manquante pour ${type}`);
+   assert.ok(lesson.audio,`voix manquante pour ${type}`);
+   assert.ok(lesson.cards.length>=2,`décomposition visuelle insuffisante pour ${type}`);
+   seen.add(type);
+ }
+ for(const type of ['add','subtract','tens','friends','negative','time','alphabet','read-u','spell-u','write-u'])assert.ok(seen.has(type));
+ assert.match(app,/function renderLessonVisual\(lesson\)/);
+ assert.match(app,/show\("lessonVisual",true\)/);
+});
+test('un nouveau jeu efface les choix et indices de la mission précédente pendant son explication',()=>{
+ const start=app.slice(app.indexOf('function startGame'),app.indexOf('function renderQuestion'));
+ assert.match(start,/\$\("choices"\)\.replaceChildren\(\)/);
+ assert.match(start,/show\("numberLine",false\)/);
+ assert.match(start,/show\("nextBtn",false\)/);
+ assert.match(start,/\$\("feedback"\)\.textContent=""/);
+ assert.match(start,/show\("lessonVisual",false\)/);
 });
 
 test('les mots restent visibles trois secondes et Lili utilise des audios ralentis',()=>{
@@ -172,7 +212,8 @@ test('les mots restent visibles trois secondes et Lili utilise des audios ralent
  assert.match(app,/setTimeout\(\(\)=>\{/);
  assert.match(app,/},3000\)/);
  assert.match(app,/function playVoice\(file,onend\)/);
- assert.match(app,/const sequence=\["lili-intro"\]/,'l’introduction ne récite pas la liste des mots');
+ assert.match(app,/type\.startsWith\("spell-"\)\?"spell"/,'les mots à mémoriser ont une explication dédiée');
+ assert.match(app,/type\.startsWith\("write-"\)\?"write"/,'les mots à recopier ont une explication dédiée');
  assert.doesNotMatch(app,/sequence=.*lili-u-(?:marche1|words)/,'les enregistrements qui récitent toute la liste ne sont pas joués au démarrage');
  assert.match(app,/function encourage\(\).*playVoice\("lili-encourage-"\+\(i\+1\)\)/);
  assert.doesNotMatch(app,/SpeechSynthesisUtterance|speechSynthesis/);
@@ -193,6 +234,9 @@ test('ardoise scolaire, animations et médias Gus sont raccordés',()=>{
  assert.deepEqual(fs.readdirSync(deployedGus).sort(),fs.readdirSync(gusDir).sort());
  assert.equal(fs.readFileSync(path.join(deployedGus,'integration.js'),'utf8'),gus);
  assert.match(gus,/HarmonieMusicVolume/);
+ assert.match(gus,/function present\(\)/);
+ assert.match(gus,/#gus-video-stage\.presenter\{left:max\(4px/);
+ assert.match(gus,/width:clamp\(160px,24vw,280px\)/);
  assert.match(app,/GusMedia\?\.playCorrect\(\)/);
  assert.match(app,/GusMedia\?\.play\("04_Oups"\)/);
 });

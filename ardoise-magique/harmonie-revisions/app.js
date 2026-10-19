@@ -180,7 +180,8 @@ function renderQuestion(){
  if(q.mode==="choice"){
  q.options.forEach(option=>{const b=document.createElement("button");b.textContent=option;
  b.addEventListener("click",()=>choose(b,option,q));$("choices").appendChild(b)});
- }else if(q.scratchpad){
+ }
+ if(q.scratchpad){
  $("memory").classList.add("hide");show("boardBox",true);show("clearWrite",true);show("verifyWrite",false);show("hintWrite",false);
  canvasStrokes=[];stroke=null;paintBoard();requestAnimationFrame(initCanvas);
  }else if(q.mode==="write"){
