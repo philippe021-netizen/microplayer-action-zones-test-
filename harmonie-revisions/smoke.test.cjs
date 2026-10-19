@@ -102,6 +102,26 @@ test('ordre alphabétique : le mot attendu est bien le premier',()=>{
  }
 });
 
+test('mots des sons à mémoriser passent par l’ardoise sans synthèse vocale',()=>{
+ const generator=vm.runInNewContext('(()=>{'+app.slice(app.indexOf('function shuffled'),app.indexOf('function startGame'))+';return generate})()', {D:data,Math});
+ const qs=generator('spell-u',1);
+ assert.ok(qs.length>0);
+ assert.ok(qs.every(q=>q.mode==='write'));
+ assert.match(app,/setTimeout\(\(\)=>\{/);
+ assert.match(app,/},3000\)/);
+ assert.doesNotMatch(app,/speechSynthesis|SpeechSynthesisUtterance/);
+});
+test('ardoise scolaire, animations et médias Gus sont raccordés',()=>{
+ assert.match(fs.readFileSync(path.join(base,'style.css'),'utf8'),/background:radial-gradient\(ellipse[^;]*#245344/);
+ const gusDir=path.join(base,'..','gus_media');
+ const gus=fs.readFileSync(path.join(gusDir,'integration.js'),'utf8');
+ assert.match(gus,/new URL\("\.\/",document\.currentScript\.src\)/);
+ const deployedGus=path.join(base,'..','ardoise-magique','gus_media');
+ assert.deepEqual(fs.readdirSync(deployedGus).sort(),fs.readdirSync(gusDir).sort());
+ assert.equal(fs.readFileSync(path.join(deployedGus,'integration.js'),'utf8'),gus);
+ assert.match(app,/GusMedia\?\.playCorrect\(\)/);
+ assert.match(app,/GusMedia\?\.play\("04_Oups"\)/);
+});
 test('ardoise : validation humaine avant de compter le mot comme réussi',()=>{
  assert.match(app,/const accept=document\.createElement\("button"\)/);
  assert.match(app,/Le jeu ne reconnaît pas automatiquement|le jeu ne reconnaît pas automatiquement/);

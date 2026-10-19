@@ -2,7 +2,7 @@
 (()=>{
 "use strict";
 if(!document.getElementById("gus-panel")) return;
-const BASE="./gus_media/";
+const BASE=new URL("./",document.currentScript.src).href;
 const CHOICES=[
  ["01_Prout","💨 Prout"],["02_Bravo","👏 Bravo"],["03_Danse","🕺 Danse"],
  ["04_Oups","🤔 Oups"],["05_Presentation","👉 Présentation"],["06_Rires","😂 Rires"],
@@ -55,11 +55,13 @@ function playCorrect(){
  const options=["02_Bravo","03_Danse","06_Rires","10_Bravo_bis"];
  return play(options[Math.floor(Math.random()*options.length)]);
 }
-for(const [id,label] of CHOICES){
- const b=document.createElement("button");b.type="button";b.textContent=label;
- b.addEventListener("click",()=>play(id));tray.append(b);
+if(panel.dataset.controls!=="false"){
+ for(const [id,label] of CHOICES){
+  const b=document.createElement("button");b.type="button";b.textContent=label;
+  b.addEventListener("click",()=>play(id));tray.append(b);
+ }
+ panel.insertAdjacentElement("afterend",tray);
 }
-panel.insertAdjacentElement("afterend",tray);
 window.GusMedia={enabled:true,play,playCorrect,stop,hasOriginalSound:()=>!!active&&!SILENT_SOURCES.has(active),get active(){return active}};
 document.getElementById("gus-sound")?.addEventListener("click",()=>{
  if(document.getElementById("gus-sound")?.getAttribute("aria-pressed")==="false")sound.pause();

@@ -1,5 +1,5 @@
 /* Révisions de Toussaint à partir des photos des devoirs et de la fiche
-   « Orthographe Cycle 2 ». Les marches sont cumulatives pour les dictées. */
+   « Orthographe Cycle 2 ». Les marches sont cumulatives pour les mots à observer et écrire. */
 window.HARMONIE_DATA = Object.freeze({
   words: {
     r: {
@@ -42,20 +42,20 @@ window.HARMONIE_DATA = Object.freeze({
   // sans garde chez Philippe. Le jour de jeu reste le jour affiché.
   schedule: {
     "2026-10-18": [["Lecture du son u","read-u",1],["Les dizaines et unités","tens",1],["La machine à remonter le temps","time",1]],
-    "2026-10-19": [["Les mots en u — marche 1","spell-u",1],["La dizaine magique","subtract",1],["Les phrases négatives","negative",1]],
+    "2026-10-19": [["Observe et écris les mots en u — marche 1","spell-u",1],["La dizaine magique","subtract",1],["Les phrases négatives","negative",1]],
     "2026-10-20": [["L’ardoise du son u","write-u",1],["Les additions en morceaux","add",1],["Les amis de 10","friends",1]],
-    "2026-10-21": [["Lecture du son r","read-r",1],["Dictée du son r","spell-r",1],["Dizaines et unités","tens",1]],
+    "2026-10-21": [["Lecture du son r","read-r",1],["Observe et écris les mots du son r","spell-r",1],["Dizaines et unités","tens",1]],
     "2026-10-22": [["Écriture cursive du son r","write-r",2],["Soustractions par la dizaine","subtract",1],["Passé, présent ou futur ?","time",1]],
-    "2026-10-23": [["Lecture du son p","read-p",1],["Dictée du son p","spell-p",1],["Les amis de 10","friends",1]],
+    "2026-10-23": [["Lecture du son p","read-p",1],["Observe et écris les mots du son p","spell-p",1],["Les amis de 10","friends",1]],
     "2026-10-24": [["Écriture cursive du son p","write-p",1],["Additions avec retenue","add",1],["Les phrases négatives","negative",1]],
-    "2026-10-25": [["Lecture du son ou","read-ou",1],["Dictée du son ou","spell-ou",1],["Soustractions par la dizaine","subtract",2]],
+    "2026-10-25": [["Lecture du son ou","read-ou",1],["Observe et écris les mots du son ou","spell-ou",1],["Soustractions par la dizaine","subtract",2]],
     "2026-10-26": [["Écriture cursive du son ou","write-ou",1],["Les nombres jusqu’à 99","tens",2],["Le détective des phrases négatives","negative",2]],
-    "2026-10-27": [["Les mots en ou — marche 2","spell-ou",2],["Les additions avec retenue","add",2],["Passé, présent ou futur ?","time",2]],
-    "2026-10-28": [["Lecture du son eu","read-eu",1],["Dictée du son eu","spell-eu",1],["Ordre alphabétique — 1re lettre","alphabet",1]],
+    "2026-10-27": [["Observe et écris les mots en ou — marche 2","spell-ou",2],["Les additions avec retenue","add",2],["Passé, présent ou futur ?","time",2]],
+    "2026-10-28": [["Lecture du son eu","read-eu",1],["Observe et écris les mots du son eu","spell-eu",1],["Ordre alphabétique — 1re lettre","alphabet",1]],
     "2026-10-29": [["Écriture cursive du son eu","write-eu",2],["Les amis de 10","friends",2],["Soustractions par la dizaine","subtract",2]],
-    "2026-10-30": [["Lecture du son o","read-o",1],["Dictée du son o","spell-o",1],["Le détective des phrases négatives","negative",3]],
+    "2026-10-30": [["Lecture du son o","read-o",1],["Observe et écris les mots du son o","spell-o",1],["Le détective des phrases négatives","negative",3]],
     "2026-10-31": [["Écriture cursive du son o","write-o",2],["Ordre alphabétique — 2e lettre","alphabet",2],["Les additions avec retenue","add",2]],
-    "2026-11-01": [["Lecture du son t","read-t",1],["Dictée du son t","spell-t",1],["Passé, présent ou futur ?","time",2]],
+    "2026-11-01": [["Lecture du son t","read-t",1],["Observe et écris les mots du son t","spell-t",1],["Passé, présent ou futur ?","time",2]],
     "2026-11-02": [["Lecture du son u","read-u",1],["Soustraire en passant par la dizaine","subtract",3],["Nombres jusqu’à 99","tens",2]],
     "2026-11-03": [["Écriture cursive du son ou","write-ou",2],["Calculs jusqu’à 99","add",3],["Mini-évaluation des négations","negative",4]]
   },

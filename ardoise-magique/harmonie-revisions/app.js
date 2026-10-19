@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id);
 const KEY="harmonie-revisions-toussaint-2026-v1";
 const MAX=D.maxMinutes*60;
 let progress=readProgress(),chosen=currentDay(),game=null,ticker=null,lastTick=0;
-let voice=false,canvasStrokes=[],stroke=null,ctx=null,canvasWidth=1,canvasHeight=1;
+let canvasStrokes=[],stroke=null,ctx=null,canvasWidth=1,canvasHeight=1;
 function readProgress(){try {const x=JSON.parse(localStorage.getItem(KEY)||"{}");return {spent:x.spent||{},done:x.done||{},results:x.results||[]}}catch{return {spent:{},done:{},results:[]}}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(progress))}catch{}}
 function currentDay(){const p=Object.fromEntries(new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Paris",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()).map(x=>[x.type,x.value]));return p.year+"-"+p.month+"-"+p.day}
@@ -35,7 +35,7 @@ function render(){
  const b=document.createElement("button");b.textContent=isDone(i)?"Rejouer ✓":"Jouer ➜";b.disabled=!available()||seconds()>=MAX;
  const tag=document.createElement("span");tag.className="number";tag.textContent="Mission "+(i+1);
  const h=document.createElement("h3");h.textContent=title;
- const p=document.createElement("p");p.textContent=type.startsWith("write")?"Observe 3 secondes et écris avec ton doigt.":type.startsWith("spell")?"Écoute, puis retrouve l'orthographe exacte.":"5 à 10 minutes de jeu tranquille.";
+ const p=document.createElement("p");p.textContent=(type.startsWith("write")||type.startsWith("spell"))?"Observe le mot 3 secondes, puis écris-le avec ton doigt sur l’ardoise.":"5 à 10 minutes de jeu tranquille.";
  c.append(tag,h,p,b);b.addEventListener("click",()=>startGame(i,title,type,level));host.append(c)});
  if(!list.length){host.textContent="Aucune mission prévue ce jour."}
 }
@@ -44,7 +44,6 @@ const clean=s=>String(s).normalize("NFC").trim().toLocaleLowerCase("fr").replace
 function cumulativeWords(graph,level){return [...new Set(Array.from({length:level},(_,i)=>D.words[graph]?.[i+1]||[]).flat())]}
 function alphabetKey(word){return clean(word).replace(/^(?:un|une|le|la|les|des|du)\s+/,"").replace(/^l'/,"")}
 function item(prompt,answer,options,hint,label="Choisis la bonne réponse"){return {mode:"choice",prompt,answer:String(answer),options:shuffled([...new Set(options.map(String))]),hint,label}}
-function speak(text,forced=false){if((!voice&&!forced)||!("speechSynthesis" in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="fr-FR";u.pitch=1.25;u.rate=.86;speechSynthesis.speak(u)}
 function generate(type,level){
  if(type.startsWith("read-")){
  const graph=type.slice(5),words=cumulativeWords(graph,level),targets=words.slice(0,6);
@@ -54,7 +53,7 @@ function generate(type,level){
  }
  if(type.startsWith("spell-")){
  const kind=type.slice(6),words=cumulativeWords(kind,level);
- return shuffled(words).slice(0,Math.min(6,words.length)).map(w=>({mode:"spell",prompt:"Écoute le mot puis écris-le.",answer:w,label:"Dictée — son "+kind,hint:"Tu peux réécouter autant de fois que tu veux."}));
+ return shuffled(words).slice(0,Math.min(6,words.length)).map(w=>({mode:"write",prompt:"Observe le mot, puis écris-le sur l’ardoise.",answer:w,label:"Mémoire et écriture — son "+kind,hint:"Le modèle reste affiché 3 secondes, puis écris le mot avec ton doigt."}));
  }
  if(type.startsWith("write-")){
  const kind=type.slice(6),words=cumulativeWords(kind,level);
@@ -95,29 +94,25 @@ function startGame(id,title,type,level){
  if(!questions.length)return;
  game={id,title,questions,pos:0,mistakes:0,correct:0,wrongOnCurrent:false,solved:false,writeTimer:null};
  $("gameName").textContent=title;show("home",false);show("finish",false);show("play",true);
- renderQuestion();startTimer();
+ window.GusMedia?.play("05_Presentation");renderQuestion();startTimer();
 }
 function renderQuestion(){
  if(!game)return;const q=game.questions[game.pos];
  game.solved=false;game.wrongOnCurrent=false;$("promptType").textContent=q.label;
  $("question").textContent=q.prompt;$("hint").textContent=q.hint;$("feedback").textContent="";
  $("bar").style.width=(game.pos/game.questions.length*100)+"%";$("count").textContent=(game.pos+1)+" / "+game.questions.length;
- show("nextBtn",false);show("typing",q.mode==="spell");show("handwrite",q.mode==="write");
+ show("nextBtn",false);show("handwrite",q.mode==="write");
  $("choices").replaceChildren();
  if(q.mode==="choice"){
  q.options.forEach(option=>{const b=document.createElement("button");b.textContent=option;
  b.addEventListener("click",()=>choose(b,option,q));$("choices").appendChild(b)});
- }else if(q.mode==="spell"){
- $("spellInput").value="";$("spellInput").disabled=false;$("spellCheck").disabled=false;
- $("hearBtn").textContent="🔊 Réécouter";$("question").textContent="Écoute le mot, puis écris-le.";
- speak(q.answer,true);
  }else if(q.mode==="write"){
  $("memory").textContent="Regarde bien le mot…";$("memory").classList.remove("hide");
- show("boardBox",false);show("showWrite",true);show("clearWrite",false);show("verifyWrite",false);
- canvasStrokes=[];paintBoard();
+ show("boardBox",false);show("clearWrite",false);show("verifyWrite",false);
+ canvasStrokes=[];paintBoard();showWrite();
  }
 }
-function succeed(text){if(!game||game.solved)return;game.solved=true;game.correct++;$("feedback").textContent=text||"Bravo Harmonie, tu as trouvé !";show("nextBtn",true);speak("Bravo Harmonie !")}
+function succeed(text){if(!game||game.solved)return;game.solved=true;game.correct++;$("feedback").textContent=text||"Bravo Harmonie, tu as trouvé !";show("nextBtn",true);window.GusMedia?.playCorrect();}
 function choose(button,selected,q){
  if(!game||game.solved)return;
  if(clean(selected)===clean(q.answer)){
@@ -125,22 +120,13 @@ function choose(button,selected,q){
  succeed("Bravo ! "+q.answer+".");
  }else{
  button.classList.add("wrong");button.disabled=true;game.mistakes++;game.wrongOnCurrent=true;
+ window.GusMedia?.play("04_Oups");
  $("feedback").textContent="Pas tout à fait. "+q.hint+" Essaie une autre réponse.";
- }
-}
-function spellCheck(){
- if(!game||game.solved)return;const q=game.questions[game.pos],response=$("spellInput").value;
- if(!response.trim()){$("feedback").textContent="Écris quelque chose, puis vérifie.";return}
- if(clean(response)===clean(q.answer)){
- $("spellInput").disabled=true;$("spellCheck").disabled=true;succeed("Bravo ! Le mot est bien écrit : « "+q.answer+" ».");
- }else{
- game.mistakes++;game.wrongOnCurrent=true;
- $("feedback").textContent="On peut réessayer. Indice : le mot commence par « "+q.answer[0].toLocaleUpperCase("fr")+" ». Clique sur Réécouter.";
  }
 }
 function paintBoard(){
  const c=$("board");if(!ctx||!c.width)return;
- ctx.clearRect(0,0,canvasWidth,canvasHeight);ctx.lineWidth=5;ctx.strokeStyle="#4d4178";ctx.lineJoin="round";ctx.lineCap="round";
+ ctx.clearRect(0,0,canvasWidth,canvasHeight);ctx.lineWidth=5;ctx.strokeStyle="#fff6d7";ctx.lineJoin="round";ctx.lineCap="round";
  for(const pts of canvasStrokes){if(!pts.length)continue;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(const p of pts.slice(1))ctx.lineTo(p.x,p.y);ctx.stroke()}
  if(stroke?.length){ctx.beginPath();ctx.moveTo(stroke[0].x,stroke[0].y);for(const p of stroke.slice(1))ctx.lineTo(p.x,p.y);ctx.stroke()}
 }
@@ -151,22 +137,22 @@ function initCanvas(){
 function showWrite(){
  if(!game)return;const q=game.questions[game.pos];
  $("memory").textContent=q.answer;$("memory").classList.remove("hide");
- show("showWrite",false);show("boardBox",false);
+ show("boardBox",false);
  game.writeTimer=setTimeout(()=>{
- if(!game)return;$("memory").textContent="Écris de mémoire…";
+ if(!game)return;$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");
  show("boardBox",true);show("clearWrite",true);show("verifyWrite",true);
  requestAnimationFrame(initCanvas);game.writeTimer=null;
  },3000);
 }
 function compareWrite(){
  if(!game||!canvasStrokes.length){$("feedback").textContent="Essaie d’écrire au moins une lettre avant de comparer.";return}
- const q=game.questions[game.pos];$("memory").textContent=q.answer;$("feedback").textContent="Compare ton écriture avec « "+q.answer+" ». À toi (ou à un adulte) de vérifier : le jeu ne reconnaît pas automatiquement les lettres.";
+ const q=game.questions[game.pos];$("memory").textContent=q.answer;$("memory").classList.remove("hide");$("feedback").textContent="Compare ton écriture avec « "+q.answer+" ». À toi (ou à un adulte) de vérifier : le jeu ne reconnaît pas automatiquement les lettres.";
  show("clearWrite",false);show("verifyWrite",false);
  const choices=$("choices");choices.replaceChildren();
  const accept=document.createElement("button");accept.textContent="J’ai bien écrit le mot";
  accept.addEventListener("click",()=>{choices.replaceChildren();succeed("Bravo pour tes efforts et ta belle écriture !")});
  const retry=document.createElement("button");retry.textContent="Je recommence";
- retry.addEventListener("click",()=>{game.mistakes++;canvasStrokes=[];stroke=null;paintBoard();choices.replaceChildren();$("memory").textContent="Regarde bien le mot…";$("feedback").textContent="Réessaie tranquillement.";show("boardBox",false);show("showWrite",true)});
+ retry.addEventListener("click",()=>{game.mistakes++;canvasStrokes=[];stroke=null;paintBoard();choices.replaceChildren();$("memory").textContent="Regarde bien le mot…";$("memory").classList.remove("hide");$("feedback").textContent="Réessaie tranquillement.";show("boardBox",false);showWrite()});
  choices.append(accept,retry);
 }
 function next(){
@@ -181,12 +167,12 @@ function next(){
 function endGame(){
  if(!game){show("play",false);show("home",true);return}
  const t=game.writeTimer;game.writeTimer=null;if(t)clearTimeout(t);
- stopTimer();game=null;show("play",false);show("home",true);render();
+ stopTimer();window.GusMedia?.stop();game=null;show("play",false);show("home",true);render();
 }
 function stopForDay(){
  // Atteinte de la limite : pas de nouveau jeu ni de question suivante.
  const t=game?.writeTimer;if(t)clearTimeout(t);
- game=null;stopTimer();show("play",false);show("finish",false);show("home",true);render();
+ game=null;stopTimer();window.GusMedia?.stop();show("play",false);show("finish",false);show("home",true);render();
  $("dayStatus").textContent="30 minutes terminées : bravo, profite maintenant de tes vacances !";
 }
 function exportCSV(){
@@ -202,15 +188,13 @@ function parent(){
  if(typeof $("parentDialog").showModal==="function")$("parentDialog").showModal();else $("parentDialog").setAttribute("open","");
 }
 function closeParent(){$("parentDialog").close?.();$("parentDialog").removeAttribute("open")}
-$("voiceBtn").addEventListener("click",()=>{voice=!voice;$("voiceBtn").setAttribute("aria-pressed",String(voice));$("voiceBtn").textContent=voice?"🔊":"🗣️";if(voice)speak("Coucou Harmonie !")});
 $("parentBtn").addEventListener("click",parent);$("closeParent").addEventListener("click",closeParent);$("closeParentBottom").addEventListener("click",closeParent);
 $("exportCsv").addEventListener("click",exportCSV);
 $("resetDay").addEventListener("click",()=>{if(confirm("Recommencer les missions ? Le temps déjà passé ne sera pas effacé.")){delete progress.done[chosen];save();closeParent();parent();render()}});
 $("backBtn").addEventListener("click",endGame);$("finishHome").addEventListener("click",()=>{show("finish",false);show("home",true);render()});
-$("nextBtn").addEventListener("click",next);$("spellCheck").addEventListener("click",spellCheck);
-$("spellInput").addEventListener("keydown",e=>{if(e.key==="Enter")spellCheck()});
-$("hearBtn").addEventListener("click",()=>{if(game)speak(game.questions[game.pos].answer,true)});
-$("showWrite").addEventListener("click",showWrite);$("verifyWrite").addEventListener("click",compareWrite);
+$("nextBtn").addEventListener("click",next);
+$("verifyWrite").addEventListener("click",compareWrite);
+$("gus-sound").addEventListener("click",()=>{const b=$("gus-sound"),on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",String(on));b.textContent=on?"🔔 Sons de Gus":"🔕 Sons coupés"});
 $("clearWrite").addEventListener("click",()=>{canvasStrokes=[];stroke=null;paintBoard()});
 const board=$("board");
 function point(e){const r=board.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}

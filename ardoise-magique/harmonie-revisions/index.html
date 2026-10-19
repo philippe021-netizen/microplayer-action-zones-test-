@@ -12,8 +12,9 @@
 <header>
   <div class="mascot" aria-hidden="true">🦄</div>
   <div class="header-name"><h1>Les missions d’Harmonie</h1><p>De petits jeux pour apprendre en s’amusant</p></div>
-  <div class="header-actions"><button id="voiceBtn" type="button" aria-pressed="false" aria-label="Activer la voix">🗣️</button><button id="parentBtn" type="button">Parents ⚙️</button></div>
+  <div class="header-actions"><button id="parentBtn" type="button">Parents ⚙️</button></div>
 </header>
+<section id="gus-panel" aria-label="Gus accompagne Harmonie" data-controls="false"><p>Gus est là pour t’encourager !</p><button id="gus-sound" type="button" aria-pressed="true">🔔 Sons de Gus</button></section>
 <section class="summary" aria-live="polite">
   <div><strong id="dayDisplay">Aujourd’hui</strong><p id="dayStatus">Je regarde ton planning…</p></div>
   <div class="minute-pill" id="clock" role="timer">0 / 30 min</div>
@@ -23,7 +24,7 @@
   <div class="section-row"><h2>Les 3 aventures du jour</h2><span id="doneLabel"></span></div>
   <div id="missions" class="missions"></div>
   <p class="fine">Trois petites missions sont prévues chaque jour. Une séance dure environ 5 à 10 minutes et s'arrête au plus tard après 30 minutes d'activité.</p>
-  <div class="old-games"><p>Retrouve aussi tes jeux préférés :</p><a href="../index.html">✍️ Ardoise magique</a><a href="../harmonie-alphabet/index.html">🦄 Défi alphabétique</a></div>
+  <div class="old-games"><p>Retrouve aussi tes jeux préférés :</p><a href="../ardoise-magique/index.html">✍️ Ardoise magique</a><a href="../harmonie-alphabet/index.html">🦄 Défi alphabétique</a></div>
 </section>
 <section id="play" hidden>
   <div class="game-head">
@@ -37,11 +38,10 @@
     <h2 id="question"></h2>
     <p id="hint" class="hint"></p>
     <div id="choices" class="choices"></div>
-    <div id="typing" hidden><label for="spellInput">Écris ta réponse</label><input id="spellInput" type="text" lang="fr" autocomplete="off" autocapitalize="none" spellcheck="false"><div class="buttons"><button id="hearBtn">🔊 Réécouter</button><button id="spellCheck" class="primary">Vérifier</button></div></div>
     <div id="handwrite" hidden>
       <p id="memory" class="memory">Regarde bien le mot…</p>
       <div id="boardBox" hidden><div class="lines"></div><canvas id="board" aria-label="Ardoise d’écriture au doigt"></canvas></div>
-      <div class="buttons"><button id="showWrite">Voir 3 secondes</button><button id="clearWrite" hidden>🧽 Effacer</button><button id="verifyWrite" class="primary" hidden>Comparer mon écriture</button></div>
+      <div class="buttons"><button id="clearWrite" hidden>🧽 Effacer</button><button id="verifyWrite" class="primary" hidden>Comparer mon écriture</button></div>
     </div>
     <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
     <button id="nextBtn" class="primary next" hidden>Continuer ➜</button>
@@ -61,6 +61,7 @@
   <button id="closeParentBottom" class="primary">Terminer</button>
 </dialog>
 </main>
+<script src="../gus_media/integration.js" defer></script>
 <script src="./data.js"></script>
 <script src="./app.js"></script>
 </body></html>
