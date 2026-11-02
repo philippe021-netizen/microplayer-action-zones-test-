@@ -425,4 +425,5 @@ window.addEventListener("pagehide",()=>{if(game)stopTimer()});
 paintAudioSettings();
 if(!D.schedule[chosen]){const days=Object.keys(D.schedule).sort();chosen=days.find(d=>d>=chosen)||days[days.length-1]}
 render();
+if(window.location.hash==="#additions" && seconds()<MAX)startGame("carry-bonus","Additions avec retenue","carry",1);
 })();
