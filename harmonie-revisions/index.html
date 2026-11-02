@@ -23,6 +23,12 @@
 <section id="home">
   <div class="section-row"><h2>Les 3 aventures du jour</h2><span id="doneLabel"></span></div>
   <div id="missions" class="missions"></div>
+  <section class="carry-bonus" aria-label="Entraînement aux additions avec retenue">
+    <div><span class="carry-badge">✍️ Entraînement au doigt</span>
+    <h3>Additions avec retenue</h3>
+    <p>Pose tes additions sur le tableau avec ton doigt ou l’Apple Pencil. Écris la retenue, puis choisis le résultat pour le vérifier.</p></div>
+    <button id="carryPractice" type="button">Faire des additions ➜</button>
+  </section>
   <p class="fine">Trois petites missions sont prévues chaque jour. Une séance dure environ 5 à 10 minutes et s'arrête au plus tard après 30 minutes d'activité.</p>
   <div class="old-games"><p>Retrouve aussi tes jeux préférés :</p><a href="../ardoise-magique/index.html">✍️ Ardoise magique</a><a href="../harmonie-alphabet/index.html">🦄 Défi alphabétique</a></div>
 </section>
@@ -42,13 +48,14 @@
       <div id="lessonVisualSlides" class="lesson-visual-slides" aria-live="polite"></div>
       <div id="lessonVisualProgress" class="lesson-visual-progress" aria-hidden="true"></div>
     </section>
+    <button id="lessonGo" type="button" class="primary" hidden>J’ai compris, à moi ! ➜</button>
     <div id="numberLine" class="number-line" role="img" hidden></div>
     <div id="choices" class="choices"></div>
     <div id="handwrite" hidden>
       <p id="memory" class="memory">Regarde bien le mot…</p>
       <p id="scratchHelp" class="scratch-help" hidden>Pose tes calculs ici avec ton doigt ou le Pencil. Tu peux écrire +, − et =, puis choisir ta réponse.</p>
       <div id="boardBox" hidden><div class="lines"></div><div id="scratchGuide" class="scratch-guide" aria-hidden="true" hidden></div><canvas id="board" aria-label="Ardoise d’écriture au doigt"></canvas></div>
-      <div class="buttons writing-actions"><button id="hintWrite" class="hint-write" type="button" hidden>💡 Un indice</button><button id="clearWrite" hidden>🧽 Effacer l’ardoise</button><button id="verifyWrite" class="primary" hidden>Comparer mon écriture</button><button id="retryWrite" class="retry-write" hidden>Réécrire le mot</button></div>
+      <div class="buttons writing-actions"><button id="hintWrite" class="hint-write" type="button" hidden>💡 Un indice</button><button id="undoWrite" hidden>↶ Annuler un trait</button><button id="clearWrite" hidden>🧽 Effacer l’ardoise</button><button id="verifyWrite" class="primary" hidden>Comparer mon écriture</button><button id="retryWrite" class="retry-write" hidden>Réécrire le mot</button></div>
       <p id="writeHint" class="write-hint" role="status" aria-live="polite" hidden></p>
     </div>
     <div id="feedback" class="feedback" role="status" aria-live="polite"></div>

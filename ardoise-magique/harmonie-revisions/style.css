@@ -58,3 +58,21 @@ body.playing #play>.fine{flex:none;margin:5px 0 0}
 @media(prefers-reduced-motion:reduce){#boardBox.wrong-answer{animation:none}}
 @media(prefers-reduced-motion:reduce){.lesson-slide,.lesson-visual-progress i{transition:none}.lesson-slide.active{animation:none}}
 .number-line{position:relative;display:flex;max-width:780px;height:44px;margin:25px auto 28px;padding:0 5px;align-items:flex-start;box-sizing:border-box}.number-line::before{content:"";position:absolute;top:7px;left:5px;right:5px;border-top:2px solid #77728e}.number-tick{position:relative;flex:1;height:17px}.number-tick i{position:absolute;top:0;left:50%;height:8px;border-left:1px solid #8f89a0}.number-tick.decade i{height:14px;border-left:2px solid #554695}.number-tick small{position:absolute;top:20px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:800;color:#554695}
+
+/* Atelier libre des additions avec retenue et écriture tactile sur iPad */
+.carry-bonus{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:16px 0;padding:18px 21px;border:2px solid #bba5f4;border-radius:23px;background:linear-gradient(115deg,#f4eeff,#eaf9f4);box-shadow:0 8px 20px #7566a519}
+.carry-bonus h3{font-size:24px;margin:5px 0}.carry-bonus p{font-size:15px;color:#5b577b;line-height:1.4;margin:5px 0 0}
+.carry-badge{font-weight:850;font-size:13px;letter-spacing:.03em;color:#6750aa}
+.carry-bonus button{background:#6951c7;color:white;border:0;border-radius:15px;font-weight:850;font-size:17px;padding:15px 20px;flex:none}
+.carry-bonus button:disabled{background:#bab4cf}
+.scratch-guide.is-carry{justify-content:center;align-items:flex-start;inset:4px 8px;opacity:.9}
+.carry-model{display:flex;flex-direction:column;align-items:center;margin-left:clamp(8px,5%,42px);max-width:70%;color:#f9f4d4}
+.carry-guide-title{font-size:clamp(13px,1.8vw,18px);font-weight:650;margin:0 0 4px}
+.carry-grid{display:grid;grid-template-columns:clamp(34px,6vw,58px) repeat(2,clamp(42px,6vw,66px));align-items:center;justify-items:center;width:max-content;font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif;font-size:clamp(26px,4.1vw,39px);font-weight:850;line-height:1.06}
+.carry-grid span{min-width:1em}.carry-grid.carry-head{font-size:13px;font-weight:700;opacity:.85}
+.carry-grid.carry-ret{font-size:clamp(17px,3vw,24px);opacity:.8}
+.carry-grid.carry-ret span:first-child{font-size:12px}
+.carry-grid.carry-second{border-bottom:3px solid #f9f4d4;padding-bottom:3px}
+.carry-grid.carry-answer{padding-top:3px}.carry-grid .carry-empty{color:#ecd68b;font-weight:500}
+#boardBox .scratch-guide.is-carry{z-index:1;pointer-events:none}#boardBox #board{z-index:2;touch-action:none}
+@media(max-width:590px){.carry-bonus{flex-direction:column;align-items:stretch;padding:15px}.carry-bonus button{width:100%}.carry-model{margin-left:0;max-width:95%}.carry-guide-title{font-size:12px}.carry-grid{grid-template-columns:30px 44px 44px;font-size:27px}}

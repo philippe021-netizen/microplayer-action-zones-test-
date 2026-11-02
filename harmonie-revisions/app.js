@@ -52,6 +52,7 @@ function render(){
  $("dayStatus").textContent=!D.schedule[chosen]?"Aucune mission n’est prévue ce jour.":seconds()>=MAX?"30 minutes d’activité atteintes aujourd’hui : place au repos !":isToday?"Tes missions du jour sont prêtes !":isFuture?"Tu peux déjà faire les exercices de ce jour.":"Tu peux reprendre les missions de cette journée.";
  const host=$("missions");host.replaceChildren();const list=D.schedule[chosen]||[];
  $("doneLabel").textContent=(progress.done[chosen]||[]).length+" / "+list.length+" réussies";
+ $("carryPractice").disabled=seconds()>=MAX;
  list.forEach(([title,type,level],i)=>{const c=document.createElement("article");c.className="mission"+(isDone(i)?" done":"");
  const b=document.createElement("button");b.textContent=isDone(i)?"Rejouer ✓":"Jouer ➜";b.disabled=!available()||seconds()>=MAX;
  const tag=document.createElement("span");tag.className="number";tag.textContent="Mission "+(i+1);
@@ -102,6 +103,16 @@ function generate(type,level){
  const pairs=level===1?[[36,7],[44,8],[52,4],[66,9],[36,7],[52,4]]:level===2?[[46,8],[64,7],[83,6],[51,9],[72,5],[66,9]]:[[35,7],[62,8],[74,6],[91,7],[43,9],[80,5]];
  return pairs.map(([a,b])=>{const answer=a-b;return {...item(a+" − "+b+" = ?",answer,[answer,answer+10,answer-2,answer+2],"Pour soustraire en passant par la dizaine, enlève d’abord juste ce qu’il faut pour atteindre la dizaine inférieure. Puis enlève le reste.","Soustraire en passant par la dizaine"),scratchpad:true,scratchRows:[a+" − ____ = ____","____ − ____ = ____"]}});
  }
+ if(type==="carry"){
+  // Toutes les sommes demandent le passage d'une dizaine.
+  const pairs=[[27,15],[36,27],[48,16],[54,28],[67,18],[29,35],[45,37],[58,24],[26,47],[34,29],[47,36],[39,42]];
+  return shuffled(pairs).slice(0,6).map(([a,b])=>{
+   const n=a+b;
+   return {...item(a+" + "+b+" = ?",n,[n,n-10,n+10,n+2],
+    "Commence par les unités. Si leur somme atteint 10, écris le chiffre des unités et reporte une dizaine. Ajoute ensuite les dizaines sans oublier la retenue.",
+    "Addition posée avec retenue"),scratchpad:true,carryNumbers:{a,b}};
+  });
+ }
  if(type==="add"){
  const pairs=level===1?[[63,22],[27,42],[43,54],[32,46],[25,42],[20,35]]:level===2?[[26,47],[35,28],[48,16],[57,25],[38,26],[17,45]]:[[25,42],[53,29],[36,47],[44,38],[19,63],[56,27]];
  return pairs.map(([a,b])=>{const n=a+b;return {...item(a+" + "+b+" = ?",n,[n,n-10,n+10,n-2],"Décompose chaque nombre en dizaines et unités. Additionne les dizaines entre elles, puis les unités. Si les unités dépassent 9, échange 10 unités contre une dizaine.","Addition par décomposition des dizaines et des unités"),scratchpad:true,scratchRows:[a+" + "+b+" = ____","____ + ____ + ____ + ____ = ____","____ + ____ = ____"]}});
@@ -125,6 +136,11 @@ function mathLesson(type){
  return lessons[type]||null;
 }
 function gameLesson(type,level){
+ if(type==="carry")return {
+  audio:null,
+  text:"Si les unités font 10 ou plus, écris leur dernier chiffre en bas et reporte 1 dans la colonne des dizaines. Puis ajoute les dizaines et la retenue.",
+  cards:["27 + 15 : commence par les unités","7 + 5 = 12 : écris 2, reporte 1 dizaine","2 dizaines + 1 dizaine + 1 retenue = 4","Le résultat est 42. À toi d’essayer !"]
+ };
  const math=mathLesson(type);
  const graph=type.startsWith("read-")?type.slice(5):type.startsWith("spell-")||type.startsWith("write-")?type.slice(6):null;
  const audio=math?.audio||"lili-lesson-"+(type.startsWith("spell-")?"spell":type.startsWith("write-")?"write":type.startsWith("read-")?type:type);
@@ -160,17 +176,19 @@ function startGame(id,title,type,level){
  game={id,title,type,questions,pos:0,mistakes:0,correct:0,wrongOnCurrent:false,solved:false,writeTimer:null,hintLevel:0,hintTimer:null};
  document.body.classList.add("playing");$("gameName").textContent=title;show("home",false);show("finish",false);show("play",true);window.scrollTo({top:0,behavior:"smooth"});
  clearInterval(lessonTimer);window.GusMedia?.stop?.();$("question").textContent="";$("promptType").textContent=title;$("hint").textContent="";$("feedback").textContent="";$("choices").replaceChildren();
- show("numberLine",false);show("handwrite",false);show("nextBtn",false);show("lessonVisual",false);show("retryWrite",false);show("hintWrite",false);show("writeHint",false);show("boardBox",false);show("clearWrite",false);show("verifyWrite",false);
+ show("numberLine",false);show("handwrite",false);show("nextBtn",false);show("lessonVisual",false);show("lessonGo",false);show("retryWrite",false);show("hintWrite",false);show("writeHint",false);show("boardBox",false);show("clearWrite",false);show("undoWrite",false);show("verifyWrite",false);
  startTimer();musicStart();
  const lesson=gameLesson(type,level),session=game;
  if(lesson){
   $("question").textContent="Gus te montre, Lili t’explique…";$("hint").textContent=lesson.text;renderLessonVisual(lesson);show("lessonVisual",true);
-  playVoice(lesson.audio,()=>{if(game===session){clearInterval(lessonTimer);window.GusMedia?.stop?.();renderQuestion();startIdleWatch()}});
+  if(lesson.audio){
+   playVoice(lesson.audio,()=>{if(game===session){clearInterval(lessonTimer);window.GusMedia?.stop?.();renderQuestion();startIdleWatch()}});
+  }else show("lessonGo",true);
  }else{renderQuestion();startIdleWatch()}
 }
 function renderQuestion(){
  if(!game)return;const q=game.questions[game.pos];
- clearInterval(lessonTimer);window.GusMedia?.stop?.();show("lessonVisual",false);
+ clearInterval(lessonTimer);window.GusMedia?.stop?.();show("lessonVisual",false);show("lessonGo",false);
  clearTimeout(game.writeTimer);clearTimeout(game.writeFallback);clearTimeout(game.hintTimer);game.writeTimer=null;game.writeFallback=null;game.hintTimer=null;game.hintLevel=0;
  game.solved=false;game.wrongOnCurrent=false;$("promptType").textContent=q.label;
  $("question").textContent=q.prompt;$("hint").textContent=q.hint;$("feedback").textContent="";
@@ -186,16 +204,38 @@ function renderQuestion(){
  b.addEventListener("click",()=>choose(b,option,q));$("choices").appendChild(b)});
  }
  if(q.scratchpad){
- $("memory").classList.add("hide");show("boardBox",true);show("clearWrite",true);show("verifyWrite",false);show("hintWrite",false);
+ $("memory").classList.add("hide");show("boardBox",true);show("clearWrite",true);show("undoWrite",true);show("verifyWrite",false);show("hintWrite",false);
  canvasStrokes=[];stroke=null;paintBoard();requestAnimationFrame(initCanvas);
  }else if(q.mode==="write"){
  $("memory").textContent="Regarde bien le mot…";$("memory").classList.remove("hide");
- show("boardBox",false);show("clearWrite",false);show("verifyWrite",false);
+ show("boardBox",false);show("clearWrite",false);show("undoWrite",false);show("verifyWrite",false);
  canvasStrokes=[];paintBoard();showWrite();
  }
 }
 function renderScratchGuide(q){
  const host=$("scratchGuide");host.replaceChildren();
+ host.classList.toggle("is-carry",Boolean(q.carryNumbers));
+ if(q.carryNumbers){
+  const {a,b}=q.carryNumbers,model=document.createElement("div");
+  model.className="carry-model";
+  const title=document.createElement("strong");title.className="carry-guide-title";
+  title.textContent="Écris au doigt la retenue et la réponse";model.append(title);
+  const row=(values,kind)=>{
+   const line=document.createElement("div");line.className="carry-grid "+kind;
+   for(const value of values){
+    const cell=document.createElement("span");cell.textContent=String(value);
+    if(value==="□")cell.className="carry-empty";
+    line.append(cell);
+   }
+   model.append(line);
+  };
+  row(["","D","U"],"carry-head");
+  row(["ret.","□",""],"carry-ret");
+  row(["",Math.floor(a/10),a%10],"carry-first");
+  row(["+",Math.floor(b/10),b%10],"carry-second");
+  row(["=", "□","□"],"carry-answer");
+  host.append(model);host.hidden=false;return;
+ }
  for(const row of q.scratchRows||[]){
   const line=document.createElement("div");line.className="scratch-row";
   for(const token of String(row).match(/\d+|____|[+−=]/g)||[]){
@@ -239,7 +279,7 @@ function showWrite(){
  const session=game,position=game.pos;
  $("memory").textContent=q.answer;$("memory").classList.remove("hide");
  show("boardBox",false);
- let minimumElapsed=false;const revealBoard=()=>{if(!minimumElapsed||!game||game!==session||game.pos!==position)return;$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");show("boardBox",true);show("hintWrite",true);show("clearWrite",true);show("verifyWrite",true);requestAnimationFrame(initCanvas);game.writeTimer=null};
+ let minimumElapsed=false;const revealBoard=()=>{if(!minimumElapsed||!game||game!==session||game.pos!==position)return;$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");show("boardBox",true);show("hintWrite",true);show("clearWrite",true);show("undoWrite",true);show("verifyWrite",true);requestAnimationFrame(initCanvas);game.writeTimer=null};
  game.writeTimer=setTimeout(()=>{minimumElapsed=true;revealBoard()},3000);
 }
 function recognitionCanvas(){
@@ -328,7 +368,7 @@ function next(){
  progress.results.push({date:chosen,mission:game.title,answer:game.questions[game.pos].answer,errors:Number(game.wrongOnCurrent),type:game.questions[game.pos].mode});
  save();game.pos++;
  if(game.pos<game.questions.length){renderQuestion();const q=game.questions[game.pos];if(q.mode==="choice")say(q.prompt+" "+q.hint);return}
- const done=game;complete(done.id);endGame();
+ const done=game;if(done.type!=="carry")complete(done.id);endGame();
  $("finishText").textContent="Tu as terminé "+done.questions.length+" défis avec "+done.correct+" réponses validées. Les erreurs sont normales : chaque essai compte !";
  show("home",false);show("finish",true);window.GusMedia?.playFinish?.();say("Bravo Harmonie ! Tu as terminé ta mission. Chaque essai t’a aidée à apprendre, je suis fière de toi !");
 }
@@ -364,13 +404,16 @@ $("exportCsv").addEventListener("click",exportCSV);
 $("resetDay").addEventListener("click",()=>{if(confirm("Recommencer les missions ? Le temps déjà passé ne sera pas effacé.")){delete progress.done[chosen];save();closeParent();parent();render()}});
 $("backBtn").addEventListener("click",endGame);$("finishHome").addEventListener("click",()=>{show("finish",false);show("home",true);render()});
 $("nextBtn").addEventListener("click",next);
+$("carryPractice").addEventListener("click",()=>startGame("carry-bonus","Additions avec retenue","carry",1));
+$("lessonGo").addEventListener("click",()=>{if(!game)return;show("lessonGo",false);renderQuestion();startIdleWatch()});
 $("verifyWrite").addEventListener("click",compareWrite);
 $("hintWrite").addEventListener("click",giveWriteHint);
 $("retryWrite").addEventListener("click",retryWrite);
 $("gus-sound").addEventListener("click",()=>{const b=$("gus-sound"),on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",String(on));b.textContent=on?"🔔 Sons de Gus":"🔕 Sons coupés"});
 $("voiceToggle").addEventListener("click",()=>{audioSettings.voice=!audioSettings.voice;if(!audioSettings.voice)stopVoice(true);saveAudioSettings();paintAudioSettings()});
 $("musicToggle").addEventListener("click",()=>{audioSettings.music=!audioSettings.music;if(audioSettings.music)musicStart();else musicStop();saveAudioSettings();paintAudioSettings()});
-$("clearWrite").addEventListener("click",()=>{canvasStrokes=[];stroke=null;paintBoard()});
+$("clearWrite").addEventListener("click",()=>{canvasStrokes=[];stroke=null;paintBoard();markActivity()});
+$("undoWrite").addEventListener("click",()=>{if(stroke)stroke=null;else canvasStrokes.pop();paintBoard();markActivity()});
 const board=$("board");
 $("play").addEventListener("pointerdown",markActivity);$("play").addEventListener("keydown",markActivity);
 function point(e){const r=board.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
