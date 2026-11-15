@@ -362,7 +362,7 @@ function renderScratchGuide(q){
   const {a,b}=q.carryNumbers,model=document.createElement("div");
   model.className="carry-model";
   const title=document.createElement("strong");title.className="carry-guide-title";
-  title.textContent="Écris au doigt la retenue et la réponse";model.append(title);
+  title.textContent="Écris les retenues au-dessus de D ou C, jamais au-dessus de U";model.append(title);
   const row=(values,kind)=>{
    const line=document.createElement("div");line.className="carry-grid "+kind;
    for(const value of values){
@@ -376,7 +376,9 @@ function renderScratchGuide(q){
   const digits=n=>three?[n>=100?Math.floor(n/100):"",Math.floor(n/10)%10,n%10]:[Math.floor(n/10),n%10];
   if(three)model.classList.add("is-cdu");
   row(["",...(three?["C","D","U"]:["D","U"])],"carry-head");
-  row(["ret.",...Array(three?3:2).fill("□")],"carry-ret");
+  // L’espace des retenues est volontairement libre. Une retenue va vers la
+  // colonne de gauche (D puis C), jamais au-dessus de la colonne U.
+  row(["ret.",...Array(three?3:2).fill("")],"carry-ret");
   row(["",...digits(a)],"carry-first");
   row(["+",...digits(b)],"carry-second");
   row(["=",...Array(three?3:2).fill("□")],"carry-answer");
