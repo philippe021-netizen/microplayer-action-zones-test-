@@ -374,7 +374,7 @@ function renderScratchGuide(q){
    const line=document.createElement("div");line.className="carry-grid "+kind;
    for(const value of values){
     const cell=document.createElement("span");cell.textContent=String(value);
-    if(value==="□")cell.className="carry-empty";
+    if(value===""){cell.className="carry-blank";cell.setAttribute("aria-hidden","true")}
     line.append(cell);
    }
    model.append(line);
