@@ -189,3 +189,90 @@ body.playing>.app>.unified-nav{display:none}
 .numeric-answer p{margin:8px 0 0;color:#71678b;font-size:13px}
 .numeric-answer[hidden]{display:none!important}
 @media(max-width:650px){.cdu-buttons{grid-template-columns:1fr}.cdu-buttons button{min-height:61px}.cdu-feature{padding:13px}}
+
+
+/* Harmonie - ardoise grand format pour additions a trois chiffres sur iPad.
+   Isole a l'atelier add-cdu: les dictées et autres ardoises ne changent pas. */
+body.playing.addition-mode>.app{
+  width:100%;max-width:1320px;min-height:100svh;height:auto;
+  padding:6px clamp(10px,2vw,24px) 24px;
+}
+body.playing.addition-mode>.app>#play{flex:1;min-height:0}
+body.playing.addition-mode .game-card{
+  flex:1;justify-content:flex-start;overflow:visible;min-height:0;
+  padding:10px clamp(12px,1.8vw,22px) 18px;
+}
+body.playing.addition-mode .game-card>.mascot.small{display:none}
+body.playing.addition-mode .game-card .label{margin:0;font-size:clamp(13px,1.6vw,17px)}
+body.playing.addition-mode .game-card h2{
+  margin:5px auto 3px;font-size:clamp(28px,3.2vw,44px);line-height:1.08
+}
+body.playing.addition-mode .game-card .hint{
+  margin:2px auto 6px;font-size:clamp(14px,1.65vw,20px);line-height:1.25
+}
+body.playing.addition-mode #handwrite.scratch-active{gap:3px;width:100%}
+body.playing.addition-mode #handwrite.scratch-active .scratch-help{
+  font-size:clamp(14px,1.5vw,18px);line-height:1.22;margin:0 auto 4px;
+}
+body.playing.addition-mode #handwrite.scratch-active #boardBox{
+  display:block;width:100%;height:clamp(445px,54svh,620px);
+  margin:4px auto 0;border-width:10px;flex:none;
+}
+body.playing.addition-mode #boardBox .scratch-guide.is-carry{
+  inset:15px clamp(12px,2vw,26px);justify-content:flex-start;align-items:flex-start;
+}
+body.playing.addition-mode .carry-model{
+  margin-left:clamp(14px,2.5vw,35px);max-width:90%;gap:4px;
+}
+body.playing.addition-mode .carry-guide-title{
+  font-size:clamp(16px,1.8vw,23px);margin:0 0 5px;
+}
+body.playing.addition-mode .carry-model.is-cdu .carry-grid{
+  grid-template-columns:clamp(48px,5vw,64px) repeat(3,clamp(62px,6.2vw,90px));
+  column-gap:clamp(7px,1vw,16px);font-size:clamp(34px,3.8vw,52px);
+  line-height:1.08;min-height:1.12em;
+}
+body.playing.addition-mode .carry-model.is-cdu .carry-grid.carry-head{
+  font-size:clamp(18px,2vw,25px);
+}
+body.playing.addition-mode .carry-model.is-cdu .carry-grid.carry-ret{
+  font-size:clamp(22px,2.5vw,34px);
+}
+body.playing.addition-mode .carry-model.is-cdu .carry-grid.carry-ret span:first-child{
+  font-size:clamp(14px,1.6vw,19px);
+}
+body.playing.addition-mode .carry-model.is-cdu .carry-grid .carry-empty{
+  display:grid;place-items:center;min-width:1.1em;min-height:1.05em;
+}
+body.playing.addition-mode .numeric-answer{
+  width:min(100%,900px);max-width:900px;margin:12px auto 0;padding:11px 14px;
+}
+body.playing.addition-mode .numeric-answer label{
+  font-size:clamp(18px,2vw,23px);margin-bottom:6px;
+}
+body.playing.addition-mode .numeric-answer-actions{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+}
+body.playing.addition-mode .numeric-answer input{
+  width:clamp(130px,16vw,190px);min-height:60px;font-size:32px;
+}
+body.playing.addition-mode .numeric-answer button{
+  flex:0 1 390px;min-height:60px;font-size:clamp(18px,2vw,22px);
+}
+body.playing.addition-mode .numeric-answer p{display:none}
+body.playing.addition-mode .writing-actions{margin-top:8px;gap:8px}
+body.playing.addition-mode #play>.fine{display:none}
+@media(max-width:650px){
+  body.playing.addition-mode>.app{padding:6px 8px 18px}
+  body.playing.addition-mode #handwrite.scratch-active #boardBox{
+    height:clamp(420px,57svh,560px);border-width:7px;
+  }
+  body.playing.addition-mode .carry-model{margin-left:0}
+  body.playing.addition-mode .carry-model.is-cdu .carry-grid{
+    grid-template-columns:36px repeat(3,52px);
+    column-gap:5px;font-size:30px;
+  }
+  body.playing.addition-mode .numeric-answer-actions{flex-direction:row}
+  body.playing.addition-mode .numeric-answer input{min-height:55px;width:112px}
+  body.playing.addition-mode .numeric-answer button{min-height:55px;font-size:17px}
+}
