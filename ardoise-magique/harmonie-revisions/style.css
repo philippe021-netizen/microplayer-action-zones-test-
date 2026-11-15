@@ -131,3 +131,15 @@ body.playing>.app>.unified-nav{display:none}
 .poetry-feature p{margin:6px 0 0;font-size:15px;color:#69637e}
 .poetry-feature button{border:none;border-radius:14px;background:#745ace;color:white;padding:12px 18px;font-weight:850}
 @media(max-width:590px){.poetry-feature button{width:100%}}
+
+/* Urgence scolaire : récitation intégrale de la poésie du lundi. */
+.poetry-mode-actions{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 16px}
+.poetry-mode-actions button{border:2px solid #c4b7ed;border-radius:14px;background:#f6f1ff;color:#58459d;padding:12px 16px;font-weight:850}
+.poetry-mode-actions .primary{background:#7155c4;color:#fff;border-color:#7155c4}
+.poetry-exam-intro{font-size:16px;font-weight:750;line-height:1.5;color:#5c5375}
+.poetry-whole-text{white-space:pre-line;min-height:160px;padding:20px;line-height:1.55;font-size:clamp(22px,3vw,31px);font-weight:500}
+.poetry-whole-text.poetry-hidden{font-size:clamp(19px,2.4vw,25px);font-weight:800}
+#poetryFullAdult{background:#e1f8e9;color:#236747;border:2px solid #96d0aa}
+#poetryFullMic{background:#725cd0;color:#fff}
+#poetryFullTranscript{font-size:14px;color:#77708a;max-height:85px;overflow:auto}
+@media(max-width:600px){.poetry-mode-actions button{flex:1 1 100%}.poetry-whole-text{padding:13px}}
