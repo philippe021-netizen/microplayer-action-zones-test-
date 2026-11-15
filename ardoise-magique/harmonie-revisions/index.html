@@ -4,16 +4,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f9eefa">
-<title>Harmonie — Les missions des vacances</title>
+<title>Harmonie — Toutes mes missions CE1</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 <main class="app">
 <header>
   <div class="mascot" aria-hidden="true">🦄</div>
-  <div class="header-name"><h1>Les missions d’Harmonie</h1><p>De petits jeux pour apprendre en s’amusant</p></div>
+  <div class="header-name"><h1>Les missions d’Harmonie</h1><p>Une seule classe pour lire, écrire, calculer et réciter</p></div>
   <div class="header-actions"><button id="voiceToggle" type="button" aria-pressed="true">🗣️ Voix</button><button id="musicToggle" type="button" aria-pressed="true">🎵 Musique</button><button id="parentBtn" type="button">Parents ⚙️</button></div>
 </header>
+<nav class="unified-nav" id="unifiedNav" aria-label="Les ateliers d’Harmonie">
+ <button type="button" data-harmonie-view="home" class="active">Mes missions</button>
+ <button type="button" data-harmonie-view="dictation">Dictée</button>
+ <button type="button" data-harmonie-view="maths">Maths</button>
+ <button type="button" data-harmonie-view="poetry">Poésie</button>
+ <button type="button" data-harmonie-view="ardoise">Ardoise</button>
+ <button type="button" data-harmonie-view="alphabet">Alphabet</button>
+</nav>
 <section id="gus-panel" aria-label="Gus accompagne Harmonie" data-controls="false"><p>Gus est là pour t’encourager !</p><button id="gus-sound" type="button" aria-pressed="true">🔔 Sons de Gus</button></section>
 <section class="summary" aria-live="polite">
   <div><strong id="dayDisplay">Aujourd’hui</strong><p id="dayStatus">Je regarde ton planning…</p></div>
@@ -21,7 +29,7 @@
 </section>
 <section class="days" aria-label="Séances prévues" id="days"></section>
 <section id="home">
-  <div class="section-row"><h2>Les 3 aventures du jour</h2><span id="doneLabel"></span></div>
+  <div class="section-row"><h2>Mes 3 aventures du jour</h2><span id="doneLabel"></span></div>
   <div id="missions" class="missions"></div>
   <section class="carry-bonus" aria-label="Entraînement aux additions avec retenue">
     <div><span class="carry-badge">✍️ Entraînement au doigt</span>
@@ -30,7 +38,47 @@
     <button id="carryPractice" type="button">Faire des additions ➜</button>
   </section>
   <p class="fine">Trois petites missions sont prévues chaque jour. Une séance dure environ 5 à 10 minutes et s'arrête au plus tard après 30 minutes d'activité.</p>
-  <div class="old-games"><p>Retrouve aussi tes jeux préférés :</p><a href="../ardoise-magique/index.html">✍️ Ardoise magique</a><a href="../harmonie-alphabet/index.html">🦄 Défi alphabétique</a></div>
+  <div class="old-games"><p>Retrouve aussi tes jeux préférés :</p><button type="button" data-open-module="ardoise">Ardoise magique</button><button type="button" data-open-module="alphabet">Défi alphabétique</button><button type="button" data-open-module="poetry">Poésie orale</button></div>
+</section>
+<section id="practicePanel" class="unified-panel" hidden>
+ <div class="unified-panel-head"><h2 id="practiceTitle">Entraînement</h2><button type="button" id="practiceBack">Retour aux missions</button></div>
+ <p id="practiceIntro"></p><div id="practiceItems" class="practice-grid"></div>
+</section>
+<section id="moduleView" class="unified-panel module-panel" hidden>
+ <div class="unified-panel-head"><h2 id="moduleTitle">Atelier</h2><button type="button" id="moduleBack">Retour aux missions</button></div>
+ <iframe id="moduleFrame" title="Atelier d’Harmonie" loading="lazy" allow="microphone"></iframe>
+</section>
+<section id="poetryPanel" class="unified-panel poetry-panel" hidden>
+ <div class="unified-panel-head"><h2>Poésie avec la maîtresse</h2><button type="button" id="poetryBack">Retour aux missions</button></div>
+ <p class="poetry-intro">Écoute, récite à voix haute, reçois un indice si tu bloques et passe au vers suivant.</p>
+ <div id="poetrySetup" class="poetry-setup">
+  <h3>Parents : préparer la poésie</h3>
+  <label for="poetryTitleInput">Titre</label><input id="poetryTitleInput" type="text" value="Le monstre" maxlength="100">
+  <label for="poetryTextInput">Texte exact, un vers par ligne</label><textarea id="poetryTextInput" rows="8" maxlength="6000" placeholder="Collez ici le texte exact de la poésie donnée par la maîtresse."></textarea>
+  <button id="poetrySave" type="button" class="primary">Enregistrer la poésie et commencer</button>
+  <p class="fine">Le texte reste sur cet appareil. Sans le texte exact, le programme n’invente pas la poésie.</p>
+ </div>
+ <div id="poetryExercise" hidden>
+  <div class="poetry-top"><h3 id="poetryTitle">Le monstre</h3><span id="poetryStep"></span></div>
+  <div class="progress poetry-progress"><div id="poetryProgressBar"></div></div><p id="poetryProgressLabel" class="poetry-count"></p>
+  <div class="poetry-line" id="poetryLine">Écoute, puis récite.</div>
+  <p id="poetryTranscript" hidden aria-live="polite"></p>
+  <div class="poetry-actions">
+   <button id="poetryListen" type="button">Écouter la maîtresse</button>
+   <button id="poetryMic" type="button">Je récite ce vers</button>
+   <button id="poetryHint" type="button">Un indice</button>
+   <button id="poetryReveal" type="button">Voir le vers</button>
+  </div>
+  <div class="poetry-actions">
+   <button id="poetryPrevious" type="button">Vers précédent</button>
+   <button id="poetryAdult" type="button">Un adulte confirme ma récitation</button>
+   <button id="poetryNext" type="button" class="primary">Vers suivant</button>
+  </div>
+  <p id="poetryMicNote" class="fine"></p>
+  <div class="poetry-actions secondary"><button id="poetryRestart" type="button">Recommencer la poésie</button><button id="poetryEdit" type="button">Modifier le texte (parents)</button></div>
+ </div>
+ <p id="poetryStatus" class="poetry-setup-status" role="status" aria-live="polite"></p>
+ <p class="fine">L’écoute vocale peut transmettre la parole au service de reconnaissance du navigateur. Le programme ne conserve ni audio ni transcription. Un adulte peut valider sans microphone.</p>
 </section>
 <section id="play" hidden>
   <div class="game-head">
@@ -70,7 +118,7 @@
 </section>
 <dialog id="parentDialog">
   <div class="dialog-head"><h2>Le tableau de bord parent</h2><button id="closeParent" aria-label="Fermer">✕</button></div>
-  <p>Les résultats restent sur cet appareil, dans ce navigateur. Aucune donnée n'est envoyée à un serveur.</p>
+  <p>Les résultats restent sur cet appareil. L’analyse de l’écriture et de la voix peut utiliser des services externes ; aucun enregistrement audio n’est conservé dans le tableau de bord.</p>
   <div id="parentStats" class="stats"></div>
   <div class="buttons"><button id="exportCsv">Exporter les progrès (CSV)</button><button id="resetDay">Réinitialiser les missions du jour</button></div>
   <p class="fine">Le temps consommé reste comptabilisé après réinitialisation pour respecter la limite de 30 minutes.</p>
@@ -81,4 +129,5 @@
 <script src="../gus_media/integration.js" defer></script>
 <script src="./data.js"></script>
 <script src="./app.js"></script>
+<script src="./poetry.js"></script>
 </body></html>
