@@ -45,7 +45,7 @@ window.HARMONIE_DATA = Object.freeze({
     "2026-11-15": [["Le monstre — récitation intégrale pour lundi","poetry",1],["Contrôle de dictée — son eu (pour lundi)","dictation-eu",2],["Compléments à 100 — découvrir","hundred",1]],
     "2026-11-16": [["Contrôle de dictée — son eu","dictation-eu",2],["Le monstre — dernière répétition avant l’école","poetry",1],["Compléments à 100 — s’entraîner","hundred",2]],
     "2026-11-17": [["Contrôle dictée — marches 1 et 2","dictation-o",3],["Compléments à 100 — mini-évaluation","hundred",3],["Additions à 3 chiffres","add-cdu",1]],
-    "2026-11-18": [["Contrôle du son o — marches 1 et 2","dictation-o",3],["Compléments à 100 — révision","hundred",3],["Additions CDU + DU","add-cdu",1]],
+    "2026-11-18": [["Contrôle du son o — marches 1 et 2","dictation-o",3],["Compléments à 100 — révision","hundred",3],["Additions DU + CDU","add-cdu",2]],
     "2026-11-19": [["Mots du son o — marches 2 et 3","spell-o",3],["Révision des compléments à 100","hundred",3],["Dictée du son o — contrôle","dictation-o",3]],
     "2026-11-20": [["Mots du son o — marche 3","spell-o",3],["Contrôle dictée — son o","dictation-o",3],["Compléments à 100 — après l’évaluation","hundred",3]],
     "2026-10-18": [["Lecture du son u","read-u",1],["Les dizaines et unités","tens",1],["La machine à remonter le temps","time",1]],
