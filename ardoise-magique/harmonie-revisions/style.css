@@ -125,3 +125,9 @@ body.playing>.app>.unified-nav{display:none}
  .poetry-actions button{flex:1 1 150px}
  .carry-model.is-cdu .carry-grid{grid-template-columns:26px repeat(3,37px);font-size:23px}
 }
+
+.poetry-feature{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;background:#fff;border:2px solid #e5d8fc;border-radius:19px;margin:16px 0;padding:15px 18px}
+.poetry-feature strong{font-size:19px;color:#504386}
+.poetry-feature p{margin:6px 0 0;font-size:15px;color:#69637e}
+.poetry-feature button{border:none;border-radius:14px;background:#745ace;color:white;padding:12px 18px;font-weight:850}
+@media(max-width:590px){.poetry-feature button{width:100%}}
