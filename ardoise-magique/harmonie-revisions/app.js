@@ -91,12 +91,12 @@ const visibleDays=()=>Object.keys(D.schedule).filter(d=>d>="2026-11-15").sort();
 const fullDate=d=>new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
 const capital=s=>s.replace(/^./,c=>c.toLocaleUpperCase("fr"));
 function available(){return Boolean(D.schedule[chosen])}
-function seconds(){return Math.min(MAX,progress.spent[currentDay()]||0)}
-function addSeconds(s){if(!available()||s<=0)return;const day=currentDay();progress.spent[day]=Math.min(MAX,(progress.spent[day]||0)+s);save();paintClock();if(seconds()>=MAX&&(game||activeModule))stopForDay()}
+function seconds(){return Math.max(0,progress.spent[currentDay()]||0)}
+function addSeconds(s){if(!available()||s<=0)return;const day=currentDay();progress.spent[day]=(progress.spent[day]||0)+s;save();paintClock()}
 function startTimer(){stopTimer();lastTick=Date.now();ticker=setInterval(()=>{if(document.hidden)return;if(!available()){endGame();return}const now=Date.now(),delta=Math.min(2,Math.max(0,Math.floor((now-lastTick)/1000)));if(delta){lastTick=now;addSeconds(delta)}},1000)}
 function stopTimer(){if(ticker){clearInterval(ticker);ticker=null}const previous=lastTick;lastTick=0;if(previous&&(game||activeModule)&&!document.hidden){const delta=Math.min(2,Math.max(0,Math.floor((Date.now()-previous)/1000)));if(delta)addSeconds(delta)}}
 document.addEventListener("visibilitychange",()=>{if(document.hidden){stopTimer()}else if(game){startTimer();markActivity()}});
-function paintClock(){$("clock").textContent=Math.ceil(seconds()/60)+" / 30 min";$("clock").style.color=seconds()>=MAX?"#a52d45":""}
+function paintClock(){$("clock").textContent=Math.ceil(seconds()/60)+" min · pause conseillée à 30 min";$("clock").style.color=seconds()>=MAX?"#a52d45":""}
 function complete(m){if(!(progress.done[chosen]||[]).includes(m)){(progress.done[chosen]||=([])).push(m)}save()}
 function isDone(m){return (progress.done[chosen]||[]).includes(m)}
 function show(el,yes){$(el).hidden=!yes}
@@ -131,14 +131,14 @@ function render(){
   "2026-11-19":"Réviser les compléments à 100 et les mots du son « o » avant vendredi.",
   "2026-11-20":"Évaluation des compléments à 100 et révision des mots du son « o »."
  };
- $("dayStatus").textContent=seconds()>=MAX?"30 minutes terminées aujourd’hui : place au repos !":dayMessages[chosen]||(isFuture?"Les missions de cette date sont accessibles dès maintenant.":"Tu peux reprendre tes missions.");
+ $("dayStatus").textContent=seconds()>=MAX?"30 minutes de révision : une pause est conseillée. Tous les jeux restent accessibles.":dayMessages[chosen]||(isFuture?"Les missions de cette date sont accessibles dès maintenant.":"Tu peux reprendre tes missions.");
  const host=$("missions");host.replaceChildren();const list=D.schedule[chosen]||[];
  $("doneLabel").textContent=(progress.done[chosen]||[]).length+" / "+list.length+" réussies";
- $("carryPractice").disabled=seconds()>=MAX;
- $("quickDictationEu").disabled=seconds()>=MAX;
- $("quickPoetry").disabled=seconds()>=MAX;
+ $("carryPractice").disabled=false;
+ $("quickDictationEu").disabled=false;
+ $("quickPoetry").disabled=false;
  list.forEach(([title,type,level],i)=>{const c=document.createElement("article");c.className="mission"+(isDone(i)?" done":"");
- const b=document.createElement("button");b.textContent=isDone(i)?"Rejouer ✓":"Jouer ➜";b.disabled=!available()||seconds()>=MAX;
+ const b=document.createElement("button");b.textContent=isDone(i)?"Rejouer ✓":"Jouer ➜";b.disabled=!available();
  const tag=document.createElement("span");tag.className="number";tag.textContent="Mission "+(i+1);
  const h=document.createElement("h3");h.textContent=title;
  const p=document.createElement("p");p.textContent=type==="poetry"?"Récite les 15 vers sans regarder, comme devant la maîtresse.":type.startsWith("dictation")?"Écoute sans voir le mot, écris sur le tableau puis découvre la correction.":type==="hundred"?"Trouve le nombre qui manque pour faire exactement 100.":(type.startsWith("write")||type.startsWith("spell"))?"Observe le mot pendant 3 secondes, puis écris-le avec ton doigt sur l’ardoise.":"5 à 10 minutes de jeu tranquille.";
@@ -208,12 +208,18 @@ function generate(type,level){
  return pairs.map(([a,b])=>{const answer=a-b;return {...item(a+" − "+b+" = ?",answer,[answer,answer+10,answer-2,answer+2],"Pour soustraire en passant par la dizaine, enlève d’abord juste ce qu’il faut pour atteindre la dizaine inférieure. Puis enlève le reste.","Soustraire en passant par la dizaine"),scratchpad:true,scratchRows:[a+" − ____ = ____","____ − ____ = ____"]}});
  }
  if(type==="add-cdu"){
-  const pairs=[[127,47],[49,129],[131,122],[156,78],[238,156],[209,81]];
-  return shuffled(pairs).map(([a,b])=>{
+  // Trois présentations scolaires. On n'affiche aucune proposition de résultat avant validation.
+  const groups={
+    1:{label:"CDU + DU (3 chiffres + 2)",pairs:[[127,47],[156,78],[238,56],[131,22],[214,65],[305,87]]},
+    2:{label:"DU + CDU (2 chiffres + 3)",pairs:[[49,129],[47,127],[75,236],[21,154],[68,217],[34,465]]},
+    3:{label:"CDU + CDU (3 chiffres + 3)",pairs:[[131,122],[238,156],[409,187],[274,315],[357,268],[142,346]]}
+  };
+  const group=groups[level]||groups[1];
+  return shuffled(group.pairs).map(([a,b])=>{
    const answer=a+b;
-   return {...item(a+" + "+b+" = ?",answer,[answer,answer+10,answer-10,answer+100].filter(x=>x>=0),
-    "Aligne centaines, dizaines et unités. Si une colonne atteint 10, reporte la retenue.",
-    "Additions CDU + DU ou CDU + CDU"),scratchpad:true,carryNumbers:{a,b}};
+   return {...item(a+" + "+b+" = ?",answer,[],
+    "Aligne les centaines, les dizaines et les unités. Commence par les unités ; pense à la retenue si nécessaire.",
+    group.label),numeric:true,scratchpad:true,carryNumbers:{a,b}};
   });
  }
  if(type==="carry"){
@@ -251,8 +257,8 @@ function mathLesson(type){
 function gameLesson(type,level){
  if(type==="add-cdu")return {
   audio:null,
-  text:"Pour une addition à trois chiffres, aligne les centaines, les dizaines et les unités. Commence par les unités, reporte une retenue si nécessaire.",
-  cards:["127 + 47","7 + 7 = 14 : j’écris 4, je retiens 1","2 dizaines + 4 dizaines + 1 retenue = 7","1 centaine reste dans sa colonne","127 + 47 = 174"]
+  text:"Aligne bien les centaines (C), les dizaines (D) et les unités (U). Tu peux poser les nombres au doigt sur le tableau. Le résultat ne sera montré qu’après ta validation.",
+  cards:["Exemple : 142 + 26","Unités : 2 + 6 = 8","Dizaines : 4 + 2 = 6","Centaines : 1","142 + 26 = 168"]
  };
  if(type==="carry")return {
   audio:null,
@@ -293,7 +299,7 @@ function renderLessonVisual(lesson){
  window.GusMedia?.present?.();
 }
 function startGame(id,title,type,level){
- if(!available()||seconds()>=MAX)return;
+ if(!available())return;
  const questions=generate(type,level);
  if(!questions.length)return;
  game={id,title,type,questions,pos:0,mistakes:0,correct:0,wrongOnCurrent:false,solved:false,writeTimer:null,hintLevel:0,hintTimer:null};
@@ -317,14 +323,16 @@ function renderQuestion(){
  $("question").textContent=q.prompt;$("hint").textContent=q.hint;$("feedback").textContent="";
  $("boardBox").classList.remove("wrong-answer");show("retryWrite",false);show("hintWrite",false);show("writeHint",false);$("writeHint").textContent="";
  $("bar").style.width=(game.pos/game.questions.length*100)+"%";$("count").textContent=(game.pos+1)+" / "+game.questions.length;
- show("nextBtn",false);show("handwrite",q.mode==="write"||q.mode==="dictation"||Boolean(q.scratchpad));
+ show("nextBtn",false);show("numberAnswer",Boolean(q.numeric));
+ if(q.numeric){$("answerValue").value="";$("answerValue").disabled=false;$("checkNumber").disabled=false}
+ show("handwrite",q.mode==="write"||q.mode==="dictation"||Boolean(q.scratchpad));
  show("dictationControls",q.mode==="dictation");show("dictationManual",false);
  $("retryWrite").textContent="Réécrire le mot";
  $("handwrite").classList.toggle("scratch-active",Boolean(q.scratchpad));show("scratchHelp",Boolean(q.scratchpad));
  renderScratchGuide(q);
  show("numberLine",Boolean(q.numberLine));if(q.numberLine)drawNumberLine(q.numberLine);
  $("choices").replaceChildren();
- if(q.mode==="choice"){
+ if(q.mode==="choice"&&!q.numeric){
  q.options.forEach(option=>{const b=document.createElement("button");b.textContent=option;
  b.addEventListener("click",()=>choose(b,option,q));$("choices").appendChild(b)});
  }
@@ -362,7 +370,7 @@ function renderScratchGuide(q){
    model.append(line);
   };
   const three=a>=100||b>=100;
-  const digits=n=>three?[Math.floor(n/100),Math.floor(n/10)%10,n%10]:[Math.floor(n/10),n%10];
+  const digits=n=>three?[n>=100?Math.floor(n/100):"",Math.floor(n/10)%10,n%10]:[Math.floor(n/10),n%10];
   if(three)model.classList.add("is-cdu");
   row(["",...(three?["C","D","U"]:["D","U"])],"carry-head");
   row(["ret.",...Array(three?3:2).fill("□")],"carry-ret");
@@ -388,6 +396,26 @@ function drawNumberLine({min,max}){
  for(let n=min;n<=max;n++){const tick=document.createElement("span");tick.className="number-tick"+(n%10===0?" decade":"");const mark=document.createElement("i");tick.appendChild(mark);if(n%10===0){const label=document.createElement("small");label.textContent=n;tick.appendChild(label)}line.appendChild(tick)}
 }
 function succeed(text){if(!game||game.solved)return;game.solved=true;game.correct++;markActivity();stopGusMoments();$("feedback").textContent=text||"Bravo Harmonie, tu as trouvé !";show("nextBtn",true);window.GusMedia?.playCorrect();}
+function checkNumberAnswer(){
+ if(!game||game.solved)return;
+ const q=game.questions[game.pos];if(!q?.numeric)return;
+ const raw=$("answerValue").value.trim();
+ if(!/^\\d{1,4}$/.test(raw)){
+  $("feedback").textContent="Écris le résultat de ton addition dans la case, puis appuie sur Valider.";
+  return;
+ }
+ markActivity();
+ const answer=Number(raw);
+ if(answer===q.answer){
+  $("answerValue").disabled=true;$("checkNumber").disabled=true;
+  succeed("Bravo ! "+q.prompt.replace(" = ?","")+" = "+q.answer+".");
+ }else{
+  game.mistakes++;game.wrongOnCurrent=true;
+  $("feedback").textContent="Ce n’est pas encore le bon résultat. Recompte les unités, les dizaines et les centaines.";
+  $("answerValue").focus();
+  $("answerValue").select();
+ }
+}
 function choose(button,selected,q){
  if(!game||game.solved)return;
  if(clean(selected)===clean(q.answer)){
@@ -619,7 +647,7 @@ function showHome(){
  $("gus-panel").hidden=false;selectView("home");render();
 }
 function openModule(kind){
- if(!["ardoise","alphabet","poetry"].includes(kind)||seconds()>=MAX)return;
+ if(!["ardoise","alphabet","poetry"].includes(kind))return;
  if(game)endGame();if(activeModule)closeModule();
  practiceSource=null;hideAllViews();
  show("days",false);show("summary",true);$("gus-panel").hidden=true;
@@ -634,7 +662,7 @@ function openModule(kind){
  startTimer();
 }
 function openPracticePanel(kind){
- if(!["dictation","maths"].includes(kind)||seconds()>=MAX)return;
+ if(!["dictation","maths"].includes(kind))return;
  if(game)endGame();if(activeModule)closeModule();
  practiceSource=kind;hideAllViews();show("practicePanel",true);show("days",false);show("summary",true);
  $("gus-panel").hidden=true;selectView(kind);
@@ -643,8 +671,8 @@ function openPracticePanel(kind){
    ["Contrôle du son o — marches 1 à 3","dictation-o",3],["Dictée du son eu","dictation-eu",2],
    ["Dictée du son ou","dictation-ou",2],["Dictée du son u","dictation-u",2]]:
   [["Compléments à 100 — dizaines","hundred",1],["Compléments à 100 — niveau 2","hundred",2],
-   ["Compléments à 100 — contrôle","hundred",3],["Additions à 3 chiffres","add-cdu",1],
-   ["Additions avec retenue","carry",1],["Soustractions","subtract",2]];
+   ["Compléments à 100 — contrôle","hundred",3],["CDU + DU","add-cdu",1],
+   ["DU + CDU","add-cdu",2],["CDU + CDU","add-cdu",3],["Additions avec retenue","carry",1],["Soustractions","subtract",2]];
  $("practiceTitle").textContent=kind==="dictation"?"Contrôle de dictée":"Atelier de mathématiques";
  $("practiceIntro").textContent=kind==="dictation"?
   "La maîtresse dicte, tu écris sur le tableau, puis tu découvres le bon mot seulement après validation.":
@@ -696,6 +724,14 @@ $("nextBtn").addEventListener("click",next);
 $("replayDictation").addEventListener("click",()=>{markActivity();speakDictation(true)});
 $("dictationManual").addEventListener("click",acceptDictationManually);
 $("carryPractice").addEventListener("click",()=>startGame("carry-bonus","Additions avec retenue","carry",1));
+document.querySelectorAll("[data-add-cdu]").forEach(b=>b.addEventListener("click",()=>{
+ const level=Number(b.dataset.addCdu);
+ const names={1:"CDU + DU",2:"DU + CDU",3:"CDU + CDU"};
+ practiceSource=null;startGame("addition-cdu-"+level,"Additions à trois chiffres — "+names[level],"add-cdu",level);
+}));
+$("checkNumber").addEventListener("click",checkNumberAnswer);
+$("answerValue").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();checkNumberAnswer()}});
+
 $("quickDictationEu").addEventListener("click",()=>{
  const list=D.schedule[chosen]||[];
  const i=list.findIndex(m=>m[1]==="dictation-eu");
@@ -723,6 +759,6 @@ window.addEventListener("pagehide",()=>{if(game||activeModule)stopTimer()});
 paintAudioSettings();
 if(!D.schedule[chosen]){const days=Object.keys(D.schedule).sort();chosen=days.find(d=>d>=chosen)||days[days.length-1]}
 render();
-if(window.location.hash==="#additions" && seconds()<MAX)startGame("carry-bonus","Additions avec retenue","carry",1);
-if(window.location.hash==="#dictee-eu" && seconds()<MAX)startGame("dictation-eu-direct","Contrôle de dictée — son eu","dictation-eu",2);
+if(window.location.hash==="#additions")startGame("carry-bonus","Additions avec retenue","carry",1);
+if(window.location.hash==="#dictee-eu")startGame("dictation-eu-direct","Contrôle de dictée — son eu","dictation-eu",2);
 })();
