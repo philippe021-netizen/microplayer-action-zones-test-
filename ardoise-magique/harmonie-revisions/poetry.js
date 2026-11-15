@@ -5,7 +5,7 @@
  const STORE="harmonie-poesie-v1";
  const DEFAULT_TEXT="J’ai dessiné\nUn monstre affreux\nAvec des bosses\nAvec des creux\nDes racines\nDes antennes\nDes rustines\nDes mitaines\nUn œil vert\nSans paupière\net trois pieds\nSans souliers\nQuand il m’a regardé\nJ’ai voulu le gommer\nMais il s’est échappé.";
  const GROUPS=[[0,3],[4,7],[8,11],[12,14]];
- let model={title:"Le monstre",text:DEFAULT_TEXT,passed:[],completedAt:null,fullPassedAt:null};
+ let model={title:"Le monstre",text:DEFAULT_TEXT,passed:[],completedAt:null,fullPassedAt:null,lastFullRecordDate:null};
  let lines=[],position=0,recognizer=null,listening=false,revealed=false,started=false,completedThisRound=false;
  let fullMode=true,fullHintCount=0,fullListening=false,fullTranscript="",fullUncovered=false;
  const frenchVoices=["audrey","amélie","amelie","marie","denise","julie","léa","lea","hortense","céline","celine","virginie","alice","claire","camille","chloé"];
@@ -19,6 +19,7 @@
    if(Array.isArray(state.passed))model.passed=state.passed.filter(Number.isInteger).slice(0,120);
    if(typeof state.completedAt==="string")model.completedAt=state.completedAt;
    if(typeof state.fullPassedAt==="string")model.fullPassedAt=state.fullPassedAt;
+   if(typeof state.lastFullRecordDate==="string")model.lastFullRecordDate=state.lastFullRecordDate;
   }catch{}
   lines=model.text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,120);
   if(!model.text.trim())model.text=DEFAULT_TEXT;
@@ -84,10 +85,11 @@ function resetFull({keepMode=false}={}){
   render();
 }
 function fullSuccess(manual=false){
-  const first=!model.fullPassedAt;
-  model.fullPassedAt=new Date().toISOString();save();
+  const localDay=new Date().toLocaleDateString("sv-SE",{timeZone:"Europe/Paris"});
+  const firstToday=model.lastFullRecordDate!==localDay;
+  model.fullPassedAt=new Date().toISOString();model.lastFullRecordDate=localDay;save();
   fullListening=false;fullUncovered=false;
-  if(first)window.dispatchEvent(new CustomEvent("harmonie:poetry-finished",{
+  if(firstToday)window.dispatchEvent(new CustomEvent("harmonie:poetry-finished",{
     detail:{title:model.title,count:lines.length,stars:lines.length,full:true}
   }));
   status(manual?"Bravo Harmonie ! Tu as récité toute la poésie avec un adulte.":
@@ -96,7 +98,7 @@ function fullSuccess(manual=false){
 }
 function listenFull(){
   if(!ASR||!lines.length||fullListening)return;
-  stop();fullListening=true;fullTranscript="";renderFull();
+  stop();fullListening=true;fullUncovered=false;fullTranscript="";renderFull();
   status("Je t’écoute, Harmonie. Commence au premier vers et va jusqu’à la fin.");
   const expected=lines.join(" "),atText=model.text;
   let recognition;
@@ -215,7 +217,7 @@ function showEditor(){
   }
   const changed=text!==model.text||title!==model.title;
   model.text=text.slice(0,6000);model.title=title.slice(0,100);
-  if(changed){model.passed=[];model.completedAt=null;model.fullPassedAt=null;completedThisRound=false}
+  if(changed){model.passed=[];model.completedAt=null;model.fullPassedAt=null;model.lastFullRecordDate=null;completedThisRound=false}
   save();lines=model.text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,120);
   position=0;revealed=false;started=true;fullMode=true;clearTranscript();
   resetFull();
