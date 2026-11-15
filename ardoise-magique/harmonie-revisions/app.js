@@ -406,7 +406,7 @@ function checkNumberAnswer(){
  }
  markActivity();
  const answer=Number(raw);
- if(answer===q.answer){
+ if(answer===Number(q.answer)){
   $("answerValue").disabled=true;$("checkNumber").disabled=true;
   succeed("Bravo ! "+q.prompt.replace(" = ?","")+" = "+q.answer+".");
  }else{
