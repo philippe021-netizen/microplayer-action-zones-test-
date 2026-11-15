@@ -88,12 +88,13 @@
  }
  function newLine(i){stop();position=Math.max(0,Math.min(i,lines.length-1));revealed=false;clearTranscript();status("Écoute la maîtresse ou récite le vers de mémoire.");render()}
  function success(manual=false){
+  const wasComplete=model.passed.length===lines.length;
   model.passed=[...new Set([...model.passed,position])].sort((a,b)=>a-b);
-  save();completedThisRound=true;
+  save();
   $("poetryLine").textContent=lines[position];$("poetryLine").classList.remove("poetry-hidden");revealed=true;
   $("poetryReveal").textContent="Cacher le vers";
   status(manual?"Bien récité ! Vérification faite avec un adulte.":"Très bien Harmonie ! Tu as retrouvé le vers.");
-  if(model.passed.length===lines.length){
+  if(model.passed.length===lines.length&&!wasComplete){
    model.completedAt=new Date().toISOString();save();
    window.dispatchEvent(new CustomEvent("harmonie:poetry-finished",{detail:{title:model.title,count:lines.length,stars:lines.length}}));
    status("Poésie terminée ! Tu as récité tous les vers. Bravo Harmonie !");
@@ -134,7 +135,7 @@
   }
   const changed=text!==model.text||title!==model.title;
   model.text=text.slice(0,6000);model.title=title.slice(0,100);
-  if(changed){model.passed=[];model.completedAt=null}
+  if(changed){model.passed=[];model.completedAt=null;completedThisRound=false}
   save();lines=model.text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,120);
   position=0;revealed=false;started=true;clearTranscript();
   status("La poésie est prête. Écoute puis récite chaque vers.");render();
@@ -151,7 +152,7 @@
  $("poetryAdult").addEventListener("click",()=>{if(lines.length)success(true)});
  $("poetryPrevious").addEventListener("click",()=>newLine(position-1));
  $("poetryNext").addEventListener("click",()=>newLine(position+1));
- $("poetryRestart").addEventListener("click",()=>{model.passed=[];model.completedAt=null;save();newLine(0)});
+ $("poetryRestart").addEventListener("click",()=>{model.passed=[];model.completedAt=null;completedThisRound=false;save();newLine(0)});
  load();render();
  window.HarmoniePoetry={open:()=>{started=true;render()},stop,get isListening(){return listening}};
 })();
