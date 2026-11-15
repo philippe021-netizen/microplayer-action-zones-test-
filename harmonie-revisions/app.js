@@ -303,7 +303,7 @@ function startGame(id,title,type,level){
  const questions=generate(type,level);
  if(!questions.length)return;
  game={id,title,type,questions,pos:0,mistakes:0,correct:0,wrongOnCurrent:false,solved:false,writeTimer:null,hintLevel:0,hintTimer:null};
- document.body.classList.add("playing");$("gameName").textContent=title;show("home",false);show("finish",false);show("play",true);window.scrollTo({top:0,behavior:"smooth"});
+ document.body.classList.add("playing");document.body.classList.toggle("addition-mode",type==="add-cdu");$("gameName").textContent=title;show("home",false);show("finish",false);show("play",true);window.scrollTo({top:0,behavior:"smooth"});
  clearInterval(lessonTimer);window.GusMedia?.stop?.();$("question").textContent="";$("promptType").textContent=title;$("hint").textContent="";$("feedback").textContent="";$("choices").replaceChildren();
  show("numberLine",false);show("handwrite",false);show("nextBtn",false);show("lessonVisual",false);show("lessonGo",false);show("retryWrite",false);show("hintWrite",false);show("writeHint",false);show("boardBox",false);show("clearWrite",false);show("undoWrite",false);show("verifyWrite",false);
  startTimer();musicStart();
@@ -327,6 +327,9 @@ function renderQuestion(){
  if(q.numeric){$("answerValue").value="";$("answerValue").disabled=false;$("checkNumber").disabled=false}
  show("handwrite",q.mode==="write"||q.mode==="dictation"||Boolean(q.scratchpad));
  show("dictationControls",q.mode==="dictation");show("dictationManual",false);
+ $("scratchHelp").textContent=q.numeric?
+  "Écris la retenue et ton calcul sur la grande ardoise, puis valide le résultat sous le tableau.":
+  "Pose tes calculs ici avec ton doigt ou le Pencil.";
  $("retryWrite").textContent="Réécrire le mot";
  $("handwrite").classList.toggle("scratch-active",Boolean(q.scratchpad));show("scratchHelp",Boolean(q.scratchpad));
  renderScratchGuide(q);
@@ -595,7 +598,7 @@ function next(){
  show("home",false);show("finish",true);window.GusMedia?.playFinish?.();say("Bravo Harmonie ! Tu as terminé ta mission. Chaque essai t’a aidée à apprendre, je suis fière de toi !");
 }
 function endGame(){
- stopDictation();document.body.classList.remove("playing");
+ stopDictation();document.body.classList.remove("playing","addition-mode");
  clearInterval(lessonTimer);lessonTimer=null;
  if(!game){show("play",false);show("home",true);return}
  const t=game.writeTimer,f=game.writeFallback,h=game.hintTimer;game.writeTimer=null;game.writeFallback=null;game.hintTimer=null;if(t)clearTimeout(t);if(f)clearTimeout(f);if(h)clearTimeout(h);
@@ -606,7 +609,7 @@ function stopForDay(){
  stopDictation(); // Atteinte de la limite : pas de nouveau jeu ni de question suivante.
  clearInterval(lessonTimer);lessonTimer=null;
  const t=game?.writeTimer,f=game?.writeFallback,h=game?.hintTimer;if(t)clearTimeout(t);if(f)clearTimeout(f);if(h)clearTimeout(h);
- game=null;document.body.classList.remove("playing");stopTimer();stopIdleWatch();stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("finish",false);show("home",true);render();
+ game=null;document.body.classList.remove("playing","addition-mode");stopTimer();stopIdleWatch();stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("finish",false);show("home",true);render();
  $("dayStatus").textContent="30 minutes terminées : bravo, repose-toi maintenant !";
 }
 function exportCSV(){
