@@ -178,7 +178,7 @@ body.playing>.app>.unified-nav{display:none}
 .cdu-feature{background:#fff;border:2px solid #c6b1ed;border-radius:22px;margin:18px 0;padding:18px;box-shadow:0 7px 18px #7768a51c}
 .cdu-feature h2{font-size:clamp(21px,2.8vw,27px);margin:0 0 5px;color:#4d407c}
 .cdu-feature p{margin:3px 0 13px;color:#69627e;line-height:1.5}
-.cdu-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.cdu-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .cdu-buttons button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:78px;border-radius:15px;border:2px solid #b9a5e9;background:#f1ecff;color:#504084;font-weight:850;font-size:19px;text-align:center;padding:10px}
 .cdu-buttons button small{font-size:13px;font-weight:650;color:#615780}
 .numeric-answer{border:2px solid #c4b1f0;border-radius:18px;background:#f9f6ff;padding:13px;margin:12px auto;max-width:460px}
