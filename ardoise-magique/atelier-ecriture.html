@@ -256,7 +256,10 @@ $('lessonForm').onsubmit=e=>{
 function setAudio(key){setting[key]=!setting[key];if(key==='music'&&!setting.music)musicStop();if(key==='music'&&setting.music)musicStart();if(key==='voice'&&!setting.voice&&window.speechSynthesis)speechSynthesis.cancel();refreshToggles();saveProgress()}
 $('guideToggle').onclick=()=>{setting.guide=!setting.guide;$('guide').classList.toggle('hidden',!setting.guide);$('guideToggle').textContent=setting.guide?'≡ Lignage':'≡ Sans lignes';saveProgress()};
 $('musicToggle').onclick=()=>setAudio('music');$('voiceToggle').onclick=()=>setAudio('voice');$('soundToggle').onclick=()=>setAudio('sounds');
-$('backAlphabet').onclick=()=>location.href=ALPHABET_URL;
+$('backAlphabet').onclick=()=>{
+ if(window.parent!==window)window.parent.postMessage({kind:"harmonie:open-module",module:"alphabet"},window.location.origin);
+ else location.href=ALPHABET_URL;
+};
 $('parentGate').setAttribute('title','Maintenir une seconde pour les parents');
 $('lessonForm').addEventListener('input',()=>{if($('letterInput').value&&$('titleInput').value==='Les mots en S')$('titleInput').value='Les mots en '+$('letterInput').value.toLocaleUpperCase('fr')});
 mountMascots();readSetting();loadLessons();window.addEventListener('pagehide',()=>{musicStop();if(window.speechSynthesis)speechSynthesis.cancel()});
