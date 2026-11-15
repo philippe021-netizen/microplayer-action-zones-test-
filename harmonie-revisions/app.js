@@ -86,6 +86,10 @@ function readProgress(){try {const x=JSON.parse(localStorage.getItem(KEY)||"{}")
 function save(){try{localStorage.setItem(KEY,JSON.stringify(progress))}catch{}}
 function currentDay(){const p=Object.fromEntries(new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Paris",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()).map(x=>[x.type,x.value]));return p.year+"-"+p.month+"-"+p.day}
 const frDay=d=>new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
+// Garder les anciens exercices en mémoire, mais masquer les journées dépassées du ruban.
+const visibleDays=()=>Object.keys(D.schedule).filter(d=>d>="2026-11-15").sort();
+const fullDate=d=>new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+const capital=s=>s.replace(/^./,c=>c.toLocaleUpperCase("fr"));
 function available(){return Boolean(D.schedule[chosen])}
 function seconds(){return Math.min(MAX,progress.spent[currentDay()]||0)}
 function addSeconds(s){if(!available()||s<=0)return;const day=currentDay();progress.spent[day]=Math.min(MAX,(progress.spent[day]||0)+s);save();paintClock();if(seconds()>=MAX&&(game||activeModule))stopForDay()}
@@ -98,17 +102,41 @@ function isDone(m){return (progress.done[chosen]||[]).includes(m)}
 function show(el,yes){$(el).hidden=!yes}
 function renderDays(){
  const host=$("days");host.replaceChildren();
- Object.keys(D.schedule).sort().forEach(d=>{const b=document.createElement("button");b.className="day"+(d===chosen?" active":"")+(d===currentDay()?" today":"");b.type="button";b.innerHTML="<strong>"+frDay(d)+"</strong><span>"+((progress.done[d]||[]).length)+"/3 jeux</span>";b.addEventListener("click",()=>{if(game)endGame();chosen=d;render()});host.appendChild(b)});
+ const today=currentDay();
+ for(const d of visibleDays()){
+  const b=document.createElement("button");
+  b.type="button";b.className="day"+(d===chosen?" active":"")+(d===today?" today":"");
+  b.setAttribute("aria-label",fullDate(d)+(d===today?", aujourd’hui":"")+", "+(progress.done[d]||[]).length+" missions terminées");
+  const weekday=document.createElement("strong");
+  weekday.textContent=capital(new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long"}));
+  const date=document.createElement("span");date.className="day-date";
+  date.textContent=new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
+  const done=document.createElement("small");done.className="day-count";
+  done.textContent=d===today?"Aujourd’hui · "+(progress.done[d]||[]).length+"/3":(progress.done[d]||[]).length+"/3 missions";
+  b.append(weekday,date,done);
+  b.addEventListener("click",()=>{if(game)endGame();chosen=d;render()});
+  host.appendChild(b);
+ }
  requestAnimationFrame(()=>host.querySelector(".day.active")?.scrollIntoView({block:"nearest",inline:"center"}));
 }
 function render(){
  paintClock();renderDays();
- $("dayDisplay").textContent=frDay(chosen).replace(/^./,c=>c.toUpperCase());
  const isToday=chosen===currentDay(),isFuture=chosen>currentDay();
- $("dayStatus").textContent=!D.schedule[chosen]?"Aucune mission n’est prévue ce jour.":seconds()>=MAX?"30 minutes d’activité atteintes aujourd’hui : place au repos !":isToday?"Tes missions du jour sont prêtes !":isFuture?"Tu peux déjà faire les exercices de ce jour.":"Tu peux reprendre les missions de cette journée.";
+ $("dayDisplay").textContent=(isToday?"Aujourd’hui · ":"")+capital(fullDate(chosen));
+ const dayMessages={
+  "2026-11-15":"À préparer pour lundi 16 novembre : dictée du son « eu » et récitation intégrale de « Le monstre ».",
+  "2026-11-16":"À l’école aujourd’hui : dictée du son « eu » et poésie « Le monstre » à réciter.",
+  "2026-11-17":"Additions à trois chiffres et préparation des mots du son « o ».",
+  "2026-11-18":"Entraînement aux compléments à 100 et aux mots du son « o ».",
+  "2026-11-19":"Réviser les compléments à 100 et les mots du son « o » avant vendredi.",
+  "2026-11-20":"Évaluation des compléments à 100 et révision des mots du son « o »."
+ };
+ $("dayStatus").textContent=seconds()>=MAX?"30 minutes terminées aujourd’hui : place au repos !":dayMessages[chosen]||(isFuture?"Les missions de cette date sont accessibles dès maintenant.":"Tu peux reprendre tes missions.");
  const host=$("missions");host.replaceChildren();const list=D.schedule[chosen]||[];
  $("doneLabel").textContent=(progress.done[chosen]||[]).length+" / "+list.length+" réussies";
  $("carryPractice").disabled=seconds()>=MAX;
+ $("quickDictationEu").disabled=seconds()>=MAX;
+ $("quickPoetry").disabled=seconds()>=MAX;
  list.forEach(([title,type,level],i)=>{const c=document.createElement("article");c.className="mission"+(isDone(i)?" done":"");
  const b=document.createElement("button");b.textContent=isDone(i)?"Rejouer ✓":"Jouer ➜";b.disabled=!available()||seconds()>=MAX;
  const tag=document.createElement("span");tag.className="number";tag.textContent="Mission "+(i+1);
@@ -668,6 +696,13 @@ $("nextBtn").addEventListener("click",next);
 $("replayDictation").addEventListener("click",()=>{markActivity();speakDictation(true)});
 $("dictationManual").addEventListener("click",acceptDictationManually);
 $("carryPractice").addEventListener("click",()=>startGame("carry-bonus","Additions avec retenue","carry",1));
+$("quickDictationEu").addEventListener("click",()=>{
+ const list=D.schedule[chosen]||[];
+ const i=list.findIndex(m=>m[1]==="dictation-eu");
+ const m=i<0?["Révision orale du son eu","dictation-eu",3]:list[i];
+ practiceSource=null;startGame(i>=0?i:"revision-eu",m[0],m[1],m[2]);
+});
+$("quickPoetry").addEventListener("click",()=>openModule("poetry"));
 $("lessonGo").addEventListener("click",()=>{if(!game)return;show("lessonGo",false);renderQuestion();startIdleWatch()});
 $("verifyWrite").addEventListener("click",compareWrite);
 $("hintWrite").addEventListener("click",giveWriteHint);
