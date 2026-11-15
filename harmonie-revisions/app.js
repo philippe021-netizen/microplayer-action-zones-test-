@@ -7,19 +7,40 @@ const MAX=D.maxMinutes*60;
 let progress=readProgress(),chosen=currentDay(),game=null,ticker=null,lastTick=0,lastActivity=0,idleTimer=null,lastEncouragement=-1,gusMomentTimer=null;
 let canvasStrokes=[],stroke=null,ctx=null,canvasWidth=1,canvasHeight=1,lessonTimer=null;
 const AUDIO_KEY="harmonie-audio-v1";
-let audioSettings=readAudioSettings(),voicePlayer=null,backgroundPlayer=$("gus-music-player");
+let audioSettings=readAudioSettings(),voicePlayer=null,backgroundPlayer=$("gus-music-player"),dictationSpeaking=false;
 if(backgroundPlayer){backgroundPlayer.src="./audio/harmonie-background.mp3?v=2";backgroundPlayer.loop=true;backgroundPlayer.volume=.16}
 function readAudioSettings(){try{const s=JSON.parse(localStorage.getItem(AUDIO_KEY)||"{}");return {voice:s.voice!==false,music:s.music!==false}}catch{return {voice:true,music:true}}}
 function saveAudioSettings(){try{localStorage.setItem(AUDIO_KEY,JSON.stringify(audioSettings))}catch{}}
 function paintAudioSettings(){for(const [id,key,on,off] of [["voiceToggle","voice","🗣️ Voix","🤐 Voix coupée"],["musicToggle","music","🎵 Musique","🔇 Musique coupée"]]){const b=$(id),active=audioSettings[key];b.textContent=active?on:off;b.setAttribute("aria-pressed",String(active))}}
-function musicVolume(level=.16){if(!backgroundPlayer)return;const withGus=window.GusMedia?.hasOriginalSound()?Math.min(level,.035):level,withVoice=voicePlayer&&!voicePlayer.paused?Math.min(withGus,.06):withGus;backgroundPlayer.volume=withVoice}
+function musicVolume(level=.16){if(!backgroundPlayer)return;const withGus=window.GusMedia?.hasOriginalSound()?Math.min(level,.035):level,withVoice=voicePlayer&&!voicePlayer.paused||dictationSpeaking?Math.min(withGus,.035):withGus;backgroundPlayer.volume=withVoice}
 window.HarmonieMusicVolume=level=>voicePlayer&&!voicePlayer.paused?Math.min(level,.06):level;
 function musicStop(){backgroundPlayer?.pause()}
 function musicStart(){if(!audioSettings.music||!game||!backgroundPlayer)return;musicVolume();if(backgroundPlayer.ended){try{backgroundPlayer.currentTime=0}catch{}}if(backgroundPlayer.paused||backgroundPlayer.ended){const p=backgroundPlayer.play();p?.then?.(musicVolume).catch?.(()=>{})}}
 backgroundPlayer?.addEventListener("ended",()=>{if(game&&audioSettings.music){try{backgroundPlayer.currentTime=0}catch{}musicStart()}});
 function stopVoice(continueSequence=false){if(voicePlayer){const audio=voicePlayer,next=audio.onended;audio.onended=null;audio.onerror=null;audio.pause();voicePlayer=null;musicVolume();if(continueSequence)next?.()}}
 function playVoice(file,onend){if(!audioSettings.voice){onend?.();return}stopVoice();const prefix=file.startsWith("lili-math-")?"lili-math-":file.startsWith("lili-lesson-")?"lili-lesson-":null;const src=prefix?"/api/tts-math?lesson="+encodeURIComponent(file.slice(prefix.length)):"./audio/"+file+".mp3";const audio=new Audio(src);voicePlayer=audio;let finished=false;const done=()=>{if(finished)return;finished=true;if(voicePlayer===audio){voicePlayer=null;musicStart();musicVolume()}onend?.()};audio.onended=done;audio.onerror=done;const p=audio.play();musicVolume();p?.catch?.(done)}
-function say(){/* Les voix système du navigateur sont désactivées : Lili utilise uniquement les enregistrements du projet. */}
+function stopDictation(){
+ if("speechSynthesis" in window)window.speechSynthesis.cancel();
+ dictationSpeaking=false;musicVolume();
+}
+function speakDictation(){
+ if(!game||game.questions[game.pos]?.mode!=="dictation")return;
+ const word=game.questions[game.pos].answer;
+ if(!("speechSynthesis" in window)){
+  $("feedback").textContent="La lecture vocale n’est pas disponible. Demande à un adulte de dicter le mot.";
+  return;
+ }
+ stopDictation();
+ const voice=new SpeechSynthesisUtterance(word);
+ voice.lang="fr-FR";voice.rate=.79;voice.pitch=1.1;voice.volume=1;
+ const french=window.speechSynthesis.getVoices().filter(v=>v.lang?.toLowerCase().startsWith("fr"));
+ const preferred=french.find(v=>v.lang.toLowerCase()==="fr-fr")||french[0];
+ if(preferred)voice.voice=preferred;
+ voice.onend=voice.onerror=()=>{dictationSpeaking=false;musicVolume()};
+ dictationSpeaking=true;musicVolume();
+ window.speechSynthesis.speak(voice);
+}
+function say(){/* Les autres leçons utilisent les voix enregistrées ; seule la dictée utilise la synthèse vocale française. */}
 const encouragements=["Alors, tu dors ou quoi ? Réveille les neurones !","Ton crayon fait la sieste ? On s’y remet !","Ouh là, ça réfléchit fort ! Tu vas trouver !","Ce mot se cache bien : démasque-le !","Allez, championne, encore une lettre !"];
 function encourage(){if(!game||game.solved||document.hidden||!audioSettings.voice||voicePlayer&&!voicePlayer.paused)return;let i=Math.floor(Math.random()*encouragements.length);if(encouragements.length>1&&i===lastEncouragement)i=(i+1+Math.floor(Math.random()*(encouragements.length-1)))%encouragements.length;lastEncouragement=i;window.GusMedia?.playEncouragement?.();playVoice("lili-encourage-"+(i+1))}
 function markActivity(){if(!game)return;lastActivity=Date.now()}
@@ -57,7 +78,7 @@ function render(){
  const b=document.createElement("button");b.textContent=isDone(i)?"Rejouer ✓":"Jouer ➜";b.disabled=!available()||seconds()>=MAX;
  const tag=document.createElement("span");tag.className="number";tag.textContent="Mission "+(i+1);
  const h=document.createElement("h3");h.textContent=title;
- const p=document.createElement("p");p.textContent=(type.startsWith("write")||type.startsWith("spell"))?"Observe le mot pendant 3 secondes, puis écris-le avec ton doigt sur l’ardoise.":"5 à 10 minutes de jeu tranquille.";
+ const p=document.createElement("p");p.textContent=type.startsWith("dictation")?"Écoute sans voir le mot, écris sur le tableau puis découvre la correction.":type==="hundred"?"Trouve le nombre qui manque pour faire exactement 100.":(type.startsWith("write")||type.startsWith("spell"))?"Observe le mot pendant 3 secondes, puis écris-le avec ton doigt sur l’ardoise.":"5 à 10 minutes de jeu tranquille.";
  c.append(tag,h,p,b);b.addEventListener("click",()=>startGame(i,title,type,level));host.append(c)});
  if(!list.length){host.textContent="Aucune mission prévue ce jour."}
 }
@@ -67,6 +88,24 @@ function cumulativeWords(graph,level){return [...new Set(Array.from({length:leve
 function alphabetKey(word){return clean(word).replace(/^(?:un|une|le|la|les|des|du|de la)\s+/,"").replace(/^l'/,"")}
 function item(prompt,answer,options,hint,label="Choisis la bonne réponse"){return {mode:"choice",prompt,answer:String(answer),options:shuffled([...new Set(options.map(String))]),hint,label}}
 function generate(type,level){
+ if(type==="dictation-o"){
+  // Dictée orale sans affichage du mot avant validation.
+  const words=level===1?D.words.o[1]:level===2?D.words.o[2]:cumulativeWords("o",2);
+  return shuffled([...new Set(words)]).slice(0,6).map(w=>({
+   mode:"dictation",prompt:"Écoute le mot et écris-le sans modèle.",answer:w,
+   label:"Contrôle de dictée — son o",
+   hint:"Écris avec ton doigt ou ton Pencil. Tu peux réécouter le mot autant de fois que nécessaire."
+  }));
+ }
+ if(type==="hundred"){
+  const amounts=level===1?[20,40,60,70,80,30]:level===2?[25,35,45,55,65,75]:[18,27,39,46,58,73];
+  return amounts.map(a=>{
+   const answer=100-a;
+   return item(a+" + ? = 100",answer,[answer,answer+10,answer-10,answer+1].filter(n=>n>=0&&n<=100),
+    "Compte combien il manque pour atteindre 100, en passant d’abord par la dizaine supérieure.",
+    level===3?"Mini-évaluation — compléments à 100":"Les compléments à 100");
+  });
+ }
  if(type.startsWith("read-")){
  const graph=type.slice(5),words=cumulativeWords(graph,level),seenTargets=new Set(),targets=words.filter(w=>{const key=alphabetKey(w);if(seenTargets.has(key))return false;seenTargets.add(key);return true}).slice(0,6);
  const targetKeys=new Set(words.map(alphabetKey)),seenOthers=new Set();
@@ -141,6 +180,11 @@ function gameLesson(type,level){
   text:"Si les unités font 10 ou plus, écris leur dernier chiffre en bas et reporte 1 dans la colonne des dizaines. Puis ajoute les dizaines et la retenue.",
   cards:["27 + 15 : commence par les unités","7 + 5 = 12 : écris 2, reporte 1 dizaine","2 dizaines + 1 dizaine + 1 retenue = 4","Le résultat est 42. À toi d’essayer !"]
  };
+ if(type==="hundred")return {
+  audio:null,
+  text:"Un complément à 100, c’est ce qu’il faut ajouter pour arriver exactement à 100. Regarde les dizaines, puis les unités si besoin.",
+  cards:["20 + ? = 100","20 + 80 = 100","35 + ? = 100","35 + 5 = 40, puis 40 + 60 = 100","35 + 65 = 100"]
+ };
  const math=mathLesson(type);
  const graph=type.startsWith("read-")?type.slice(5):type.startsWith("spell-")||type.startsWith("write-")?type.slice(6):null;
  const audio=math?.audio||"lili-lesson-"+(type.startsWith("spell-")?"spell":type.startsWith("write-")?"write":type.startsWith("read-")?type:type);
@@ -194,7 +238,9 @@ function renderQuestion(){
  $("question").textContent=q.prompt;$("hint").textContent=q.hint;$("feedback").textContent="";
  $("boardBox").classList.remove("wrong-answer");show("retryWrite",false);show("hintWrite",false);show("writeHint",false);$("writeHint").textContent="";
  $("bar").style.width=(game.pos/game.questions.length*100)+"%";$("count").textContent=(game.pos+1)+" / "+game.questions.length;
- show("nextBtn",false);show("handwrite",q.mode==="write"||Boolean(q.scratchpad));
+ show("nextBtn",false);show("handwrite",q.mode==="write"||q.mode==="dictation"||Boolean(q.scratchpad));
+ show("dictationControls",q.mode==="dictation");show("dictationManual",false);
+ $("retryWrite").textContent="Réécrire le mot";
  $("handwrite").classList.toggle("scratch-active",Boolean(q.scratchpad));show("scratchHelp",Boolean(q.scratchpad));
  renderScratchGuide(q);
  show("numberLine",Boolean(q.numberLine));if(q.numberLine)drawNumberLine(q.numberLine);
@@ -206,6 +252,13 @@ function renderQuestion(){
  if(q.scratchpad){
  $("memory").classList.add("hide");show("boardBox",true);show("clearWrite",true);show("undoWrite",true);show("verifyWrite",false);show("hintWrite",false);
  canvasStrokes=[];stroke=null;paintBoard();requestAnimationFrame(initCanvas);
+ }else if(q.mode==="dictation"){
+  $("memory").textContent="Écoute le mot, puis écris-le."; // Le mot reste caché jusqu’à validation.
+  $("memory").classList.remove("hide");
+  show("boardBox",true);show("clearWrite",true);show("undoWrite",true);
+  show("verifyWrite",true);$("verifyWrite").disabled=false;
+  canvasStrokes=[];stroke=null;requestAnimationFrame(initCanvas);
+  speakDictation();
  }else if(q.mode==="write"){
  $("memory").textContent="Regarde bien le mot…";$("memory").classList.remove("hide");
  show("boardBox",false);show("clearWrite",false);show("undoWrite",false);show("verifyWrite",false);
@@ -353,7 +406,7 @@ function handwritingDecision(expected,actual,confidence){
 }
 async function compareWrite(){
  if(!game||!canvasStrokes.length){$("feedback").textContent="Essaie d’écrire au moins une lettre avant de comparer.";return}
- const q=game.questions[game.pos];$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");show("hintWrite",false);show("writeHint",false);show("clearWrite",false);show("verifyWrite",false);$("verifyWrite").disabled=true;$("feedback").textContent="Je regarde ton écriture…";
+ const q=game.questions[game.pos];if(q.mode==="dictation"){await compareDictation();return}$("memory").textContent="Écris de mémoire…";$("memory").classList.add("hide");show("hintWrite",false);show("writeHint",false);show("clearWrite",false);show("verifyWrite",false);$("verifyWrite").disabled=true;$("feedback").textContent="Je regarde ton écriture…";
  try{
   const canvas=recognitionCanvas();if(!canvas)throw Error("Écriture trop courte");const result=await recognizeHandwriting(canvas);if(!game)return;
   const decision=handwritingDecision(q.answer,result.text,result.confidence);
@@ -362,6 +415,57 @@ async function compareWrite(){
   else offerWriteRetry("Le comparateur n’arrive pas encore à déchiffrer l’écriture cursive. Appuie sur « Réécrire le mot » et réessaie tranquillement.");
  }catch{if(!game)return;offerWriteRetry("Le correcteur automatique est momentanément indisponible. Réessaie dans un instant.")}
  finally{if($("verifyWrite"))$("verifyWrite").disabled=false}
+}
+function finishDictationValidation(session,position,decision){
+ if(game!==session||game.pos!==position)return;
+ const q=game.questions[position];
+ game.solved=true;markActivity();stopGusMoments();stopDictation();
+ $("memory").textContent="Correction : "+q.answer;
+ $("memory").classList.remove("hide");show("dictationControls",false);
+ show("verifyWrite",false);show("hintWrite",false);show("writeHint",false);show("clearWrite",false);
+ show("undoWrite",false);show("nextBtn",true);
+ if(decision.status==="correct"){
+  game.correct++;$("feedback").textContent="Bravo ! Le mot est correctement écrit : « "+q.answer+" ».";
+  show("retryWrite",false);show("dictationManual",false);
+ }else{
+  game.mistakes++;game.wrongOnCurrent=true;
+  if(decision.status==="incorrect"){
+   $("feedback").textContent="Le correcteur a lu « "+decision.read+" ». Voici le bon mot : « "+q.answer+" ». Compare les lettres.";
+   showLetterComparison(q.answer,decision.read);
+  }else{
+   $("feedback").textContent="Le correcteur n’a pas pu lire cette écriture avec certitude. Voici le mot attendu : « "+q.answer+" ».";
+  }
+  $("retryWrite").textContent="Réécrire ce mot";
+  game.retryCountsMistake=false;
+  show("retryWrite",true);show("dictationManual",true);
+ }
+}
+async function compareDictation(){
+ if(!game||game.solved||!canvasStrokes.length){
+  $("feedback").textContent="Écris d’abord le mot sur le tableau, puis valide.";
+  return;
+ }
+ const session=game,position=game.pos,q=game.questions[position];
+ $("verifyWrite").disabled=true;show("dictationControls",false);
+ $("feedback").textContent="Je vérifie ton écriture…";
+ let decision={status:"unreadable",read:""};
+ try{
+  const canvas=recognitionCanvas();
+  if(canvas){
+   const result=await recognizeHandwriting(canvas);
+   decision=handwritingDecision(q.answer,result.text,result.confidence);
+  }
+ }catch{
+  // La correction reste visible après validation, même en cas d’indisponibilité du serveur.
+ }
+ finishDictationValidation(session,position,decision);
+ $("verifyWrite").disabled=false;
+}
+function acceptDictationManually(){
+ if(!game||!game.solved||game.questions[game.pos]?.mode!=="dictation")return;
+ game.correct++;game.wrongOnCurrent=false;
+ $("feedback").textContent="Réponse vérifiée avec un adulte. Le mot attendu était « "+game.questions[game.pos].answer+" ».";
+ show("dictationManual",false);show("retryWrite",false);
 }
 function next(){
  if(!game||!game.solved)return;
@@ -373,14 +477,14 @@ function next(){
  show("home",false);show("finish",true);window.GusMedia?.playFinish?.();say("Bravo Harmonie ! Tu as terminé ta mission. Chaque essai t’a aidée à apprendre, je suis fière de toi !");
 }
 function endGame(){
- document.body.classList.remove("playing");
+ stopDictation();document.body.classList.remove("playing");
  clearInterval(lessonTimer);lessonTimer=null;
  if(!game){show("play",false);show("home",true);return}
  const t=game.writeTimer,f=game.writeFallback,h=game.hintTimer;game.writeTimer=null;game.writeFallback=null;game.hintTimer=null;if(t)clearTimeout(t);if(f)clearTimeout(f);if(h)clearTimeout(h);
  stopTimer();stopIdleWatch();game=null;stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("home",true);render();
 }
 function stopForDay(){
- // Atteinte de la limite : pas de nouveau jeu ni de question suivante.
+ stopDictation(); // Atteinte de la limite : pas de nouveau jeu ni de question suivante.
  clearInterval(lessonTimer);lessonTimer=null;
  const t=game?.writeTimer,f=game?.writeFallback,h=game?.hintTimer;if(t)clearTimeout(t);if(f)clearTimeout(f);if(h)clearTimeout(h);
  game=null;document.body.classList.remove("playing");stopTimer();stopIdleWatch();stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("finish",false);show("home",true);render();
@@ -404,6 +508,8 @@ $("exportCsv").addEventListener("click",exportCSV);
 $("resetDay").addEventListener("click",()=>{if(confirm("Recommencer les missions ? Le temps déjà passé ne sera pas effacé.")){delete progress.done[chosen];save();closeParent();parent();render()}});
 $("backBtn").addEventListener("click",endGame);$("finishHome").addEventListener("click",()=>{show("finish",false);show("home",true);render()});
 $("nextBtn").addEventListener("click",next);
+$("replayDictation").addEventListener("click",()=>{markActivity();speakDictation()});
+$("dictationManual").addEventListener("click",acceptDictationManually);
 $("carryPractice").addEventListener("click",()=>startGame("carry-bonus","Additions avec retenue","carry",1));
 $("lessonGo").addEventListener("click",()=>{if(!game)return;show("lessonGo",false);renderQuestion();startIdleWatch()});
 $("verifyWrite").addEventListener("click",compareWrite);
