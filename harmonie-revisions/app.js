@@ -212,13 +212,15 @@ function generate(type,level){
   const groups={
     1:{label:"CDU + DU (3 chiffres + 2)",pairs:[[127,47],[156,78],[238,56],[131,22],[214,65],[305,87]]},
     2:{label:"DU + CDU (2 chiffres + 3)",pairs:[[49,129],[47,127],[75,236],[21,154],[68,217],[34,465]]},
-    3:{label:"CDU + CDU (3 chiffres + 3)",pairs:[[131,122],[238,156],[409,187],[274,315],[357,268],[142,346]]}
+    3:{label:"CDU + CDU (3 chiffres + 3)",pairs:[[131,122],[238,156],[409,187],[274,315],[357,268],[142,346]]},
+    // Deux retenues obligatoires : unités → dizaines, puis dizaines → centaines.
+    4:{label:"CDU + CDU — deux retenues",pairs:[[178,256],[267,185],[389,247],[475,168],[586,157],[298,365],[674,258],[159,284],[487,176],[358,274]]}
   };
   const group=groups[level]||groups[1];
-  return shuffled(group.pairs).map(([a,b])=>{
+  return shuffled(group.pairs).slice(0,6).map(([a,b])=>{
    const answer=a+b;
    return {...item(a+" + "+b+" = ?",answer,[],
-    "Aligne les centaines, les dizaines et les unités. Commence par les unités ; pense à la retenue si nécessaire.",
+    (level===4?"Ici, il y a deux retenues : une des unités vers D, puis une des dizaines vers C. Écris-les au-dessus des colonnes concernées.":"Aligne les centaines, les dizaines et les unités. Commence par les unités ; pense à la retenue si nécessaire."),
     group.label),numeric:true,scratchpad:true,carryNumbers:{a,b}};
   });
  }
@@ -255,6 +257,11 @@ function mathLesson(type){
  return lessons[type]||null;
 }
 function gameLesson(type,level){
+ if(type==="add-cdu"&&level===4)return {
+  audio:null,
+  text:"Deux retenues : la première va au-dessus des dizaines (D), la seconde au-dessus des centaines (C). Jamais au-dessus des unités (U).",
+  cards:["Exemple : 149 + 283","Unités : 9 + 3 = 12. Écris 2 et retiens 1 dizaine.","Dizaines : 4 + 8 + 1 = 13. Écris 3 et retiens 1 centaine.","Centaines : 1 + 2 + 1 = 4.","Exemple terminé : 432"]
+ };
  if(type==="add-cdu")return {
   audio:null,
   text:"Aligne bien les centaines (C), les dizaines (D) et les unités (U). Tu peux poser les nombres au doigt sur le tableau. Le résultat ne sera montré qu’après ta validation.",
@@ -381,7 +388,7 @@ function renderScratchGuide(q){
   row(["ret.",...Array(three?3:2).fill("")],"carry-ret");
   row(["",...digits(a)],"carry-first");
   row(["+",...digits(b)],"carry-second");
-  row(["=",...Array(three?3:2).fill("□")],"carry-answer");
+  row(["=",...Array(three?3:2).fill("")],"carry-answer");
   host.append(model);host.hidden=false;return;
  }
  for(const row of q.scratchRows||[]){
@@ -677,7 +684,7 @@ function openPracticePanel(kind){
    ["Dictée du son ou","dictation-ou",2],["Dictée du son u","dictation-u",2]]:
   [["Compléments à 100 — dizaines","hundred",1],["Compléments à 100 — niveau 2","hundred",2],
    ["Compléments à 100 — contrôle","hundred",3],["CDU + DU","add-cdu",1],
-   ["DU + CDU","add-cdu",2],["CDU + CDU","add-cdu",3],["Additions avec retenue","carry",1],["Soustractions","subtract",2]];
+   ["DU + CDU","add-cdu",2],["CDU + CDU","add-cdu",3],["CDU + CDU — deux retenues","add-cdu",4],["Additions avec retenue","carry",1],["Soustractions","subtract",2]];
  $("practiceTitle").textContent=kind==="dictation"?"Contrôle de dictée":"Atelier de mathématiques";
  $("practiceIntro").textContent=kind==="dictation"?
   "La maîtresse dicte, tu écris sur le tableau, puis tu découvres le bon mot seulement après validation.":
@@ -731,7 +738,7 @@ $("dictationManual").addEventListener("click",acceptDictationManually);
 $("carryPractice").addEventListener("click",()=>startGame("carry-bonus","Additions avec retenue","carry",1));
 document.querySelectorAll("[data-add-cdu]").forEach(b=>b.addEventListener("click",()=>{
  const level=Number(b.dataset.addCdu);
- const names={1:"CDU + DU",2:"DU + CDU",3:"CDU + CDU"};
+ const names={1:"CDU + DU",2:"DU + CDU",3:"CDU + CDU",4:"CDU + CDU — deux retenues"};
  practiceSource=null;startGame("addition-cdu-"+level,"Additions à trois chiffres — "+names[level],"add-cdu",level);
 }));
 $("checkNumber").addEventListener("click",checkNumberAnswer);
