@@ -27,14 +27,30 @@
   <div><strong id="dayDisplay">Aujourd’hui</strong><p id="dayStatus">Je regarde ton planning…</p></div>
   <div class="minute-pill" id="clock" role="timer">0 / 30 min</div>
 </section>
-<section class="days" aria-label="Séances prévues" id="days"></section>
+<section class="days" aria-label="Calendrier des révisions, dates complètes" id="days"></section>
 <section id="home">
-  <div class="section-row"><h2>Mes 3 aventures du jour</h2><span id="doneLabel"></span></div>
-  <div id="missions" class="missions"></div>
-  <section class="poetry-feature" aria-label="Poésie à apprendre">
-   <div><strong>Pour lundi : réciter « Le monstre » en entier</strong><p>Répétition complète sans le texte, puis aide ciblée seulement si nécessaire.</p></div>
-   <button type="button" data-open-module="poetry">Réciter ma poésie</button>
+  <section class="urgent-revisions" aria-label="Révisions importantes pour lundi 16 novembre 2026">
+   <div class="urgent-heading">
+    <h2>À préparer pour lundi 16 novembre</h2>
+    <p>Les deux révisions prioritaires sont ici, accessibles directement.</p>
+   </div>
+   <div class="revision-cards">
+    <article class="revision-card">
+     <span class="revision-type">DICTÉE · LUNDI 16 NOVEMBRE</span>
+     <h3>Contrôle du son « eu »</h3>
+     <p>Une voix de maîtresse dicte les mots. Harmonie écrit sur l’ardoise, réécoute si besoin et découvre la correction après validation.</p>
+     <button id="quickDictationEu" type="button">Commencer le contrôle de dictée</button>
+    </article>
+    <article class="revision-card">
+     <span class="revision-type">POÉSIE · LUNDI 16 NOVEMBRE</span>
+     <h3>« Le monstre » en entier</h3>
+     <p>Récitation des 15 vers sans voir le texte, avec aide orale seulement si nécessaire et validation de toute la poésie.</p>
+     <button id="quickPoetry" type="button">Réciter toute la poésie</button>
+    </article>
+   </div>
   </section>
+  <div class="section-row"><h2>Missions du jour sélectionné</h2><span id="doneLabel"></span></div>
+  <div id="missions" class="missions"></div>
   <section class="carry-bonus" aria-label="Entraînement aux additions avec retenue">
     <div><span class="carry-badge">✍️ Entraînement au doigt</span>
     <h3>Additions avec retenue</h3>
