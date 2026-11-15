@@ -467,7 +467,15 @@ async function compareWrite(){
   if(decision.status==="correct"){succeed("Bravo ! Le correcteur a reconnu « "+decision.read+" » : le mot est juste !");say("Bravo Harmonie ! Le correcteur a reconnu le bon mot. Continue comme ça !");return}
   if(decision.status==="incorrect")offerWriteRetry("Le comparateur a lu « "+decision.read+" ». Les lettres en rouge sont celles qui diffèrent du modèle. Réessaie tranquillement.",{countMistake:true,expected:q.answer,actual:decision.read});
   else offerWriteRetry("Le comparateur n’arrive pas encore à déchiffrer l’écriture cursive. Appuie sur « Réécrire le mot » et réessaie tranquillement.");
- }catch{if(!game)return;offerWriteRetry("Le correcteur automatique est momentanément indisponible. Réessaie dans un instant.")}
+ }catch{
+  if(!game)return;
+  const word=game.questions[game.pos]?.answer||"";
+  $("memory").textContent="Modèle : "+word;$("memory").classList.remove("hide");
+  $("feedback").textContent="Le correcteur est indisponible. Compare ton écriture avec le modèle, puis demande à un adulte de vérifier.";
+  const accept=document.createElement("button");accept.type="button";accept.textContent="Un adulte confirme mon écriture";
+  accept.addEventListener("click",()=>{$("choices").replaceChildren();succeed("Écriture vérifiée avec un adulte. Bravo pour tes efforts !")});
+  $("choices").replaceChildren(accept);show("retryWrite",true);
+ }
  finally{if($("verifyWrite"))$("verifyWrite").disabled=false}
 }
 function finishDictationValidation(session,position,decision){
