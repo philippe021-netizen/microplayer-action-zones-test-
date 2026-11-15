@@ -143,3 +143,32 @@ body.playing>.app>.unified-nav{display:none}
 #poetryFullMic{background:#725cd0;color:#fff}
 #poetryFullTranscript{font-size:14px;color:#77708a;max-height:85px;overflow:auto}
 @media(max-width:600px){.poetry-mode-actions button{flex:1 1 100%}.poetry-whole-text{padding:13px}}
+
+/* Calendrier visible : uniquement les journées de la semaine en cours. */
+.days{margin:7px 0 14px;gap:10px;scroll-padding-inline:6px}
+.day{min-width:165px;min-height:104px;padding:12px 13px;justify-content:center;text-align:center;gap:3px;background:#fff;border:2px solid #ddd4f4}
+.day strong{font-size:17px;text-transform:capitalize;color:#453b78}
+.day .day-date{font-size:14px;font-weight:800;line-height:1.25;color:#5c537a;margin:0}
+.day .day-count{font-size:12px;color:#7a718e;font-weight:750}
+.day.active{border-color:#7656ce;background:#f1ecff}
+.day.today{border-color:#3f9a76}
+.day.today.active{border-color:#7454c6;box-shadow:0 0 0 3px #b7e7ce}
+.summary{margin:12px 0 8px;padding:15px 18px}
+.summary strong{font-size:clamp(19px,2.3vw,26px)}
+.summary p{line-height:1.45}
+.urgent-revisions{margin:14px 0 22px}
+.urgent-heading{margin:0 0 11px}
+.urgent-heading h2{font-size:clamp(21px,2.8vw,27px);margin:0 0 5px}
+.urgent-heading p{margin:0;font-size:15px;color:#655e80}
+.revision-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.revision-card{display:flex;flex-direction:column;gap:8px;min-width:0;padding:17px;border-radius:22px;background:#fff;border:2px solid #ded4f4;box-shadow:0 8px 23px #7865a51c}
+.revision-card:first-child{border-color:#b7a5e8;background:#fcfaff}
+.revision-card:nth-child(2){border-color:#a4d8bd;background:#f9fefb}
+.revision-type{font-size:12px;letter-spacing:.045em;font-weight:900;color:#675498}
+.revision-card h3{font-size:clamp(18px,2.5vw,23px);line-height:1.2;margin:0}
+.revision-card p{font-size:14px;line-height:1.5;color:#5c5674;margin:0 0 3px;flex:1}
+.revision-card button{border:0;border-radius:14px;padding:13px 15px;min-height:48px;background:#7159c3;color:white;font-weight:850;font-size:16px}
+.revision-card:nth-child(2) button{background:#247a55}
+.revision-card button:disabled{opacity:.5}
+.section-row{margin:4px 0 6px}
+@media(max-width:600px){.day{min-width:145px;min-height:94px}.revision-cards{grid-template-columns:1fr}.revision-card{padding:14px}.urgent-heading p{font-size:14px}}
