@@ -77,3 +77,57 @@ body.playing #play>.fine{flex:none;margin:5px 0 0}
 .carry-grid.carry-answer{padding-top:3px}.carry-grid .carry-empty{color:#ecd68b;font-weight:500}
 #boardBox .scratch-guide.is-carry{z-index:1;pointer-events:none}#boardBox #board{z-index:2;touch-action:none}
 @media(max-width:590px){.carry-bonus{flex-direction:column;align-items:stretch;padding:15px}.carry-bonus button{width:100%}.carry-model{margin-left:0;max-width:95%}.carry-guide-title{font-size:12px}.carry-grid{grid-template-columns:30px 44px 44px;font-size:27px}}
+
+
+/* Harmonie : interface unique, responsive iPad, sans altérer les moteurs d'origine. */
+.unified-nav{display:flex;gap:8px;overflow-x:auto;margin:13px 0;padding:3px 2px 8px;scrollbar-width:thin;flex-shrink:0}
+.unified-nav button{flex:0 0 auto;min-height:48px;padding:10px 15px;background:#fff;border:2px solid #dcd3f1;border-radius:16px;color:#524a7f;font-weight:850;white-space:nowrap}
+.unified-nav button.active,.unified-nav button[aria-current="page"]{background:#725cd0;color:#fff;border-color:#725cd0}
+.unified-panel{background:#fff;border:2px solid #eee7fa;border-radius:24px;padding:clamp(14px,2vw,22px);box-shadow:0 8px 25px #7e64b418}
+.unified-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
+.unified-panel-head h2{margin:0;font-size:clamp(19px,2.8vw,28px)}
+.unified-panel-head button{border:0;border-radius:13px;background:#eee9fb;color:#544789;padding:10px 15px;font-weight:800}
+.practice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:12px;margin-top:15px}
+.practice-grid button{border:2px solid #e5dcf9;background:#f8f4ff;color:#4c3f88;font-weight:800;font-size:17px;border-radius:16px;padding:19px 14px;text-align:center}
+.practice-grid button:focus-visible,.unified-nav button:focus-visible{outline:3px solid #d17cad;outline-offset:2px}
+.old-games button{min-height:44px;border:1px solid #e6def2;padding:13px 16px;border-radius:14px;background:#fff;color:#6650a7;font-weight:800}
+.module-panel{display:flex;flex-direction:column;min-height:min(70svh,840px)}
+#moduleFrame{display:block;width:100%;height:clamp(420px,68svh,860px);border:2px solid #e9dffa;border-radius:18px;background:#fff}
+.poetry-intro{color:#6b6281;margin-top:0}
+.poetry-setup{display:grid;gap:10px;max-width:760px;margin:auto;padding:16px;border-radius:20px;background:#f9f6ff}
+.poetry-setup h3{margin:0;font-size:20px}
+.poetry-setup label{font-weight:800;color:#5c4b89}
+.poetry-setup input,.poetry-setup textarea{font:inherit;width:100%;padding:12px 14px;border:2px solid #d4c7f2;border-radius:12px;color:#35305e;background:white}
+.poetry-setup textarea{min-height:160px;line-height:1.7;resize:vertical}
+.poetry-setup .primary{background:#6c53c9;color:#fff;border:0;font-weight:850;padding:14px 20px;border-radius:14px}
+.poetry-top{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.poetry-top h3{font-size:24px;margin:12px 0 7px}
+.poetry-top span{font-size:15px;font-weight:850;color:#7969aa}
+.poetry-progress{height:10px;margin:0}
+.poetry-count{font-size:14px;font-weight:850;color:#776790;text-align:right;margin:4px 0 9px}
+.poetry-line{min-height:130px;display:grid;place-items:center;text-align:center;font-family:Marelle,ui-rounded,cursive;font-size:clamp(27px,4.5vw,46px);line-height:1.35;padding:20px;background:linear-gradient(135deg,#ecf7f1,#f9f3ff);color:#3d4d60;border-radius:19px}
+.poetry-hidden{font-family:inherit;font-size:clamp(18px,3.3vw,27px);font-weight:800;color:#77718f}
+.poetry-actions{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:15px auto}
+.poetry-actions button{font-weight:800;border:2px solid #cbbaf3;color:#554288;background:#f8f4ff;border-radius:14px;padding:12px 16px;font-size:16px}
+.poetry-actions button.primary{background:#725cd0;color:#fff;border-color:#725cd0}
+.poetry-actions button:disabled{opacity:.43}
+#poetryAdult{background:#e4f8ee;border-color:#a0dabc;color:#22664a}
+#poetryMic{background:#6654c0;color:white;border-color:#6654c0}
+#poetryStatus{border-top:1px solid #ece5f5;padding:12px 0;color:#554575;font-weight:800;line-height:1.5;min-height:46px}
+#poetryTranscript{font-size:14px;color:#666077;margin:8px 0}
+.carry-model.is-cdu .carry-grid{grid-template-columns:clamp(34px,5vw,56px) repeat(3,clamp(38px,5.3vw,55px));font-size:clamp(23px,3vw,32px)}
+body.playing>.app>.unified-nav{display:none}
+@media(max-width:640px){
+ .unified-panel-head{align-items:flex-start;flex-wrap:wrap}
+ .practice-grid{grid-template-columns:1fr}
+ .module-panel{padding:7px}
+ #moduleFrame{height:72svh;min-height:400px}
+ .poetry-actions button{flex:1 1 150px}
+ .carry-model.is-cdu .carry-grid{grid-template-columns:26px repeat(3,37px);font-size:23px}
+}
+
+.poetry-feature{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;background:#fff;border:2px solid #e5d8fc;border-radius:19px;margin:16px 0;padding:15px 18px}
+.poetry-feature strong{font-size:19px;color:#504386}
+.poetry-feature p{margin:6px 0 0;font-size:15px;color:#69637e}
+.poetry-feature button{border:none;border-radius:14px;background:#745ace;color:white;padding:12px 18px;font-weight:850}
+@media(max-width:590px){.poetry-feature button{width:100%}}
