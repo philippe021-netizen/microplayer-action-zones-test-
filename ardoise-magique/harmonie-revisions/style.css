@@ -172,3 +172,20 @@ body.playing>.app>.unified-nav{display:none}
 .revision-card button:disabled{opacity:.5}
 .section-row{margin:4px 0 6px}
 @media(max-width:600px){.day{min-width:145px;min-height:94px}.revision-cards{grid-template-columns:1fr}.revision-card{padding:14px}.urgent-heading p{font-size:14px}}
+
+
+/* Additions scolaires à trois chiffres, accessibles à tout moment. */
+.cdu-feature{background:#fff;border:2px solid #c6b1ed;border-radius:22px;margin:18px 0;padding:18px;box-shadow:0 7px 18px #7768a51c}
+.cdu-feature h2{font-size:clamp(21px,2.8vw,27px);margin:0 0 5px;color:#4d407c}
+.cdu-feature p{margin:3px 0 13px;color:#69627e;line-height:1.5}
+.cdu-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.cdu-buttons button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:78px;border-radius:15px;border:2px solid #b9a5e9;background:#f1ecff;color:#504084;font-weight:850;font-size:19px;text-align:center;padding:10px}
+.cdu-buttons button small{font-size:13px;font-weight:650;color:#615780}
+.numeric-answer{border:2px solid #c4b1f0;border-radius:18px;background:#f9f6ff;padding:13px;margin:12px auto;max-width:460px}
+.numeric-answer label{display:block;font-size:17px;font-weight:850;color:#514188;margin-bottom:9px}
+.numeric-answer-actions{display:flex;gap:9px;align-items:center}
+.numeric-answer input{border:2px solid #b5a5e2;border-radius:12px;background:#fff;color:#382d6d;width:105px;min-height:52px;padding:6px;font-size:26px;text-align:center;font-weight:800}
+.numeric-answer button{background:#7358cc;color:#fff;border:0;border-radius:12px;min-height:52px;flex:1;font-weight:850;font-size:17px}
+.numeric-answer p{margin:8px 0 0;color:#71678b;font-size:13px}
+.numeric-answer[hidden]{display:none!important}
+@media(max-width:650px){.cdu-buttons{grid-template-columns:1fr}.cdu-buttons button{min-height:61px}.cdu-feature{padding:13px}}
