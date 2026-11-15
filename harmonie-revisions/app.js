@@ -689,4 +689,5 @@ paintAudioSettings();
 if(!D.schedule[chosen]){const days=Object.keys(D.schedule).sort();chosen=days.find(d=>d>=chosen)||days[days.length-1]}
 render();
 if(window.location.hash==="#additions" && seconds()<MAX)startGame("carry-bonus","Additions avec retenue","carry",1);
+if(window.location.hash==="#dictee-eu" && seconds()<MAX)startGame("dictation-eu-direct","Contrôle de dictée — son eu","dictation-eu",2);
 })();
