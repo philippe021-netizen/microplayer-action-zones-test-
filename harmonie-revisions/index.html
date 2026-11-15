@@ -32,7 +32,7 @@
   <div class="section-row"><h2>Mes 3 aventures du jour</h2><span id="doneLabel"></span></div>
   <div id="missions" class="missions"></div>
   <section class="poetry-feature" aria-label="Poésie à apprendre">
-   <div><strong>Poésie orale — « Le monstre »</strong><p>La maîtresse t’écoute, te guide vers par vers et t’aide si tu hésites.</p></div>
+   <div><strong>Pour lundi : réciter « Le monstre » en entier</strong><p>Répétition complète sans le texte, puis aide ciblée seulement si nécessaire.</p></div>
    <button type="button" data-open-module="poetry">Réciter ma poésie</button>
   </section>
   <section class="carry-bonus" aria-label="Entraînement aux additions avec retenue">
@@ -54,7 +54,7 @@
 </section>
 <section id="poetryPanel" class="unified-panel poetry-panel" hidden>
  <div class="unified-panel-head"><h2>Poésie avec la maîtresse</h2><button type="button" id="poetryBack">Retour aux missions</button></div>
- <p class="poetry-intro">Écoute, récite à voix haute, reçois un indice si tu bloques et passe au vers suivant.</p>
+ <p class="poetry-intro">Pour lundi : tu dois connaître toute la poésie. Fais une récitation complète sans regarder, comme devant la maîtresse.</p>
  <div id="poetrySetup" class="poetry-setup">
   <h3>Parents : préparer la poésie</h3>
   <label for="poetryTitleInput">Titre</label><input id="poetryTitleInput" type="text" value="Le monstre" maxlength="100">
@@ -64,7 +64,12 @@
  </div>
  <div id="poetryExercise" hidden>
   <div class="poetry-top"><h3 id="poetryTitle">Le monstre</h3><span id="poetryStep"></span></div>
+  <div class="poetry-mode-actions">
+   <button type="button" id="poetryWhole" class="primary">Réciter toute la poésie</button>
+   <button type="button" id="poetryStudyVerse">Retravailler vers par vers</button>
+  </div>
   <div class="progress poetry-progress"><div id="poetryProgressBar"></div></div><p id="poetryProgressLabel" class="poetry-count"></p>
+  <div id="poetryVerseMode" hidden>
   <div class="poetry-line" id="poetryLine">Écoute, puis récite.</div>
   <p id="poetryTranscript" hidden aria-live="polite"></p>
   <div class="poetry-actions">
@@ -79,7 +84,25 @@
    <button id="poetryNext" type="button" class="primary">Vers suivant</button>
   </div>
   <p id="poetryMicNote" class="fine"></p>
-  <div class="poetry-actions secondary"><button id="poetryRestart" type="button">Recommencer la poésie</button><button id="poetryEdit" type="button">Modifier le texte (parents)</button></div>
+  <div class="poetry-actions secondary"><button id="poetryRestart" type="button">Recommencer les vers</button><button id="poetryEdit" type="button">Modifier le texte (parents)</button></div>
+  </div>
+  <div id="poetryFullMode" hidden>
+   <p class="poetry-exam-intro">Contrôle de récitation : commence au début et poursuis jusqu’au dernier vers. Ne regarde pas le modèle.</p>
+   <div class="poetry-line poetry-whole-text poetry-hidden" id="poetryFullText">Le texte est caché.</div>
+   <p id="poetryFullTranscript" hidden aria-live="polite"></p>
+   <div class="poetry-actions">
+    <button id="poetryFullListen" type="button">Écouter toute la poésie</button>
+    <button id="poetryFullMic" type="button" class="primary">Je récite toute la poésie</button>
+    <button id="poetryFullHint" type="button">Un indice oral</button>
+    <button id="poetryFullReveal" type="button">Afficher le texte</button>
+   </div>
+   <p id="poetryFullMicNote" class="fine"></p>
+   <div class="poetry-actions">
+    <button id="poetryFullAdult" type="button">Un adulte confirme toute ma récitation</button>
+    <button id="poetryFullRestart" type="button">Nouvel essai intégral</button>
+    <button id="poetryFullBack" type="button">Recommencer au début</button>
+   </div>
+  </div>
  </div>
  <p id="poetryStatus" class="poetry-setup-status" role="status" aria-live="polite"></p>
  <p class="fine">L’écoute vocale peut transmettre la parole au service de reconnaissance du navigateur. Le programme ne conserve ni audio ni transcription. Un adulte peut valider sans microphone.</p>
