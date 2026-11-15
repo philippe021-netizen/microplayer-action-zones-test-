@@ -51,13 +51,22 @@
   </section>
   <div class="section-row"><h2>Missions du jour sélectionné</h2><span id="doneLabel"></span></div>
   <div id="missions" class="missions"></div>
+  <section class="cdu-feature" aria-label="Additions à trois chiffres, trois types de calculs">
+    <h2>Additions à trois chiffres</h2>
+    <p>Trois types comme à l’école. Pose ton opération avec ton doigt, écris ton résultat et valide-le avant de voir la correction.</p>
+    <div class="cdu-buttons">
+      <button type="button" data-add-cdu="1">CDU + DU <small>Ex. 127 + 47</small></button>
+      <button type="button" data-add-cdu="2">DU + CDU <small>Ex. 49 + 129</small></button>
+      <button type="button" data-add-cdu="3">CDU + CDU <small>Ex. 131 + 122</small></button>
+    </div>
+  </section>
   <section class="carry-bonus" aria-label="Entraînement aux additions avec retenue">
     <div><span class="carry-badge">✍️ Entraînement au doigt</span>
     <h3>Additions avec retenue</h3>
     <p>Pose tes additions sur le tableau avec ton doigt ou l’Apple Pencil. Écris la retenue, puis choisis le résultat pour le vérifier.</p></div>
     <button id="carryPractice" type="button">Faire des additions ➜</button>
   </section>
-  <p class="fine">Trois petites missions sont prévues chaque jour. Une séance dure environ 5 à 10 minutes et s'arrête au plus tard après 30 minutes d'activité.</p>
+  <p class="fine">Tous les jours et tous les exercices sont disponibles à l’avance. Après 30 minutes, le programme conseille une pause sans bloquer les activités.</p>
   <div class="old-games"><p>Retrouve aussi tes jeux préférés :</p><button type="button" data-open-module="ardoise">Ardoise magique</button><button type="button" data-open-module="alphabet">Défi alphabétique</button><button type="button" data-open-module="poetry">Poésie orale</button></div>
 </section>
 <section id="practicePanel" class="unified-panel" hidden>
@@ -142,6 +151,14 @@
     <button id="lessonGo" type="button" class="primary" hidden>J’ai compris, à moi ! ➜</button>
     <div id="numberLine" class="number-line" role="img" hidden></div>
     <div id="choices" class="choices"></div>
+    <div id="numberAnswer" class="numeric-answer" hidden>
+      <label for="answerValue">Mon résultat (après avoir posé l’addition)</label>
+      <div class="numeric-answer-actions">
+        <input id="answerValue" type="number" inputmode="numeric" min="0" max="1999" placeholder="?" autocomplete="off">
+        <button id="checkNumber" type="button" class="primary">Valider mon résultat</button>
+      </div>
+      <p>Écris le nombre puis valide : aucune réponse n’est affichée à l’avance.</p>
+    </div>
     <div id="handwrite" hidden>
       <p id="memory" class="memory">Regarde bien le mot…</p>
       <div id="dictationControls" class="dictation-controls" hidden><button id="replayDictation" type="button">🔊 Réécouter le mot</button><p>Écris ce que tu entends. Le mot restera caché jusqu’à « Valider ».</p></div>
