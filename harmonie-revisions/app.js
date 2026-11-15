@@ -113,8 +113,8 @@ function render(){
  const b=document.createElement("button");b.textContent=isDone(i)?"Rejouer ✓":"Jouer ➜";b.disabled=!available()||seconds()>=MAX;
  const tag=document.createElement("span");tag.className="number";tag.textContent="Mission "+(i+1);
  const h=document.createElement("h3");h.textContent=title;
- const p=document.createElement("p");p.textContent=type.startsWith("dictation")?"Écoute sans voir le mot, écris sur le tableau puis découvre la correction.":type==="hundred"?"Trouve le nombre qui manque pour faire exactement 100.":(type.startsWith("write")||type.startsWith("spell"))?"Observe le mot pendant 3 secondes, puis écris-le avec ton doigt sur l’ardoise.":"5 à 10 minutes de jeu tranquille.";
- c.append(tag,h,p,b);b.addEventListener("click",()=>{practiceSource=null;startGame(i,title,type,level)});host.append(c)});
+ const p=document.createElement("p");p.textContent=type==="poetry"?"Récite les 15 vers sans regarder, comme devant la maîtresse.":type.startsWith("dictation")?"Écoute sans voir le mot, écris sur le tableau puis découvre la correction.":type==="hundred"?"Trouve le nombre qui manque pour faire exactement 100.":(type.startsWith("write")||type.startsWith("spell"))?"Observe le mot pendant 3 secondes, puis écris-le avec ton doigt sur l’ardoise.":"5 à 10 minutes de jeu tranquille.";
+ c.append(tag,h,p,b);b.addEventListener("click",()=>{practiceSource=null;if(type==="poetry")openModule("poetry");else startGame(i,title,type,level)});host.append(c)});
  if(!list.length){host.textContent="Aucune mission prévue ce jour."}
 }
 function shuffled(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
@@ -644,6 +644,8 @@ window.addEventListener("message",event=>{
  if(data.kind==="harmonie:open-module"&&["ardoise","alphabet"].includes(data.module))openModule(data.module);
 });
 window.addEventListener("harmonie:poetry-finished",event=>{
+ const poetryIndex=(D.schedule[chosen]||[]).findIndex((mission)=>mission[1]==="poetry");
+ if(poetryIndex>=0)complete(poetryIndex);
  progress.moduleResults.push({date:currentDay(),module:"poésie",count:Number(event.detail?.count)||0,stars:Number(event.detail?.stars)||0});
  save();window.GusMedia?.playFinish?.();
 });
