@@ -400,7 +400,7 @@ function checkNumberAnswer(){
  if(!game||game.solved)return;
  const q=game.questions[game.pos];if(!q?.numeric)return;
  const raw=$("answerValue").value.trim();
- if(!/^\\d{1,4}$/.test(raw)){
+ if(!/^\d{1,4}$/.test(raw)){
   $("feedback").textContent="Écris le résultat de ton addition dans la case, puis appuie sur Valider.";
   return;
  }
