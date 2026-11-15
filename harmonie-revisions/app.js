@@ -64,7 +64,8 @@ function isDone(m){return (progress.done[chosen]||[]).includes(m)}
 function show(el,yes){$(el).hidden=!yes}
 function renderDays(){
  const host=$("days");host.replaceChildren();
- Object.keys(D.schedule).sort().forEach(d=>{const b=document.createElement("button");b.className="day"+(d===chosen?" active":"")+(d===currentDay()?" today":"");b.type="button";b.innerHTML="<strong>"+frDay(d)+"</strong><span>"+((progress.done[d]||[]).length)+"/3 jeux</span>";b.addEventListener("click",()=>{if(game)endGame();chosen=d;render()});host.appendChild(b)})
+ Object.keys(D.schedule).sort().forEach(d=>{const b=document.createElement("button");b.className="day"+(d===chosen?" active":"")+(d===currentDay()?" today":"");b.type="button";b.innerHTML="<strong>"+frDay(d)+"</strong><span>"+((progress.done[d]||[]).length)+"/3 jeux</span>";b.addEventListener("click",()=>{if(game)endGame();chosen=d;render()});host.appendChild(b)});
+ requestAnimationFrame(()=>host.querySelector(".day.active")?.scrollIntoView({block:"nearest",inline:"center"}));
 }
 function render(){
  paintClock();renderDays();
@@ -488,7 +489,7 @@ function stopForDay(){
  clearInterval(lessonTimer);lessonTimer=null;
  const t=game?.writeTimer,f=game?.writeFallback,h=game?.hintTimer;if(t)clearTimeout(t);if(f)clearTimeout(f);if(h)clearTimeout(h);
  game=null;document.body.classList.remove("playing");stopTimer();stopIdleWatch();stopVoice();musicStop();window.GusMedia?.stop();show("play",false);show("finish",false);show("home",true);render();
- $("dayStatus").textContent="30 minutes terminées : bravo, profite maintenant de tes vacances !";
+ $("dayStatus").textContent="30 minutes terminées : bravo, repose-toi maintenant !";
 }
 function exportCSV(){
  const lines=[["date","mission","type","reponse_attendue","erreur_au_premier_essai"],...progress.results.map(x=>[x.date,x.mission,x.type,x.answer,x.errors])];
