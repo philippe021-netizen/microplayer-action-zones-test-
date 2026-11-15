@@ -276,3 +276,108 @@ body.playing.addition-mode #play>.fine{display:none}
   body.playing.addition-mode .numeric-answer input{min-height:55px;width:112px}
   body.playing.addition-mode .numeric-answer button{min-height:55px;font-size:17px}
 }
+
+
+/* Version iPad XXL : la pose en colonnes occupe presque tout le tableau.
+   Concerne uniquement les additions a trois chiffres, pas la dictee. */
+body.playing.addition-mode #choices:empty{
+  display:none!important;
+  margin:0!important;
+  min-height:0;
+}
+body.playing.addition-mode .game-card{
+  justify-content:flex-start;
+}
+body.playing.addition-mode #handwrite.scratch-active #boardBox{
+  height:clamp(620px,78svh,850px);
+  min-height:620px;
+  width:100%;
+  max-width:none;
+}
+body.playing.addition-mode #boardBox .scratch-guide.is-carry{
+  inset:16px clamp(12px,2vw,26px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+body.playing.addition-mode .carry-model{
+  width:min(96%,1100px);
+  max-width:none;
+  margin:0 auto;
+  align-items:stretch;
+  justify-content:center;
+  gap:clamp(5px,1svh,13px);
+}
+body.playing.addition-mode .carry-guide-title{
+  font-size:clamp(20px,2.4vw,30px);
+  text-align:center;
+  margin:0 0 7px;
+}
+body.playing.addition-mode .carry-model.is-cdu .carry-grid{
+  display:grid;
+  width:100%;
+  grid-template-columns:minmax(50px,.43fr) repeat(3,minmax(0,1fr));
+  column-gap:clamp(7px,1.6vw,22px);
+  min-height:clamp(88px,10.4svh,115px);
+  font-size:clamp(55px,7.3svh,99px);
+  line-height:1;
+  justify-items:center;
+  align-items:center;
+}
+body.playing.addition-mode .carry-model.is-cdu .carry-grid.carry-head{
+  min-height:40px;
+  font-size:clamp(25px,3.2svh,39px);
+  line-height:1.1;
+}
+body.playing.addition-mode .carry-model.is-cdu .carry-grid.carry-ret{
+  min-height:clamp(76px,8.2svh,102px);
+  font-size:clamp(46px,5.5svh,75px);
+  line-height:1;
+}
+body.playing.addition-mode .carry-model.is-cdu .carry-grid.carry-ret span:first-child{
+  font-size:clamp(19px,2.1svh,29px);
+}
+body.playing.addition-mode .carry-model.is-cdu .carry-grid.carry-answer{
+  min-height:clamp(105px,12svh,140px);
+}
+body.playing.addition-mode .carry-model.is-cdu .carry-grid .carry-empty{
+  font-size:1.15em;
+  min-width:1.1em;
+  min-height:1em;
+}
+body.playing.addition-mode .carry-model.is-cdu .carry-grid.carry-second{
+  border-bottom-width:5px;
+  padding-bottom:8px;
+}
+body.playing.addition-mode #handwrite.scratch-active .scratch-help{
+  margin:0 auto 4px;
+}
+@media (max-width:720px){
+  body.playing.addition-mode #handwrite.scratch-active #boardBox{
+    height:clamp(555px,75svh,720px);
+    min-height:555px;
+  }
+  body.playing.addition-mode .carry-model{
+    width:98%;
+    gap:5px;
+    margin:0 auto;
+  }
+  body.playing.addition-mode .carry-guide-title{
+    font-size:clamp(16px,3.1vw,24px);
+  }
+  body.playing.addition-mode .carry-model.is-cdu .carry-grid{
+    grid-template-columns:minmax(30px,.43fr) repeat(3,minmax(0,1fr));
+    gap:4px;
+    font-size:clamp(39px,8vw,66px);
+    min-height:83px;
+  }
+  body.playing.addition-mode .carry-model.is-cdu .carry-grid.carry-head{
+    min-height:33px;font-size:24px;
+  }
+  body.playing.addition-mode .carry-model.is-cdu .carry-grid.carry-ret{
+    min-height:70px;font-size:45px;
+  }
+  body.playing.addition-mode .carry-model.is-cdu .carry-grid.carry-answer{
+    min-height:95px;
+  }
+}
