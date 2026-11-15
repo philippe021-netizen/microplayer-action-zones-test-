@@ -19,26 +19,59 @@ function musicStart(){if(!audioSettings.music||!game||!backgroundPlayer)return;m
 backgroundPlayer?.addEventListener("ended",()=>{if(game&&audioSettings.music){try{backgroundPlayer.currentTime=0}catch{}musicStart()}});
 function stopVoice(continueSequence=false){if(voicePlayer){const audio=voicePlayer,next=audio.onended;audio.onended=null;audio.onerror=null;audio.pause();voicePlayer=null;musicVolume();if(continueSequence)next?.()}}
 function playVoice(file,onend){if(!audioSettings.voice){onend?.();return}stopVoice();const prefix=file.startsWith("lili-math-")?"lili-math-":file.startsWith("lili-lesson-")?"lili-lesson-":null;const src=prefix?"/api/tts-math?lesson="+encodeURIComponent(file.slice(prefix.length)):"./audio/"+file+".mp3";const audio=new Audio(src);voicePlayer=audio;let finished=false;const done=()=>{if(finished)return;finished=true;if(voicePlayer===audio){voicePlayer=null;musicStart();musicVolume()}onend?.()};audio.onended=done;audio.onerror=done;const p=audio.play();musicVolume();p?.catch?.(done)}
+// Sélectionne une voix française féminine, au timbre posé, si l’appareil la propose.
+// Safari iPad ne donne pas le genre d’une voix: on privilégie donc des voix nommées connues.
+function teacherVoice(){
+ if(!("speechSynthesis" in window))return null;
+ const french=window.speechSynthesis.getVoices().filter(v=>/^fr(?:-|_)/i.test(v.lang||""));
+ const femaleNames=["audrey","amélie","amelie","marie","denise","julie","léa","lea","hortense","céline","celine","virginie","alice","sylvie","claire","camille","chloé","chloe","thomasina"];
+ const byName=femaleNames.map(name=>french.find(v=>(v.name||"").toLocaleLowerCase("fr").includes(name))).find(Boolean);
+ return byName||french.find(v=>/^fr[-_]fr$/i.test(v.lang))||french[0]||null;
+}
 function stopDictation(){
  if("speechSynthesis" in window)window.speechSynthesis.cancel();
  dictationSpeaking=false;musicVolume();
 }
-function speakDictation(){
- if(!game||game.questions[game.pos]?.mode!=="dictation")return;
- const word=game.questions[game.pos].answer;
+function speakDictation(repeat=false){
+ if(!game||game.solved||game.questions[game.pos]?.mode!=="dictation")return;
+ if(!audioSettings.voice){
+  $("feedback").textContent="Active la voix en haut du programme pour écouter la maîtresse.";
+  return;
+ }
  if(!("speechSynthesis" in window)){
-  $("feedback").textContent="La lecture vocale n’est pas disponible. Demande à un adulte de dicter le mot.";
+  $("feedback").textContent="La voix de la maîtresse n’est pas disponible sur cet appareil. Demande à un adulte de dicter le mot.";
   return;
  }
  stopDictation();
- const voice=new SpeechSynthesisUtterance(word);
- voice.lang="fr-FR";voice.rate=.79;voice.pitch=1.1;voice.volume=1;
- const french=window.speechSynthesis.getVoices().filter(v=>v.lang?.toLowerCase().startsWith("fr"));
- const preferred=french.find(v=>v.lang.toLowerCase()==="fr-fr")||french[0];
- if(preferred)voice.voice=preferred;
- voice.onend=voice.onerror=()=>{dictationSpeaking=false;musicVolume()};
+ const session=game,position=game.pos,word=game.questions[position].answer;
+ const selectedVoice=teacherVoice();
+ // La consigne et le mot sont prononcés, jamais montrés à l’écran avant validation.
+ const first=!repeat&&position===0;
+ const instruction=repeat?"Je répète.":first?
+   "Bonjour Harmonie. Nous allons faire une petite dictée. Écoute bien, puis écris ce mot sur le tableau.":
+   "Très bien. Voici le mot suivant.";
+ function createUtterance(text,rate){
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang="fr-FR";u.rate=rate;u.pitch=1.0;u.volume=1;
+  if(selectedVoice)u.voice=selectedVoice;
+  return u;
+ }
+ const intro=createUtterance(instruction,.90);
+ const target=createUtterance(word,.76);
+ let finished=false;
+ function finish(){
+  if(finished)return;
+  finished=true;dictationSpeaking=false;musicVolume();
+ }
+ intro.onend=()=>{
+  if(game===session&&game.pos===position&&!game.solved){
+   window.speechSynthesis.speak(target);
+  }else finish();
+ };
+ intro.onerror=()=>{if(game===session&&game.pos===position&&!game.solved)window.speechSynthesis.speak(target);else finish()};
+ target.onend=finish;target.onerror=finish;
  dictationSpeaking=true;musicVolume();
- window.speechSynthesis.speak(voice);
+ window.speechSynthesis.speak(intro);
 }
 function say(){/* Les autres leçons utilisent les voix enregistrées ; seule la dictée utilise la synthèse vocale française. */}
 const encouragements=["Alors, tu dors ou quoi ? Réveille les neurones !","Ton crayon fait la sieste ? On s’y remet !","Ouh là, ça réfléchit fort ! Tu vas trouver !","Ce mot se cache bien : démasque-le !","Allez, championne, encore une lettre !"];
@@ -429,8 +462,8 @@ function finishDictationValidation(session,position,decision){
   game.correct++;$("feedback").textContent="Bravo ! Le mot est correctement écrit : « "+q.answer+" ».";
   show("retryWrite",false);show("dictationManual",false);
  }else{
-  game.mistakes++;game.wrongOnCurrent=true;
   if(decision.status==="incorrect"){
+   game.mistakes++;game.wrongOnCurrent=true;
    $("feedback").textContent="Le correcteur a lu « "+decision.read+" ». Voici le bon mot : « "+q.answer+" ». Compare les lettres.";
    showLetterComparison(q.answer,decision.read);
   }else{
@@ -509,7 +542,7 @@ $("exportCsv").addEventListener("click",exportCSV);
 $("resetDay").addEventListener("click",()=>{if(confirm("Recommencer les missions ? Le temps déjà passé ne sera pas effacé.")){delete progress.done[chosen];save();closeParent();parent();render()}});
 $("backBtn").addEventListener("click",endGame);$("finishHome").addEventListener("click",()=>{show("finish",false);show("home",true);render()});
 $("nextBtn").addEventListener("click",next);
-$("replayDictation").addEventListener("click",()=>{markActivity();speakDictation()});
+$("replayDictation").addEventListener("click",()=>{markActivity();speakDictation(true)});
 $("dictationManual").addEventListener("click",acceptDictationManually);
 $("carryPractice").addEventListener("click",()=>startGame("carry-bonus","Additions avec retenue","carry",1));
 $("lessonGo").addEventListener("click",()=>{if(!game)return;show("lessonGo",false);renderQuestion();startIdleWatch()});
