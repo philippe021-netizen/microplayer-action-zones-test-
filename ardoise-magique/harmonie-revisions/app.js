@@ -366,29 +366,43 @@ function renderScratchGuide(q){
  const host=$("scratchGuide");host.replaceChildren();
  host.classList.toggle("is-carry",Boolean(q.carryNumbers));
  if(q.carryNumbers){
-  const {a,b}=q.carryNumbers,model=document.createElement("div");
-  model.className="carry-model";
-  const title=document.createElement("strong");title.className="carry-guide-title";
-  title.textContent="Écris les retenues au-dessus de D ou C, jamais au-dessus de U";model.append(title);
-  const row=(values,kind)=>{
-   const line=document.createElement("div");line.className="carry-grid "+kind;
-   for(const value of values){
-    const cell=document.createElement("span");cell.textContent=String(value);
-    if(value===""){cell.className="carry-blank";cell.setAttribute("aria-hidden","true")}
-    line.append(cell);
-   }
-   model.append(line);
-  };
+  // L'ardoise ne présente QUE des repères d'écriture.
+  // Harmonie pose elle-même les nombres, le signe +, les retenues,
+  // la barre d'addition et la réponse.
+  const {a,b}=q.carryNumbers;
   const three=a>=100||b>=100;
-  const digits=n=>three?[n>=100?Math.floor(n/100):"",Math.floor(n/10)%10,n%10]:[Math.floor(n/10),n%10];
-  if(three)model.classList.add("is-cdu");
-  row(["",...(three?["C","D","U"]:["D","U"])],"carry-head");
-  // L’espace des retenues est volontairement libre. Une retenue va vers la
-  // colonne de gauche (D puis C), jamais au-dessus de la colonne U.
-  row(["ret.",...Array(three?3:2).fill("")],"carry-ret");
-  row(["",...digits(a)],"carry-first");
-  row(["+",...digits(b)],"carry-second");
-  row(["=",...Array(three?3:2).fill("")],"carry-answer");
+  const labels=three?["C","D","U"]:["D","U"];
+  const model=document.createElement("div");
+  model.className="carry-guide-free"+(three?" is-cdu":" is-du");
+  const title=document.createElement("p");
+  title.className="carry-free-title";
+  title.textContent="À toi de poser toute l’addition sur les lignes !";
+  model.append(title);
+  const grid=document.createElement("div");
+  grid.className="carry-free-grid";
+  grid.style.setProperty("--digit-count",String(labels.length));
+  function addCell(text,kind){
+   const cell=document.createElement("div");
+   cell.className=kind;
+   cell.textContent=text;
+   if(!text)cell.setAttribute("aria-hidden","true");
+   grid.appendChild(cell);
+  }
+  addCell("","carry-free-label");
+  for(const label of labels)addCell(label,"carry-free-heading");
+  // Les retenues se reportent vers la colonne de gauche. Pas de
+  // case ou de ligne de retenue au-dessus des unités.
+  addCell("Retenues","carry-free-label");
+  labels.forEach(label=>addCell("","carry-free-write "+(label==="U"?"carry-free-no-ret":"carry-free-ret")));
+  for(const [rowName,rowClass] of [
+   ["1er nombre","carry-free-first"],
+   ["2e nombre","carry-free-second"],
+   ["Résultat","carry-free-result"]
+  ]){
+   addCell(rowName,"carry-free-label");
+   labels.forEach(()=>addCell("","carry-free-write "+rowClass));
+  }
+  model.appendChild(grid);
   host.append(model);host.hidden=false;return;
  }
  for(const row of q.scratchRows||[]){
